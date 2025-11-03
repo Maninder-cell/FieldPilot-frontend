@@ -64,14 +64,14 @@ export default function Testimonials({ title, subtitle, testimonials }: Testimon
               key={testimonial.id}
               data-testimonial-card
               data-index={index}
-              className={`bg-gray-50 rounded-xl p-8 flex flex-col gap-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
+              className={`bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 rounded-2xl p-8 flex flex-col gap-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-emerald-100 ${
                 visibleCards.has(index) ? 'animate-[fadeInUp_0.6s_ease-out_forwards]' : 'opacity-0 translate-y-8'
               }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex gap-1">{renderStars(testimonial.rating)}</div>
               
-              <p className="text-base text-gray-600 leading-relaxed italic flex-grow">{testimonial.content}</p>
+              <p className="text-base text-gray-700 leading-relaxed italic flex-grow">{testimonial.content}</p>
               
               <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
                 <div className="flex-shrink-0">
@@ -80,12 +80,12 @@ export default function Testimonials({ title, subtitle, testimonials }: Testimon
                     alt={testimonial.name}
                     width={48}
                     height={48}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-100"
                   />
                 </div>
                 <div className="flex-grow">
                   <div className="text-base font-semibold text-gray-900 mb-1">{testimonial.name}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-600">
                     {testimonial.role} at {testimonial.company}
                   </div>
                 </div>
@@ -95,18 +95,18 @@ export default function Testimonials({ title, subtitle, testimonials }: Testimon
         </div>
 
         {/* Trust Indicators */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto p-12 bg-gradient-to-br from-primary-light to-secondary-light rounded-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto p-12 bg-gradient-to-br from-emerald-50 via-cyan-50 to-emerald-50 rounded-2xl shadow-lg border-2 border-emerald-100">
           <div className="text-center">
-            <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
-            <div className="text-base text-gray-600 font-medium">Happy Customers</div>
+            <div className="text-4xl md:text-5xl font-bold text-emerald-600 mb-2">10,000+</div>
+            <div className="text-base text-gray-700 font-medium">Happy Customers</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-primary mb-2">4.9/5</div>
-            <div className="text-base text-gray-600 font-medium">Average Rating</div>
+            <div className="text-4xl md:text-5xl font-bold text-emerald-600 mb-2">4.9/5</div>
+            <div className="text-base text-gray-700 font-medium">Average Rating</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-primary mb-2">98%</div>
-            <div className="text-base text-gray-600 font-medium">Customer Satisfaction</div>
+            <div className="text-4xl md:text-5xl font-bold text-emerald-600 mb-2">98%</div>
+            <div className="text-base text-gray-700 font-medium">Customer Satisfaction</div>
           </div>
         </div>
       </div>

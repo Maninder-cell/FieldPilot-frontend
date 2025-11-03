@@ -44,12 +44,12 @@ export default function Features({ title, subtitle, features }: FeaturesProps) {
               key={index}
               data-feature-card
               data-index={index}
-              className={`bg-white border border-gray-200 rounded-xl p-8 transition-all duration-200 hover:-translate-y-2 hover:shadow-lg hover:border-primary-light ${
+              className={`bg-white border-2 border-gray-200 rounded-2xl p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-emerald-200 ${
                 visibleCards.has(index) ? 'animate-[fadeInUp_0.6s_ease-out_forwards]' : 'opacity-0 translate-y-8'
               }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-primary-light to-secondary-light rounded-xl mb-6 text-primary text-4xl transition-transform hover:scale-110">
+              <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-emerald-100 to-cyan-100 rounded-xl mb-6 text-emerald-600 text-4xl transition-transform hover:scale-110">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">{feature.title}</h3>

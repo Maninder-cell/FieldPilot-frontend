@@ -27,7 +27,7 @@ export default function Footer({ sections, socialLinks }: FooterProps) {
                 <a
                   key={index}
                   href={link.href}
-                  className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-lg text-gray-300 hover:bg-primary hover:text-white hover:-translate-y-0.5 transition-all"
+                  className="flex items-center justify-center w-10 h-10 bg-gray-800 rounded-lg text-gray-400 hover:bg-emerald-600 hover:text-white hover:-translate-y-1 transition-all"
                   aria-label={link.platform}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -42,10 +42,10 @@ export default function Footer({ sections, socialLinks }: FooterProps) {
           {sections.map((section, index) => (
             <div key={index} className="flex flex-col gap-4">
               <h3 className="text-base font-semibold text-white mb-2">{section.title}</h3>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-3">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
-                    <Link href={link.href} className="text-sm text-gray-400 hover:text-primary transition-colors">
+                    <Link href={link.href} className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
                       {link.label}
                     </Link>
                   </li>
@@ -61,13 +61,13 @@ export default function Footer({ sections, socialLinks }: FooterProps) {
             © {currentYear} Field Pilot. All rights reserved.
           </p>
           <div className="flex gap-6 flex-wrap justify-center">
-            <Link href="/privacy" className="text-sm text-gray-400 hover:text-primary transition-colors">
+            <Link href="/privacy" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-sm text-gray-400 hover:text-primary transition-colors">
+            <Link href="/terms" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
               Terms of Service
             </Link>
-            <Link href="/cookies" className="text-sm text-gray-400 hover:text-primary transition-colors">
+            <Link href="/cookies" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
               Cookie Policy
             </Link>
           </div>

@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { ChevronDown, LogOut, User } from 'lucide-react';
 
 export default function Header() {
+  const { user, isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,14 +90,62 @@ export default function Header() {
             </ul>
           </nav>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons / User Menu */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth/login" className="px-6 py-2.5 text-base font-medium text-emerald-600 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
-              Login
-            </Link>
-            <Link href="/auth/register" className="px-6 py-2.5 text-base font-medium text-white bg-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-              Sign Up
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-base font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-semibold">
+                    {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                  </div>
+                  <span>{user.full_name}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isUserMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await logout();
+                        }}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link href="/login" className="px-6 py-2.5 text-base font-medium text-emerald-600 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+                  Login
+                </Link>
+                <Link href="/register" className="px-6 py-2.5 text-base font-medium text-white bg-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -131,12 +183,40 @@ export default function Header() {
               ))}
             </ul>
             <div className="flex flex-col gap-4 px-4 py-4 border-t border-gray-200">
-              <Link href="/auth/login" className="w-full px-6 py-3 text-center text-base font-medium text-emerald-600 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
-                Login
-              </Link>
-              <Link href="/auth/register" className="w-full px-6 py-3 text-center text-base font-medium text-white bg-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-700 transition-all">
-                Sign Up
-              </Link>
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-semibold">
+                      {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{user.full_name}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link href="/dashboard" className="w-full px-6 py-3 text-center text-base font-medium text-emerald-600 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      setIsMobileMenuOpen(false);
+                      await logout();
+                    }}
+                    className="w-full px-6 py-3 text-center text-base font-medium text-red-600 border-2 border-red-600 rounded-lg hover:bg-red-50 transition-all"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="w-full px-6 py-3 text-center text-base font-medium text-emerald-600 border-2 border-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+                    Login
+                  </Link>
+                  <Link href="/register" className="w-full px-6 py-3 text-center text-base font-medium text-white bg-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-700 transition-all">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>

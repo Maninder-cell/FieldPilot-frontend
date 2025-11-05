@@ -1,22 +1,22 @@
 // TypeScript interfaces for Field Pilot Authentication
 
 export interface User {
-  id: number;
+  id: string;  // UUID from backend
   email: string;
   first_name: string;
   last_name: string;
   full_name: string;
   phone: string | null;
-  avatar_url: string | null;
+  avatar_url?: string | null;
   role: 'owner' | 'admin' | 'employee';
   employee_id: string;
-  department: string | null;
-  job_title: string | null;
-  is_active: boolean;
+  department?: string | null;
+  job_title?: string | null;
+  is_active?: boolean;
   is_verified: boolean;
-  two_factor_enabled: boolean;
+  two_factor_enabled?: boolean;
   created_at: string;
-  last_login_at: string | null;
+  last_login_at?: string | null;
 }
 
 export interface LoginRequest {
@@ -56,7 +56,7 @@ export interface VerifyEmailRequest {
 
 export interface VerifyEmailResponse {
   user: {
-    id: number;
+    id: string;  // UUID from backend
     email: string;
     first_name: string;
     last_name: string;

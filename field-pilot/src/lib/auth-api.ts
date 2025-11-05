@@ -14,7 +14,7 @@ import {
   ApiError,
 } from '@/types/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 /**
  * Generic fetch wrapper with error handling for authentication endpoints
@@ -35,11 +35,12 @@ async function fetchAuthAPI<T>(
     const data = await response.json();
 
     if (!response.ok) {
+      // Handle backend error structure
       const error: ApiError = {
         status: response.status,
-        message: data.message || 'An error occurred',
-        details: data.details,
-        code: data.code,
+        message: data.error?.message || data.message || 'An error occurred',
+        details: data.error?.details || data.details,
+        code: data.error?.code || data.code,
       };
       throw error;
     }
@@ -140,15 +141,15 @@ export async function logoutUser(refreshToken: string): Promise<void> {
 
 /**
  * Get current user info
- * GET /api/auth/me/
+ * GET /api/auth/profile/
  */
 export async function getCurrentUser(accessToken: string): Promise<User> {
-  const response = await fetchAuthAPI<ApiResponse<User>>('/auth/me/', {
+  const response = await fetchAuthAPI<ApiResponse<{ user: User }>>('/auth/profile/', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
   
-  return response.data;
+  return response.data.user;
 }

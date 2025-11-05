@@ -37,6 +37,13 @@ export default function VerifyEmailForm({ email: initialEmail, onSuccess }: Veri
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Update email when prop changes
+  useEffect(() => {
+    if (initialEmail && initialEmail !== formData.email) {
+      setFormData(prev => ({ ...prev, email: initialEmail }));
+    }
+  }, [initialEmail, formData.email]);
+
   // Cooldown timer for resend button
   useEffect(() => {
     if (resendCooldown > 0) {

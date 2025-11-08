@@ -3,42 +3,24 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import Button from '@/components/ui/Button';
-import { LogOut, User, Mail, Phone, Briefcase } from 'lucide-react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { User, Mail, Phone, Briefcase } from 'lucide-react';
 
 function DashboardContent() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={logout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {user.first_name}! 👋
-          </h2>
-          <p className="text-gray-600">
-            You're successfully logged in to Field Pilot.
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Here's what's happening with your account today.
           </p>
         </div>
 
@@ -137,8 +119,8 @@ function DashboardContent() {
             <p className="text-3xl font-bold text-emerald-600 mt-4">Coming Soon</p>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 

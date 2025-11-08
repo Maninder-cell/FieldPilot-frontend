@@ -5,18 +5,125 @@ import Link from 'next/link';
 import { SubscriptionPlan } from '@/types/landing';
 import { getSubscriptionPlans } from '@/lib/api';
 
+const defaultPlans: any[] = [
+  {
+    id: 1,
+    name: 'Starter',
+    slug: 'starter',
+    description: 'Perfect for small teams getting started',
+    price_monthly: '29',
+    price_yearly: '290',
+    features: [
+      'Up to 10 team members',
+      'Basic reporting',
+      'Email support',
+      '5GB storage',
+    ],
+    is_active: true,
+  },
+  {
+    id: 2,
+    name: 'Professional',
+    slug: 'professional',
+    description: 'For growing teams with advanced needs',
+    price_monthly: '79',
+    price_yearly: '790',
+    features: [
+      'Up to 50 team members',
+      'Advanced reporting',
+      'Priority support',
+      '50GB storage',
+      'Custom integrations',
+    ],
+    is_active: true,
+  },
+  {
+    id: 3,
+    name: 'Enterprise',
+    slug: 'enterprise',
+    description: 'For large organizations',
+    price_monthly: '199',
+    price_yearly: '1990',
+    features: [
+      'Unlimited team members',
+      'Custom reporting',
+      '24/7 phone support',
+      'Unlimited storage',
+      'Dedicated account manager',
+      'Custom SLA',
+    ],
+    is_active: true,
+  },
+];
+
+// Default features by plan slug
+const defaultFeaturesBySlug: Record<string, string[]> = {
+  starter: [
+    'Up to 10 team members',
+    'Basic reporting',
+    'Email support',
+    '5GB storage',
+  ],
+  professional: [
+    'Up to 50 team members',
+    'Advanced reporting',
+    'Priority support',
+    '50GB storage',
+    'Custom integrations',
+  ],
+  enterprise: [
+    'Unlimited team members',
+    'Custom reporting',
+    '24/7 phone support',
+    'Unlimited storage',
+    'Dedicated account manager',
+    'Custom SLA',
+  ],
+};
+
+// Helper function to safely get features as an array
+const getFeatures = (plan: any): string[] => {
+  if (!plan.features) return [];
+  if (Array.isArray(plan.features)) return plan.features;
+  if (typeof plan.features === 'string') {
+    try {
+      const parsed = JSON.parse(plan.features);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState<any[]>(defaultPlans);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchPlans() {
       try {
         const data = await getSubscriptionPlans();
-        setPlans(data);
+        console.log('Fetched plans:', data);
+        if (data && data.length > 0) {
+          // Ensure features is always an array, use default features if empty
+          const normalizedPlans = data.map(plan => {
+            const features = getFeatures(plan);
+            const finalFeatures = features.length > 0 
+              ? features 
+              : (defaultFeaturesBySlug[plan.slug] || []);
+            
+            return {
+              ...plan,
+              features: finalFeatures
+            };
+          });
+          setPlans(normalizedPlans);
+        }
       } catch (error) {
         console.error('Error fetching plans:', error);
+        // Keep default plans on error
       } finally {
         setLoading(false);
       }
@@ -31,7 +138,7 @@ export default function Pricing() {
   const popularPlanSlug = 'professional';
 
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-gradient-to-b from-gray-50 to-white">
+    <section id="pricing" className="py-20 md:py-32 bg-linear-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         {/* Section Header */}
         <div className="text-center mb-12 max-w-3xl mx-auto">
@@ -84,7 +191,7 @@ export default function Pricing() {
                 }`}
               >
                 {plan.slug === popularPlanSlug && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white text-sm font-semibold px-6 py-1.5 rounded-full whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-emerald-600 to-cyan-600 text-white text-sm font-semibold px-6 py-1.5 rounded-full whitespace-nowrap shadow-lg">
                     Most Popular
                   </div>
                 )}
@@ -102,15 +209,19 @@ export default function Pricing() {
                   </span>
                 </div>
 
-                <ul className="mb-8 flex-grow space-y-4">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3 text-base text-gray-700 leading-normal">
-                      <svg className="flex-shrink-0 w-5 h-5 text-emerald-600 mt-0.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
+                <ul className="mb-8 grow space-y-4">
+                  {getFeatures(plan).length > 0 ? (
+                    getFeatures(plan).map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3 text-base text-gray-700 leading-normal">
+                        <svg className="shrink-0 w-5 h-5 text-emerald-600 mt-0.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        {feature}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-base text-gray-500 italic">No features listed</li>
+                  )}
                 </ul>
 
                 <Link

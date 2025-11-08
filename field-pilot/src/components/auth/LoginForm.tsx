@@ -194,9 +194,8 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
 
         <div className="text-sm">
           <a
-            href="#"
+            href="/forgot-password"
             className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
-            onClick={(e) => e.preventDefault()}
           >
             Forgot password?
           </a>

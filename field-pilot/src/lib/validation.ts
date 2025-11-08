@@ -150,3 +150,93 @@ export function getErrorMessage(error: ApiError): string {
   // Return API message or generic fallback
   return error.message || 'An unexpected error occurred. Please try again.';
 }
+
+/**
+ * Validate date of birth
+ */
+export function validateDateOfBirth(date: string): string | null {
+  if (!date) return null; // Optional field
+  
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(date)) {
+    return 'Date must be in YYYY-MM-DD format';
+  }
+  
+  const birthDate = new Date(date);
+  const today = new Date();
+  const age = today.getFullYear() - birthDate.getFullYear();
+  
+  if (age < 18 || age > 100) {
+    return 'Please enter a valid date of birth';
+  }
+  
+  return null;
+}
+
+/**
+ * Validate zip code
+ */
+export function validateZipCode(zipCode: string): string | null {
+  if (!zipCode) return null; // Optional field
+  
+  // Support various zip code formats (US, Canada, UK, etc.)
+  const zipRegex = /^[A-Z0-9\s-]{3,10}$/i;
+  if (!zipRegex.test(zipCode)) {
+    return 'Please enter a valid zip/postal code';
+  }
+  
+  return null;
+}
+
+/**
+ * Validate emergency contact phone
+ */
+export function validateEmergencyPhone(phone: string): string | null {
+  if (!phone) return null; // Optional field
+  
+  return validatePhone(phone);
+}
+
+/**
+ * Validate current password (for change password)
+ */
+export function validateCurrentPassword(password: string): string | null {
+  if (!password) return 'Current password is required';
+  return null;
+}
+
+/**
+ * Validate new password (for reset/change password)
+ */
+export function validateNewPassword(password: string): string | null {
+  return validatePassword(password);
+}
+
+/**
+ * Validate new password confirmation
+ */
+export function validateNewPasswordConfirm(
+  newPassword: string,
+  newPasswordConfirm: string
+): string | null {
+  return validatePasswordConfirm(newPassword, newPasswordConfirm);
+}
+
+/**
+ * Get user-friendly error message for password operations
+ */
+export function getPasswordErrorMessage(error: ApiError): string {
+  if (error.code === 'INVALID_OTP') {
+    return 'Invalid or expired verification code. Please request a new one.';
+  }
+  
+  if (error.code === 'INCORRECT_PASSWORD') {
+    return 'Current password is incorrect. Please try again.';
+  }
+  
+  if (error.code === 'WEAK_PASSWORD') {
+    return 'Password does not meet security requirements.';
+  }
+  
+  return error.message || 'An error occurred. Please try again.';
+}

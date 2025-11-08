@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react';
 interface FormInputProps {
   label: string;
   name: string;
-  type?: 'text' | 'email' | 'password' | 'tel';
+  type?: 'text' | 'email' | 'password' | 'tel' | 'date';
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;

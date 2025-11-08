@@ -91,3 +91,70 @@ export interface ApiResponse<T> {
   data: T;
   code?: string;
 }
+
+// Password Management Types
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp_code: string;
+  new_password: string;
+  new_password_confirm: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  new_password_confirm: string;
+}
+
+// Profile Management Types
+
+export interface UserProfile {
+  user: User;
+  date_of_birth: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  country: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  emergency_contact_relationship: string | null;
+  hire_date: string | null;
+  skills: string[];
+  certifications: string[];
+  timezone: string;
+  language: string;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  push_notifications: boolean;
+}
+
+export interface UserProfileFormData {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  avatar_url: string | null;
+  department: string | null;
+  job_title: string | null;
+  date_of_birth: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  country: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  emergency_contact_relationship: string | null;
+  skills: string[];
+  certifications: string[];
+  timezone: string;
+  language: string;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  push_notifications: boolean;
+}

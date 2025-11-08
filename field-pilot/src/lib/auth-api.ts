@@ -12,6 +12,11 @@ import {
   TokenRefreshResponse,
   ApiResponse,
   ApiError,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ChangePasswordRequest,
+  UserProfile,
+  UserProfileFormData,
 } from '@/types/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -141,15 +146,88 @@ export async function logoutUser(refreshToken: string): Promise<void> {
 
 /**
  * Get current user info
- * GET /api/auth/profile/
+ * GET /api/auth/me/
  */
 export async function getCurrentUser(accessToken: string): Promise<User> {
-  const response = await fetchAuthAPI<ApiResponse<{ user: User }>>('/auth/profile/', {
+  const response = await fetchAuthAPI<ApiResponse<User>>('/auth/me/', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
   
-  return response.data.user;
+  return response.data;
+}
+
+/**
+ * Request password reset OTP
+ * POST /api/auth/forgot-password/
+ */
+export async function forgotPassword(data: ForgotPasswordRequest): Promise<void> {
+  await fetchAuthAPI<ApiResponse<void>>('/auth/forgot-password/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Reset password with OTP
+ * POST /api/auth/reset-password/
+ */
+export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
+  await fetchAuthAPI<ApiResponse<void>>('/auth/reset-password/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Change password for authenticated user
+ * POST /api/auth/change-password/
+ */
+export async function changePassword(
+  data: ChangePasswordRequest,
+  accessToken: string
+): Promise<void> {
+  await fetchAuthAPI<ApiResponse<void>>('/auth/change-password/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+}
+
+/**
+ * Get user profile
+ * GET /api/auth/profile/
+ */
+export async function getProfile(accessToken: string): Promise<UserProfile> {
+  const response = await fetchAuthAPI<ApiResponse<UserProfile>>('/auth/profile/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  
+  return response.data;
+}
+
+/**
+ * Update user profile
+ * PUT /api/auth/profile/update/
+ */
+export async function updateProfile(
+  data: Partial<UserProfileFormData>,
+  accessToken: string
+): Promise<UserProfile> {
+  const response = await fetchAuthAPI<ApiResponse<UserProfile>>('/auth/profile/update/', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  
+  return response.data;
 }

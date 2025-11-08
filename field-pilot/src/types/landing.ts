@@ -1,7 +1,7 @@
 // TypeScript interfaces for Field Pilot Landing Page
 
 export interface SubscriptionPlan {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string;
@@ -10,9 +10,9 @@ export interface SubscriptionPlan {
   yearly_discount_percentage: number;
   max_users: number | null;
   max_equipment: number | null;
-  max_storage_gb: number;
+  max_storage_gb: number | null;
   max_api_calls_per_month: number | null;
-  features: string[];
+  features: Record<string, boolean>;
   is_active: boolean;
 }
 

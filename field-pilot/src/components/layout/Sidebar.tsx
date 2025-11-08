@@ -5,22 +5,31 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import {
   LayoutDashboard,
   User,
   Settings,
   LogOut,
   Lock,
+  Building,
+  Users,
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
+import TrialStatusBadge from '@/components/onboarding/TrialStatusBadge';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { tenant } = useOnboarding();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!user) return null;
+
+  // Check if user is owner or admin
+  // If user has a tenant and their global role is owner/admin, OR if they have a tenant (they created it, so they're the owner)
+  const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin' || (tenant !== null);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -55,6 +64,20 @@ export default function Sidebar() {
     },
   ];
 
+  // Company management links (only for owner/admin)
+  const companyNavigation = isOwnerOrAdmin ? [
+    {
+      name: 'Company Settings',
+      href: '/company/settings',
+      icon: Building,
+    },
+    {
+      name: 'Team Management',
+      href: '/company/team',
+      icon: Users,
+    },
+  ] : [];
+
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + '/');
   };
@@ -62,34 +85,80 @@ export default function Sidebar() {
   return (
     <>
       <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Trial Status Badge */}
+        {tenant && tenant.is_trial_active && (
+          <div className="p-4 border-b border-gray-200">
+            <TrialStatusBadge
+              trialEndsAt={tenant.trial_ends_at}
+              isTrialActive={tenant.is_trial_active}
+              size="sm"
+            />
+          </div>
+        )}
 
         {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
+        <nav className="flex-1 overflow-y-auto p-4">
+          <ul className="space-y-1">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
 
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={`
-                    flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
-                    ${active
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  <Icon className="w-5 h-5 shrink-0" />
-                  <span className="text-sm font-medium">{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+              return (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                      ${active
+                        ? 'bg-teal-50 text-teal-700'
+                        : 'text-gray-700 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Company Management Section */}
+          {companyNavigation.length > 0 && (
+            <>
+              <div className="my-4 border-t border-gray-200"></div>
+              <div className="mb-2 px-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Company
+                </p>
+              </div>
+              <ul className="space-y-1">
+                {companyNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className={`
+                          flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                          ${active
+                            ? 'bg-teal-50 text-teal-700'
+                            : 'text-gray-700 hover:bg-gray-50'
+                          }
+                        `}
+                      >
+                        <Icon className="w-5 h-5 shrink-0" />
+                        <span className="text-sm font-medium">{item.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </nav>
 
         {/* Logout Button */}
         <div className="p-4 border-t border-gray-200">

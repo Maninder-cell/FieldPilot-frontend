@@ -1,0 +1,246 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useOnboarding } from '@/contexts/OnboardingContext';
+import FormInput from '@/components/ui/FormInput';
+import Button from '@/components/ui/Button';
+import Alert from '@/components/ui/Alert';
+import { ROLE_OPTIONS, MemberRole } from '@/types/onboarding';
+import { validateEmail, validateRequired } from '@/lib/validation';
+import { OnboardingApiError } from '@/types/onboarding';
+import { X } from 'lucide-react';
+
+interface InviteMemberFormProps {
+  onSuccess?: () => void;
+  onClose?: () => void;
+}
+
+export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFormProps) {
+  const { inviteTeamMember, isLoading: contextLoading } = useOnboarding();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    role: 'member' as MemberRole,
+    first_name: '',
+    last_name: '',
+  });
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    
+    if (apiError) {
+      setApiError(null);
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field, formData[field as keyof typeof formData]);
+  };
+
+  const validateField = (field: string, value: string) => {
+    let error = '';
+
+    switch (field) {
+      case 'email':
+        error = validateRequired(value, 'Email') || validateEmail(value) || '';
+        break;
+      case 'role':
+        error = validateRequired(value, 'Role') || '';
+        break;
+    }
+
+    setErrors(prev => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    newErrors.email = validateRequired(formData.email, 'Email') || validateEmail(formData.email) || '';
+    newErrors.role = validateRequired(formData.role, 'Role') || '';
+
+    setErrors(newErrors);
+    setTouched({
+      email: true,
+      role: true,
+    });
+
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setApiError(null);
+    setSuccessMessage(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await inviteTeamMember(formData);
+      setSuccessMessage(`Invitation sent to ${formData.email} successfully!`);
+      
+      // Reset form
+      setFormData({
+        email: '',
+        role: 'member',
+        first_name: '',
+        last_name: '',
+      });
+      setErrors({});
+      setTouched({});
+
+      // Close modal after short delay
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      }
+    } catch (error) {
+      const apiError = error as OnboardingApiError;
+      
+      if (apiError.details) {
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(apiError.details).forEach(([field, messages]) => {
+          fieldErrors[field] = messages[0];
+        });
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+      }
+      
+      setApiError(apiError.message || 'Failed to send invitation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Invite Team Member</h2>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {apiError && (
+        <Alert type="error" message={apiError} onClose={() => setApiError(null)} />
+      )}
+      
+      {successMessage && (
+        <Alert type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormInput
+          label="Email Address"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={(value) => handleChange('email', value)}
+          onBlur={() => handleBlur('email')}
+          error={touched.email ? errors.email : ''}
+          required
+          placeholder="colleague@example.com"
+        />
+
+        <div>
+          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="role"
+            name="role"
+            value={formData.role}
+            onChange={(e) => handleChange('role', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          >
+            {ROLE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {touched.role && errors.role && (
+            <p className="mt-1 text-sm text-red-600">{errors.role}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">
+            {ROLE_OPTIONS.find(opt => opt.value === formData.role)?.description}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="First Name (Optional)"
+            name="first_name"
+            type="text"
+            value={formData.first_name}
+            onChange={(value) => handleChange('first_name', value)}
+            placeholder="John"
+          />
+
+          <FormInput
+            label="Last Name (Optional)"
+            name="last_name"
+            type="text"
+            value={formData.last_name}
+            onChange={(value) => handleChange('last_name', value)}
+            placeholder="Doe"
+          />
+        </div>
+
+        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+          <p className="text-sm text-teal-800">
+            <strong>Note:</strong> If the user already has an account, they'll be added immediately. 
+            Otherwise, they'll receive an invitation email to join.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          {onClose && (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              fullWidth
+              onClick={onClose}
+              disabled={isSubmitting || contextLoading}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isSubmitting || contextLoading}
+            disabled={isSubmitting || contextLoading}
+          >
+            Send Invitation
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}

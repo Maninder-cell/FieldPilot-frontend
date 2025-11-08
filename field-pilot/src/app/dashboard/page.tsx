@@ -2,14 +2,44 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import { User, Mail, Phone, Briefcase } from 'lucide-react';
 
 function DashboardContent() {
   const { user } = useAuth();
+  const { tenant, isLoading } = useOnboarding();
 
   if (!user) return null;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show onboarding wizard if no tenant or onboarding not completed
+  if (!tenant || !tenant.onboarding_completed) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <OnboardingWizard />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -24,6 +54,49 @@ function DashboardContent() {
           </p>
         </div>
 
+        {/* Company Info Card */}
+        {tenant && (
+          <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg shadow-sm border border-teal-200 p-6 mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Your Company
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Company Name</p>
+                <p className="text-base text-gray-900 font-semibold">{tenant.name}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p className="text-base text-gray-900">{tenant.company_email}</p>
+              </div>
+              {tenant.company_phone && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Phone</p>
+                  <p className="text-base text-gray-900">{tenant.company_phone}</p>
+                </div>
+              )}
+              {tenant.industry && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Industry</p>
+                  <p className="text-base text-gray-900">{tenant.industry}</p>
+                </div>
+              )}
+              {tenant.is_trial_active && (
+                <div className="md:col-span-2">
+                  <div className="bg-white rounded-lg p-4 border border-teal-300">
+                    <p className="text-sm font-medium text-blue-900">
+                      🎉 Free Trial Active
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Your trial ends on {new Date(tenant.trial_ends_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* User Info Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-6">
@@ -32,7 +105,7 @@ function DashboardContent() {
           
           <div className="space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white font-semibold text-lg shrink-0">
+              <div className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center text-white font-semibold text-lg shrink-0">
                 {user.first_name.charAt(0)}{user.last_name.charAt(0)}
               </div>
               <div className="flex-1">
@@ -104,19 +177,19 @@ function DashboardContent() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-2">Equipment</h4>
             <p className="text-gray-600 text-sm">Track and manage your equipment</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-4">Coming Soon</p>
+            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-2">Work Orders</h4>
             <p className="text-gray-600 text-sm">Manage your work orders</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-4">Coming Soon</p>
+            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-2">Reports</h4>
             <p className="text-gray-600 text-sm">View analytics and reports</p>
-            <p className="text-3xl font-bold text-emerald-600 mt-4">Coming Soon</p>
+            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
           </div>
         </div>
       </div>

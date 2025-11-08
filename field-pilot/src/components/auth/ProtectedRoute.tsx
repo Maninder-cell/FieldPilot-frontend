@@ -3,32 +3,58 @@
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
+  requireOnboarding?: boolean;
   redirectTo?: string;
 }
 
 export default function ProtectedRoute({
   children,
   requireAuth = true,
+  requireOnboarding = false,
   redirectTo = '/login',
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { tenant, isLoading: onboardingLoading } = useOnboarding();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && requireAuth && !isAuthenticated) {
+    // Wait for both auth and onboarding to load
+    if (authLoading) {
+      return;
+    }
+
+    // Check authentication first
+    if (requireAuth && !isAuthenticated) {
       // Preserve the intended destination for post-login redirect
       const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
       router.push(redirectUrl);
+      return;
     }
-  }, [isAuthenticated, isLoading, requireAuth, redirectTo, pathname, router]);
+
+    // Check onboarding status if required (only for non-dashboard routes)
+    if (requireOnboarding && isAuthenticated && !onboardingLoading) {
+      // No tenant means user needs to create a company
+      if (!tenant) {
+        router.push('/dashboard');
+        return;
+      }
+
+      // Tenant exists but onboarding not completed
+      if (!tenant.onboarding_completed) {
+        router.push('/dashboard');
+        return;
+      }
+    }
+  }, [isAuthenticated, authLoading, tenant, onboardingLoading, requireAuth, requireOnboarding, redirectTo, pathname, router]);
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

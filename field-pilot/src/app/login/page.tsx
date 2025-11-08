@@ -13,16 +13,19 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
+      // Let ProtectedRoute handle onboarding checks
+      // Just redirect to the intended destination
       const redirectTo = searchParams.get('redirect') || '/dashboard';
       router.push(redirectTo);
     }
   }, [isAuthenticated, isLoading, router, searchParams]);
 
   const handleSuccess = () => {
-    // Get redirect destination from query params or default to dashboard
+    // Let ProtectedRoute handle onboarding checks
+    // Just redirect to the intended destination
     const redirectTo = searchParams.get('redirect') || '/dashboard';
     router.push(redirectTo);
   };

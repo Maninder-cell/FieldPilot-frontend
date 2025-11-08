@@ -149,7 +149,10 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
     if (formData.first_name !== originalData.user.first_name) changes.first_name = formData.first_name;
     if (formData.last_name !== originalData.user.last_name) changes.last_name = formData.last_name;
     if (formData.phone !== (originalData.user.phone || '')) changes.phone = formData.phone;
-    if (formData.avatar_url !== originalData.user.avatar_url) changes.avatar_url = formData.avatar_url;
+    // Only include avatar_url if it has a value (not null)
+    if (formData.avatar_url !== originalData.user.avatar_url && formData.avatar_url !== null) {
+      changes.avatar_url = formData.avatar_url;
+    }
     if (formData.department !== originalData.user.department) changes.department = formData.department;
     if (formData.job_title !== originalData.user.job_title) changes.job_title = formData.job_title;
     if (formData.date_of_birth !== originalData.date_of_birth) changes.date_of_birth = formData.date_of_birth;

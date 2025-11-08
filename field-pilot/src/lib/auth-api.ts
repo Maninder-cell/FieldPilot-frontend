@@ -30,11 +30,11 @@ async function fetchAuthAPI<T>(
 ): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
-      ...options,
     });
 
     const data = await response.json();
@@ -228,6 +228,7 @@ export async function updateProfile(
     method: 'PUT',
     body: JSON.stringify(data),
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
   });

@@ -225,12 +225,44 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
 
   const validateForm = (): boolean => {
     const fields = ['first_name', 'last_name', 'phone', 'date_of_birth', 'zip_code', 'emergency_contact_phone'];
-    fields.forEach(validateField);
+    
+    // Validate each field and collect errors
+    const newErrors: Record<string, string> = {};
+    fields.forEach(field => {
+      let error: string | null = null;
+
+      switch (field) {
+        case 'first_name':
+          error = validateRequired(formData.first_name, 'First name');
+          break;
+        case 'last_name':
+          error = validateRequired(formData.last_name, 'Last name');
+          break;
+        case 'phone':
+          error = validatePhone(formData.phone);
+          break;
+        case 'date_of_birth':
+          error = validateDateOfBirth(formData.date_of_birth || '');
+          break;
+        case 'zip_code':
+          error = validateZipCode(formData.zip_code || '');
+          break;
+        case 'emergency_contact_phone':
+          error = validateEmergencyPhone(formData.emergency_contact_phone || '');
+          break;
+      }
+
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
+    
+    setErrors(newErrors);
     
     const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
     setTouched(allTouched);
     
-    return Object.keys(errors).length === 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -577,7 +609,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
           variant="primary"
           size="lg"
           loading={isSubmitting}
-          disabled={isSubmitting || !hasChanges}
+          disabled={!hasChanges || isSubmitting}
         >
           {isSubmitting ? 'Saving...' : 'Save Changes'}
         </Button>

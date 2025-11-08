@@ -21,10 +21,15 @@ interface LoginFormProps {
 export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
   const { login } = useAuth();
   
+  // Get remembered email from localStorage
+  const rememberedEmail = typeof window !== 'undefined' 
+    ? localStorage.getItem('remembered_email') || '' 
+    : '';
+  
   const [formData, setFormData] = useState({
-    email: '',
+    email: rememberedEmail,
     password: '',
-    remember_me: false,
+    remember_me: !!rememberedEmail,
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -111,6 +111,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       storeTokens(response.tokens.access, response.tokens.refresh);
       storeUserData(response.user);
       setUser(response.user);
+      
+      // Store email in localStorage if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        localStorage.removeItem('remembered_email');
+      }
     } catch (error) {
       throw error;
     }
@@ -119,8 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     try {
       const refreshToken = getRefreshToken();
-      if (refreshToken) {
-        await logoutUserAPI(refreshToken);
+      const accessToken = getAccessToken();
+      if (refreshToken && accessToken) {
+        await logoutUserAPI(refreshToken, accessToken);
       }
     } catch (error) {
       console.error('Logout error:', error);

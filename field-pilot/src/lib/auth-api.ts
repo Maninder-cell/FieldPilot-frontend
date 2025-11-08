@@ -132,11 +132,14 @@ export async function refreshAccessToken(refreshToken: string): Promise<TokenRef
  * Logout user and blacklist refresh token
  * POST /api/auth/logout/
  */
-export async function logoutUser(refreshToken: string): Promise<void> {
+export async function logoutUser(refreshToken: string, accessToken: string): Promise<void> {
   try {
     await fetchAuthAPI<ApiResponse<void>>('/auth/logout/', {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
   } catch (error) {
     // Log error but don't throw - logout should always succeed locally

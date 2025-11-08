@@ -20,6 +20,12 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper to display value or "Not provided"
+  const displayValue = (value: string | null | undefined): string => {
+    if (!value || value.trim() === '') return 'Not provided';
+    return value;
+  };
+
   const fetchProfile = async () => {
     setIsLoading(true);
     setError(null);
@@ -113,11 +119,11 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Phone</label>
-              <p className="mt-1 text-base text-gray-900">{profile.user.phone || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.user.phone)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Date of Birth</label>
-              <p className="mt-1 text-base text-gray-900">{profile.date_of_birth || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.date_of_birth)}</p>
             </div>
           </div>
         </div>
@@ -132,23 +138,23 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-500">Address</label>
-              <p className="mt-1 text-base text-gray-900">{profile.address || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.address)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">City</label>
-              <p className="mt-1 text-base text-gray-900">{profile.city || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.city)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">State</label>
-              <p className="mt-1 text-base text-gray-900">{profile.state || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.state)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Zip Code</label>
-              <p className="mt-1 text-base text-gray-900">{profile.zip_code || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.zip_code)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Country</label>
-              <p className="mt-1 text-base text-gray-900">{profile.country || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.country)}</p>
             </div>
           </div>
         </div>
@@ -163,15 +169,15 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-500">Name</label>
-              <p className="mt-1 text-base text-gray-900">{profile.emergency_contact_name || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.emergency_contact_name)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Phone</label>
-              <p className="mt-1 text-base text-gray-900">{profile.emergency_contact_phone || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.emergency_contact_phone)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Relationship</label>
-              <p className="mt-1 text-base text-gray-900">{profile.emergency_contact_relationship || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.emergency_contact_relationship)}</p>
             </div>
           </div>
         </div>
@@ -194,15 +200,15 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Department</label>
-              <p className="mt-1 text-base text-gray-900">{profile.user.department || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.user.department)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Job Title</label>
-              <p className="mt-1 text-base text-gray-900">{profile.user.job_title || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.user.job_title)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500">Hire Date</label>
-              <p className="mt-1 text-base text-gray-900">{profile.hire_date || 'Not provided'}</p>
+              <p className="mt-1 text-base text-gray-900">{displayValue(profile.hire_date)}</p>
             </div>
           </div>
           

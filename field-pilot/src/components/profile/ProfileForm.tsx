@@ -74,27 +74,33 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
         const data = await getProfile(accessToken);
         setOriginalData(data);
         
+        // Helper to convert empty strings to null
+        const emptyToNull = (value: string | null | undefined) => {
+          if (value === '' || value === null || value === undefined) return null;
+          return value;
+        };
+        
         // Populate form with existing data
         setFormData({
           first_name: data.user.first_name,
           last_name: data.user.last_name,
           phone: data.user.phone || '',
-          avatar_url: data.user.avatar_url || null,
-          department: data.user.department || null,
-          job_title: data.user.job_title || null,
-          date_of_birth: data.date_of_birth,
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          zip_code: data.zip_code,
-          country: data.country,
-          emergency_contact_name: data.emergency_contact_name,
-          emergency_contact_phone: data.emergency_contact_phone,
-          emergency_contact_relationship: data.emergency_contact_relationship,
-          skills: data.skills,
-          certifications: data.certifications,
-          timezone: data.timezone,
-          language: data.language,
+          avatar_url: emptyToNull(data.user.avatar_url),
+          department: emptyToNull(data.user.department),
+          job_title: emptyToNull(data.user.job_title),
+          date_of_birth: emptyToNull(data.date_of_birth),
+          address: emptyToNull(data.address),
+          city: emptyToNull(data.city),
+          state: emptyToNull(data.state),
+          zip_code: emptyToNull(data.zip_code),
+          country: emptyToNull(data.country),
+          emergency_contact_name: emptyToNull(data.emergency_contact_name),
+          emergency_contact_phone: emptyToNull(data.emergency_contact_phone),
+          emergency_contact_relationship: emptyToNull(data.emergency_contact_relationship),
+          skills: data.skills || [],
+          certifications: data.certifications || [],
+          timezone: data.timezone || 'UTC',
+          language: data.language || 'en',
           email_notifications: data.email_notifications,
           sms_notifications: data.sms_notifications,
           push_notifications: data.push_notifications,

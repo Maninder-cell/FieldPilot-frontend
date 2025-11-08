@@ -35,10 +35,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content Area with Sidebar - Fills remaining space, starts below header */}
       <div className="flex flex-1 overflow-hidden pt-16">
-        {/* Mobile overlay */}
+        {/* Mobile overlay with backdrop blur */}
         {isMobileMenuOpen && (
           <div
-            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30 mt-16"
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 mt-16"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}

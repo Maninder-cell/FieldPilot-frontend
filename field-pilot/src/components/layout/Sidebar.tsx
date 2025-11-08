@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,12 +12,25 @@ import {
   LogOut,
   Lock,
 } from 'lucide-react';
+import LogoutModal from '@/components/modals/LogoutModal';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!user) return null;
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      setIsLogoutModalOpen(false);
+    }
+  };
 
   const navigation = [
     {
@@ -45,10 +60,10 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
-      {/* User Profile Section */}
+    <>
+      <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
 
-      {/* Navigation */}
+        {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-1">
           {navigation.map((item) => {
@@ -76,16 +91,28 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200">
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <LogOut className="w-5 h-5 shrink-0" />
-          <span className="text-sm font-medium">Logout</span>
-        </button>
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Logout Modal - Rendered at document body level */}
+      {typeof document !== 'undefined' && createPortal(
+        <LogoutModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={handleLogout}
+          isLoading={isLoggingOut}
+        />,
+        document.body
+      )}
+    </>
   );
 }

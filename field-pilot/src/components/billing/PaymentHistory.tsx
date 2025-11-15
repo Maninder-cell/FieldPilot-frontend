@@ -51,7 +51,7 @@ export function PaymentHistory({
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
         </div>
       </div>
     );
@@ -125,7 +125,7 @@ export function PaymentHistory({
                     <div className="text-sm text-green-600">Payment successful</div>
                   )}
                   {payment.status === 'pending' && (
-                    <div className="text-sm text-blue-600">Processing...</div>
+                    <div className="text-sm text-teal-600">Processing...</div>
                   )}
                 </td>
               </tr>

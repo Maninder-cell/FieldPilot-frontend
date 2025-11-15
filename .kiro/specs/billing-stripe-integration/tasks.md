@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Set up billing type definitions and API client
+- [x] 1. Set up billing type definitions and API client
 - [x] 1.1 Create billing type definitions
   - Create `src/types/billing.ts` with all interfaces: SubscriptionPlan, Subscription, Invoice, Payment, UsageSummary, BillingOverview, request types, and Stripe types
   - Define subscription status and payment status enums
@@ -15,7 +15,7 @@
   - Implement Stripe functions: `createSetupIntent`, `addPaymentMethod`
   - _Requirements: 1.1, 2.1, 2.2, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1, 10.1, 15.1_
 
-- [ ] 2. Create BillingContext for state management
+- [x] 2. Create BillingContext for state management
 - [x] 2.1 Implement BillingContext with state and methods
   - Create `src/contexts/BillingContext.tsx` following the pattern from `AuthContext.tsx`
   - Define BillingContextType interface with state and methods
@@ -32,7 +32,7 @@
   - Ensure BillingProvider is nested inside AuthProvider and OnboardingProvider
   - _Requirements: 2.1, 20.1_
 
-- [ ] 3. Set up Stripe integration
+- [x] 3. Set up Stripe integration
 - [x] 3.1 Install Stripe dependencies
   - Install `@stripe/stripe-js` and `@stripe/react-stripe-js` packages
   - _Requirements: 1.1, 12.1_
@@ -54,7 +54,7 @@
   - Display Stripe errors with user-friendly messages
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 7.1, 7.2, 12.1, 12.2, 12.3, 12.4, 12.5, 15.1, 16.3_
 
-- [ ] 4. Build subscription status and overview components
+- [x] 4. Build subscription status and overview components
 - [x] 4.1 Create subscription status badge component
   - Create `src/components/billing/SubscriptionStatusBadge.tsx`
   - Display status with color-coded styling (active: green, trialing: blue, past_due: yellow, canceled: red, unpaid: red)
@@ -72,7 +72,7 @@
   - Handle null subscription state (no subscription)
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 13.1, 13.2, 13.3, 13.4, 13.5_
 
-- [ ] 5. Implement plan selection and comparison
+- [x] 5. Implement plan selection and comparison
 - [x] 5.1 Create billing cycle toggle component
   - Create `src/components/billing/BillingCycleToggle.tsx`
   - Toggle between monthly and yearly
@@ -99,7 +99,7 @@
   - Handle plan selection and trigger subscription creation or update
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 5.1, 5.2, 14.1, 14.2, 14.3_
 
-- [ ] 6. Implement usage tracking components
+- [x] 6. Implement usage tracking components
 - [x] 6.1 Create usage metric component
   - Create `src/components/billing/UsageMetric.tsx`
   - Display resource name and icon
@@ -134,7 +134,7 @@
   - Make responsive for mobile (card layout)
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 17.1, 17.2, 17.3, 17.4_
 
-- [ ] 8. Build payment history components
+- [x] 8. Build payment history components
 - [x] 8.1 Create payment status badge component
   - Create `src/components/billing/PaymentStatusBadge.tsx`
   - Display status with color-coded styling (succeeded: green, pending: blue, failed: red, canceled: gray, refunded: yellow)
@@ -152,7 +152,7 @@
   - Make responsive for mobile (card layout)
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 17.1, 17.2, 17.3, 17.4_
 
-- [ ] 9. Create billing dashboard
+- [x] 9. Create billing dashboard
 - [x] 9.1 Create billing dashboard component
   - Create `src/components/billing/BillingDashboard.tsx`
   - Render SubscriptionOverview at the top
@@ -171,7 +171,7 @@
   - Use schema guard to ensure public schema access
   - _Requirements: 8.1, 19.1, 19.2, 19.3, 19.4_
 
-- [ ] 10. Implement subscription management flows
+- [x] 10. Implement subscription management flows
 - [x] 10.1 Create upgrade/downgrade modal component
   - Create `src/components/billing/UpgradeDowngradeModal.tsx`
   - Display current plan and selected new plan
@@ -205,7 +205,7 @@
   - Use ProtectedRoute and schema guard
   - _Requirements: 4.1, 5.1, 6.1, 19.1, 19.2_
 
-- [ ] 11. Create plan selection page
+- [x] 11. Create plan selection page
 - [x] 11.1 Create plans page
   - Create `src/app/billing/plans/page.tsx`
   - Render PlanComparison component
@@ -216,7 +216,7 @@
   - Allow viewing plans without authentication
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 12. Create payment methods page
+- [x] 12. Create payment methods page
 - [x] 12.1 Create payment methods page
   - Create `src/app/billing/payment-methods/page.tsx`
   - Display list of saved payment methods (if backend supports)
@@ -225,7 +225,7 @@
   - Use ProtectedRoute and schema guard
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 19.1, 19.2_
 
-- [ ] 13. Create invoices page
+- [x] 13. Create invoices page
 - [x] 13.1 Create invoices page
   - Create `src/app/billing/invoices/page.tsx`
   - Render InvoiceList component
@@ -262,13 +262,13 @@
   - _Requirements: 20.4, 20.5_
 
 - [ ] 16. Add billing to navigation and dashboard
-- [ ] 16.1 Update main navigation
+- [x] 16.1 Update main navigation
   - Update navigation component to add billing link
   - Show billing badge for trial expiration warning
   - Add quick access to subscription management
   - _Requirements: 4.1, 13.2, 20.4_
 
-- [ ] 16.2 Add billing widget to main dashboard
+- [x] 16.2 Add billing widget to main dashboard
   - Update `src/app/dashboard/page.tsx`
   - Add subscription status widget
   - Show trial expiration warning if applicable
@@ -283,7 +283,7 @@
   - Provide actionable guidance for each error type
   - _Requirements: 1.5, 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 17.2 Add error boundaries for billing components
+- [x] 17.2 Add error boundaries for billing components
   - Create `src/components/billing/BillingErrorBoundary.tsx`
   - Catch React errors in billing flow
   - Show user-friendly fallback UI
@@ -291,7 +291,7 @@
   - Log errors for debugging
   - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 17.3 Add loading states to all billing operations
+- [x] 17.3 Add loading states to all billing operations
   - Ensure all API calls show loading indicators
   - Use skeleton loaders for data fetching
   - Disable forms during submission
@@ -299,40 +299,40 @@
   - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
 
 - [ ] 18. Implement responsive design
-- [ ] 18.1 Make billing dashboard responsive
+- [x] 18.1 Make billing dashboard responsive
   - Ensure dashboard works on mobile, tablet, and desktop
   - Use responsive grid for overview sections
   - Stack components vertically on mobile
   - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
 
-- [ ] 18.2 Make plan comparison responsive
+- [x] 18.2 Make plan comparison responsive
   - Display plan cards in single column on mobile
   - Use two columns on tablet
   - Use three or four columns on desktop
   - Ensure billing cycle toggle is accessible on all devices
   - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 18.3 Make tables responsive
+- [x] 18.3 Make tables responsive
   - Use card layout for invoice and payment tables on mobile
   - Use horizontal scroll for tables on tablet
   - Use full table layout on desktop
   - _Requirements: 17.4, 17.5_
 
 - [ ] 19. Add accessibility features
-- [ ] 19.1 Ensure keyboard navigation
+- [x] 19.1 Ensure keyboard navigation
   - Test keyboard navigation throughout billing flow
   - Add focus indicators to all interactive elements
   - Support tab navigation in modals
   - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5_
 
-- [ ] 19.2 Add ARIA labels and screen reader support
+- [x] 19.2 Add ARIA labels and screen reader support
   - Add ARIA labels to all buttons and links
   - Use ARIA live regions for status updates
   - Ensure form fields have proper labels
   - Add descriptive text for icons
   - _Requirements: 18.2, 18.3, 18.4, 18.5_
 
-- [ ] 19.3 Ensure color contrast and visual accessibility
+- [x] 19.3 Ensure color contrast and visual accessibility
   - Verify color contrast meets WCAG standards
   - Use icons with text labels for status
   - Ensure focus indicators are visible
@@ -340,14 +340,14 @@
   - _Requirements: 18.5_
 
 - [ ] 20. Add schema guard for billing routes
-- [ ] 20.1 Create billing schema guard
+- [x] 20.1 Create billing schema guard
   - Update `src/lib/schema-guard.ts` to add billing-specific checks
   - Detect if accessing from tenant subdomain
   - Redirect to localhost:8000 if needed
   - Show informative message about schema requirement
   - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
 
-- [ ] 20.2 Apply schema guard to all billing routes
+- [x] 20.2 Apply schema guard to all billing routes
   - Add schema guard to all billing pages
   - Ensure automatic redirect on schema mismatch
   - Test from both public and tenant schemas

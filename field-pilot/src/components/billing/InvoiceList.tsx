@@ -38,7 +38,7 @@ export function InvoiceList({
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
         </div>
       </div>
     );
@@ -121,7 +121,7 @@ export function InvoiceList({
                       href={invoice.invoice_pdf_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-teal-600 hover:text-teal-900"
                     >
                       Download PDF
                     </a>
@@ -165,7 +165,7 @@ export function InvoiceList({
                   href={invoice.invoice_pdf_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-900"
+                  className="text-sm text-teal-600 hover:text-teal-900"
                 >
                   Download PDF
                 </a>

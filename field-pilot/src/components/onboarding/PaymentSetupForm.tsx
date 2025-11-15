@@ -24,7 +24,7 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   // Get selected plan from step 2 data
-  const selectedPlanSlug = tenant?.onboarding_step >= 2 
+  const selectedPlanSlug = (tenant?.onboarding_step ?? 0) >= 2 
     ? (tenant as any).step_data?.plan_slug 
     : null;
 

@@ -31,7 +31,7 @@ export function SubscriptionOverview({
           <p className="text-gray-600 mb-4">Choose a plan to get started with Field Pilot</p>
           <Link
             href="/billing/plans"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
           >
             View Plans
           </Link>
@@ -72,14 +72,14 @@ export function SubscriptionOverview({
 
       {/* Trial Information */}
       {subscription.is_trial && subscription.trial_end && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-md">
           <div className="flex items-start">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-teal-600 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="text-sm font-medium text-blue-900">Trial Period Active</p>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm font-medium text-teal-900">Trial Period Active</p>
+              <p className="text-sm text-teal-700">
                 Your trial ends on {formatDate(subscription.trial_end)}. Add a payment method to continue after trial.
               </p>
             </div>
@@ -131,7 +131,7 @@ export function SubscriptionOverview({
         {onUpgrade && (
           <button
             onClick={onUpgrade}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
           >
             Upgrade Plan
           </button>

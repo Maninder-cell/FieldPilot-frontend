@@ -11,6 +11,7 @@ interface UsageMetricsProps {
 }
 
 export function UsageMetrics({ usage, showUpgradePrompt = true }: UsageMetricsProps) {
+  // Check if usage data is available and has all required properties
   if (!usage) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -20,15 +21,16 @@ export function UsageMetrics({ usage, showUpgradePrompt = true }: UsageMetricsPr
     );
   }
 
+  // Safely check for exceeded limits with null coalescing
   const hasExceededLimits = 
-    usage.users.percentage >= 100 ||
-    usage.equipment.percentage >= 100 ||
-    usage.storage.percentage >= 100;
+    (usage.users?.percentage ?? 0) >= 100 ||
+    (usage.equipment?.percentage ?? 0) >= 100 ||
+    (usage.storage?.percentage ?? 0) >= 100;
 
   const hasWarnings =
-    usage.users.percentage >= 80 ||
-    usage.equipment.percentage >= 80 ||
-    usage.storage.percentage >= 80;
+    (usage.users?.percentage ?? 0) >= 80 ||
+    (usage.equipment?.percentage ?? 0) >= 80 ||
+    (usage.storage?.percentage ?? 0) >= 80;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -37,7 +39,7 @@ export function UsageMetrics({ usage, showUpgradePrompt = true }: UsageMetricsPr
         {showUpgradePrompt && (hasExceededLimits || hasWarnings) && (
           <Link
             href="/billing/plans"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            className="text-sm font-medium text-teal-600 hover:text-teal-700"
           >
             Upgrade Plan →
           </Link>
@@ -70,45 +72,51 @@ export function UsageMetrics({ usage, showUpgradePrompt = true }: UsageMetricsPr
       {/* Usage Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Users */}
-        <UsageMetric
-          name="Users"
-          metric={usage.users}
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          }
-        />
+        {usage.users && (
+          <UsageMetric
+            name="Users"
+            metric={usage.users}
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            }
+          />
+        )}
 
         {/* Equipment */}
-        <UsageMetric
-          name="Equipment"
-          metric={usage.equipment}
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          }
-        />
+        {usage.equipment && (
+          <UsageMetric
+            name="Equipment"
+            metric={usage.equipment}
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            }
+          />
+        )}
 
         {/* Storage */}
-        <UsageMetric
-          name="Storage"
-          metric={usage.storage}
-          unit=" GB"
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-            </svg>
-          }
-        />
+        {usage.storage && (
+          <UsageMetric
+            name="Storage"
+            metric={usage.storage}
+            unit=" GB"
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+              </svg>
+            }
+          />
+        )}
       </div>
 
       {/* Help Text */}
       <div className="mt-6 pt-6 border-t border-gray-200">
         <p className="text-sm text-gray-600">
           Usage is updated in real-time. Need more resources?{' '}
-          <Link href="/billing/plans" className="text-blue-600 hover:underline">
+          <Link href="/billing/plans" className="text-teal-600 hover:underline">
             Compare plans
           </Link>
         </p>

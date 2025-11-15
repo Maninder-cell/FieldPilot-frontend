@@ -42,7 +42,7 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
   if (isLoading && plans.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
       {/* Additional Information */}
       <div className="text-center text-sm text-gray-600 mt-8">
         <p>All plans include a 14-day free trial. No credit card required to start.</p>
-        <p className="mt-2">Need a custom plan? <a href="mailto:sales@fieldpilot.com" className="text-blue-600 hover:underline">Contact sales</a></p>
+        <p className="mt-2">Need a custom plan? <a href="mailto:sales@fieldpilot.com" className="text-teal-600 hover:underline">Contact sales</a></p>
       </div>
     </div>
   );

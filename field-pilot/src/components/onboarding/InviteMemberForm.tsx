@@ -20,7 +20,7 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
   
   const [formData, setFormData] = useState({
     email: '',
-    role: 'member' as MemberRole,
+    role: 'employee' as MemberRole,
     first_name: '',
     last_name: '',
   });
@@ -97,7 +97,7 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
       // Reset form
       setFormData({
         email: '',
-        role: 'member',
+        role: 'employee',
         first_name: '',
         last_name: '',
       });

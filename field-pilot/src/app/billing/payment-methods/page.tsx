@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useState } from 'react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PaymentMethodForm } from '@/components/billing/PaymentMethodForm';
 import { StripeProvider } from '@/components/billing/StripeProvider';
 
@@ -17,7 +18,8 @@ export default function PaymentMethodsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Payment Methods</h1>
@@ -111,7 +113,8 @@ export default function PaymentMethodsPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

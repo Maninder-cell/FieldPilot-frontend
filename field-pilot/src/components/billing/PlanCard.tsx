@@ -45,7 +45,7 @@ export function PlanCard({
     <div
       className={`relative bg-white rounded-lg border-2 p-6 flex flex-col ${
         isRecommended
-          ? 'border-blue-500 shadow-lg'
+          ? 'border-teal-500 shadow-lg'
           : isCurrentPlan
           ? 'border-green-500'
           : 'border-gray-200 hover:border-gray-300'
@@ -54,7 +54,7 @@ export function PlanCard({
       {/* Recommended Badge */}
       {isRecommended && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+          <span className="bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full">
             RECOMMENDED
           </span>
         </div>
@@ -152,7 +152,7 @@ export function PlanCard({
             isCurrentPlan
               ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
               : isRecommended
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              ? 'bg-teal-600 text-white hover:bg-teal-700'
               : 'bg-gray-900 text-white hover:bg-gray-800'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >

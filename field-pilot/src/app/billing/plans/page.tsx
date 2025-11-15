@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBilling } from '@/contexts/BillingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { PlanComparison } from '@/components/billing/PlanComparison';
@@ -70,7 +72,9 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Page Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
@@ -161,6 +165,8 @@ export default function PlansPage() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

@@ -3,14 +3,24 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useBilling } from '@/contexts/BillingContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
-import { User, Mail, Phone, Briefcase } from 'lucide-react';
+import { User, Mail, Phone, Briefcase, CreditCard, AlertCircle, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 
 function DashboardContent() {
   const { user } = useAuth();
   const { tenant, isLoading } = useOnboarding();
+  const { subscription, billingOverview, loadBillingOverview } = useBilling();
+
+  // Load billing data when component mounts
+  React.useEffect(() => {
+    if (user && tenant?.onboarding_completed) {
+      loadBillingOverview();
+    }
+  }, [user, tenant?.onboarding_completed, loadBillingOverview]);
 
   if (!user) return null;
 
@@ -54,6 +64,29 @@ function DashboardContent() {
           </p>
         </div>
 
+        {/* Billing Alert - Trial Ending Soon */}
+        {subscription?.is_trial && subscription?.days_until_renewal <= 7 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-orange-900">
+                  Trial Ending Soon
+                </h3>
+                <p className="text-sm text-orange-800 mt-1">
+                  Your trial ends in {subscription.days_until_renewal} days. Add a payment method to continue using all features.
+                </p>
+                <Link
+                  href="/billing/payment-methods"
+                  className="inline-block mt-2 text-sm font-medium text-orange-700 hover:text-orange-800 underline"
+                >
+                  Add Payment Method →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Company Info Card */}
         {tenant && (
           <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg shadow-sm border border-teal-200 p-6 mb-8">
@@ -92,6 +125,77 @@ function DashboardContent() {
                     </p>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Billing Widget */}
+        {subscription && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Subscription & Usage</h3>
+              <Link
+                href="/billing/dashboard"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                View Details →
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Current Plan */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center mb-2">
+                  <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
+                  <span className="text-sm font-medium text-blue-900">Current Plan</span>
+                </div>
+                <p className="text-lg font-bold text-blue-900">{subscription.plan.name}</p>
+                <p className="text-sm text-blue-700">
+                  ${subscription.billing_cycle === 'monthly' ? subscription.plan.price_monthly : subscription.plan.price_yearly}/
+                  {subscription.billing_cycle === 'monthly' ? 'mo' : 'yr'}
+                </p>
+              </div>
+
+              {/* Usage Summary */}
+              {billingOverview?.usage_summary?.users && billingOverview?.usage_summary?.storage && (
+                <>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <User className="w-5 h-5 text-gray-600 mr-2" />
+                      <span className="text-sm font-medium text-gray-700">Users</span>
+                    </div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {billingOverview.usage_summary.users.current} / {billingOverview.usage_summary.users.limit}
+                    </p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${
+                          (billingOverview.usage_summary.users.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(billingOverview.usage_summary.users.percentage ?? 0, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <TrendingUp className="w-5 h-5 text-gray-600 mr-2" />
+                      <span className="text-sm font-medium text-gray-700">Storage</span>
+                    </div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {billingOverview.usage_summary.storage.current} / {billingOverview.usage_summary.storage.limit} GB
+                    </p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${
+                          (billingOverview.usage_summary.storage.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(billingOverview.usage_summary.storage.percentage ?? 0, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>

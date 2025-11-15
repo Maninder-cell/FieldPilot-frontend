@@ -19,7 +19,7 @@ export function BillingCycleToggle({
         onClick={() => onCycleChange('monthly')}
         className={`px-4 py-2 rounded-md font-medium transition-colors ${
           selectedCycle === 'monthly'
-            ? 'bg-blue-600 text-white'
+            ? 'bg-teal-600 text-white'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
         }`}
       >
@@ -30,7 +30,7 @@ export function BillingCycleToggle({
         onClick={() => onCycleChange('yearly')}
         className={`relative px-4 py-2 rounded-md font-medium transition-colors ${
           selectedCycle === 'yearly'
-            ? 'bg-blue-600 text-white'
+            ? 'bg-teal-600 text-white'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
         }`}
       >

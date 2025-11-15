@@ -9,6 +9,19 @@ interface UsageMetricProps {
 }
 
 export function UsageMetric({ name, metric, icon, unit = '' }: UsageMetricProps) {
+  // Handle undefined or null metric
+  if (!metric) {
+    return (
+      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
+        <div className="flex items-center space-x-2 mb-3">
+          <div className="text-gray-400">{icon}</div>
+          <h3 className="font-medium text-gray-500">{name}</h3>
+        </div>
+        <p className="text-sm text-gray-500">No data available</p>
+      </div>
+    );
+  }
+
   const { current, limit, percentage } = metric;
   
   // Determine color based on usage percentage

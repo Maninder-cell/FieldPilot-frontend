@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBilling } from '@/contexts/BillingContext';
 import { SubscriptionOverview } from '@/components/billing/SubscriptionOverview';
 import { PlanComparison } from '@/components/billing/PlanComparison';
@@ -46,18 +47,21 @@ export default function SubscriptionManagementPage() {
   if (isLoading && !subscription) {
     return (
       <ProtectedRoute>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <DashboardLayout>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
           </div>
-        </div>
+        </DashboardLayout>
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Manage Subscription</h1>
@@ -133,7 +137,8 @@ export default function SubscriptionManagementPage() {
             onSuccess={handleModalSuccess}
           />
         )}
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

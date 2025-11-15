@@ -133,7 +133,7 @@ export function PaymentMethodForm({
           value={billingName}
           onChange={(e) => setBillingName(e.target.value)}
           placeholder="John Doe"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
           disabled={isProcessing}
           required
         />
@@ -150,7 +150,7 @@ export function PaymentMethodForm({
           value={billingEmail}
           onChange={(e) => setBillingEmail(e.target.value)}
           placeholder="john@example.com"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
           disabled={isProcessing}
           required
         />
@@ -189,7 +189,7 @@ export function PaymentMethodForm({
         <button
           type="submit"
           disabled={!stripe || isProcessing}
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           {isProcessing ? (
             <span className="flex items-center justify-center">

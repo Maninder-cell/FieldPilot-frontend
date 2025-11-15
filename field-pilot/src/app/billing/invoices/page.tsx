@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBilling } from '@/contexts/BillingContext';
 import { InvoiceList } from '@/components/billing/InvoiceList';
 
@@ -19,7 +20,8 @@ export default function InvoicesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <DashboardLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
@@ -36,7 +38,8 @@ export default function InvoicesPage() {
           currentPage={currentPage}
           hasMore={invoices.length >= 10}
         />
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

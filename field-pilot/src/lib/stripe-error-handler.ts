@@ -5,8 +5,8 @@
 
 export interface StripeErrorDetails {
   message: string;
+  guidance?: string;
   action?: string;
-  type: string;
 }
 
 /**
@@ -21,61 +21,53 @@ export function handleStripeError(error: any): StripeErrorDetails {
       
       case 'validation_error':
         return {
-          message: 'Please check your card details and try again.',
-          action: 'Verify that all card information is correct.',
-          type: 'validation_error',
+          message: 'Invalid card information',
+          guidance: 'Please check your card details and try again',
+          action: 'verify_card',
         };
       
       case 'api_error':
         return {
-          message: 'Payment processing error. Please try again.',
-          action: 'If the problem persists, please contact support.',
-          type: 'api_error',
+          message: 'Payment processing error',
+          guidance: 'There was an issue processing your payment. Please try again in a moment.',
+          action: 'retry',
         };
       
       case 'authentication_error':
         return {
-          message: 'Payment system error. Please contact support.',
-          action: 'Our team will help resolve this issue.',
-          type: 'authentication_error',
+          message: 'Payment system error',
+          guidance: 'There was an authentication issue with the payment system. Please contact support.',
+          action: 'contact_support',
         };
       
       case 'rate_limit_error':
         return {
-          message: 'Too many requests. Please wait a moment and try again.',
-          action: 'Wait a few seconds before retrying.',
-          type: 'rate_limit_error',
+          message: 'Too many requests',
+          guidance: 'Please wait a moment and try again.',
+          action: 'wait_retry',
         };
       
       case 'invalid_request_error':
         return {
-          message: 'Invalid payment request. Please try again.',
-          action: 'If the problem persists, please contact support.',
-          type: 'invalid_request_error',
+          message: 'Invalid request',
+          guidance: 'There was an issue with your request. Please try again or contact support.',
+          action: 'contact_support',
         };
       
       default:
         return {
-          message: error.message || 'An unexpected error occurred.',
-          action: 'Please try again or contact support if the issue persists.',
-          type: error.type || 'unknown',
+          message: error.message || 'An unexpected error occurred',
+          guidance: 'Please try again or contact support if the issue persists.',
+          action: 'retry',
         };
     }
   }
-
+  
   // Handle generic errors
-  if (error.message) {
-    return {
-      message: error.message,
-      type: 'generic',
-    };
-  }
-
-  // Fallback error
   return {
-    message: 'An unexpected error occurred. Please try again.',
-    action: 'Contact support if the problem persists.',
-    type: 'unknown',
+    message: error.message || 'An unexpected error occurred',
+    guidance: 'Please try again or contact support if the issue persists.',
+    action: 'retry',
   };
 }
 
@@ -83,102 +75,103 @@ export function handleStripeError(error: any): StripeErrorDetails {
  * Handle card-specific errors with detailed messages
  */
 function handleCardError(error: any): StripeErrorDetails {
-  const code = error.decline_code || error.code;
-
+  const code = error.code || error.decline_code;
+  
   switch (code) {
     case 'card_declined':
       return {
-        message: 'Your card was declined.',
-        action: 'Please try a different card or contact your bank.',
-        type: 'card_declined',
+        message: 'Card declined',
+        guidance: 'Your card was declined. Please try a different card or contact your bank.',
+        action: 'try_different_card',
       };
     
     case 'insufficient_funds':
       return {
-        message: 'Insufficient funds in your account.',
-        action: 'Please use a different card or add funds to your account.',
-        type: 'insufficient_funds',
+        message: 'Insufficient funds',
+        guidance: 'Your card has insufficient funds. Please try a different card.',
+        action: 'try_different_card',
       };
     
     case 'expired_card':
       return {
-        message: 'Your card has expired.',
-        action: 'Please use a different card with a valid expiration date.',
-        type: 'expired_card',
+        message: 'Card expired',
+        guidance: 'Your card has expired. Please use a different card.',
+        action: 'try_different_card',
       };
     
     case 'incorrect_cvc':
       return {
-        message: 'The security code (CVC) is incorrect.',
-        action: 'Please check the 3 or 4-digit code on the back of your card.',
-        type: 'incorrect_cvc',
+        message: 'Incorrect CVC',
+        guidance: 'The security code (CVC) you entered is incorrect. Please check and try again.',
+        action: 'verify_cvc',
       };
     
     case 'incorrect_number':
       return {
-        message: 'The card number is incorrect.',
-        action: 'Please check your card number and try again.',
-        type: 'incorrect_number',
+        message: 'Incorrect card number',
+        guidance: 'The card number you entered is incorrect. Please check and try again.',
+        action: 'verify_card_number',
       };
     
     case 'invalid_expiry_month':
     case 'invalid_expiry_year':
       return {
-        message: 'The expiration date is invalid.',
-        action: 'Please check the expiration date on your card.',
-        type: 'invalid_expiry',
+        message: 'Invalid expiration date',
+        guidance: 'The expiration date you entered is invalid. Please check and try again.',
+        action: 'verify_expiry',
       };
     
     case 'processing_error':
       return {
-        message: 'An error occurred while processing your card.',
-        action: 'Please try again in a moment.',
-        type: 'processing_error',
+        message: 'Processing error',
+        guidance: 'An error occurred while processing your card. Please try again.',
+        action: 'retry',
       };
     
     case 'lost_card':
     case 'stolen_card':
       return {
-        message: 'This card cannot be used.',
-        action: 'Please contact your bank or use a different card.',
-        type: 'card_not_usable',
+        message: 'Card not accepted',
+        guidance: 'This card cannot be used. Please try a different card.',
+        action: 'try_different_card',
+      };
+    
+    case 'generic_decline':
+      return {
+        message: 'Card declined',
+        guidance: 'Your card was declined. Please contact your bank for more information or try a different card.',
+        action: 'contact_bank',
       };
     
     default:
       return {
-        message: error.message || 'Your card was declined.',
-        action: 'Please try a different card or contact your bank.',
-        type: 'card_error',
+        message: error.message || 'Card error',
+        guidance: 'There was an issue with your card. Please try a different card or contact your bank.',
+        action: 'try_different_card',
       };
   }
 }
 
 /**
- * Format error for display in UI
+ * Get action button text based on error action
  */
-export function formatStripeErrorForDisplay(error: any): string {
-  const details = handleStripeError(error);
-  
-  if (details.action) {
-    return `${details.message} ${details.action}`;
+export function getErrorActionText(action: string): string {
+  switch (action) {
+    case 'try_different_card':
+      return 'Try Different Card';
+    case 'verify_card':
+    case 'verify_card_number':
+    case 'verify_cvc':
+    case 'verify_expiry':
+      return 'Check Card Details';
+    case 'contact_bank':
+      return 'Contact Bank';
+    case 'contact_support':
+      return 'Contact Support';
+    case 'retry':
+    case 'wait_retry':
+      return 'Try Again';
+    default:
+      return 'Try Again';
   }
-  
-  return details.message;
-}
-
-/**
- * Check if error requires user action
- */
-export function requiresUserAction(error: any): boolean {
-  const actionableTypes = [
-    'card_declined',
-    'insufficient_funds',
-    'expired_card',
-    'incorrect_cvc',
-    'incorrect_number',
-    'invalid_expiry',
-  ];
-  
-  const details = handleStripeError(error);
-  return actionableTypes.includes(details.type);
 }

@@ -1,0 +1,42 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useBilling } from '@/contexts/BillingContext';
+import { InvoiceList } from '@/components/billing/InvoiceList';
+
+export default function InvoicesPage() {
+  const { invoices, loadInvoices, isLoading } = useBilling();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    loadInvoices(currentPage);
+  }, [currentPage, loadInvoices]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  return (
+    <ProtectedRoute>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
+          <p className="mt-2 text-gray-600">
+            View and download your billing invoices
+          </p>
+        </div>
+
+        {/* Invoice List */}
+        <InvoiceList
+          invoices={invoices}
+          isLoading={isLoading}
+          onPageChange={handlePageChange}
+          currentPage={currentPage}
+          hasMore={invoices.length >= 10}
+        />
+      </div>
+    </ProtectedRoute>
+  );
+}

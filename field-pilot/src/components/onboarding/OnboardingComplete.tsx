@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useBilling } from '@/contexts/BillingContext';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import { CheckCircle, Sparkles, ArrowRight, Users, CreditCard, Building } from 'lucide-react';
 import { OnboardingApiError } from '@/types/onboarding';
+import Link from 'next/link';
 
 interface OnboardingCompleteProps {
   onComplete?: () => void;
@@ -15,6 +17,7 @@ interface OnboardingCompleteProps {
 export default function OnboardingComplete({ onComplete }: OnboardingCompleteProps) {
   const router = useRouter();
   const { completeStep, tenant, isLoading: contextLoading } = useOnboarding();
+  const { subscription, loadSubscription } = useBilling();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -23,6 +26,9 @@ export default function OnboardingComplete({ onComplete }: OnboardingCompletePro
   useEffect(() => {
     // Trigger confetti animation
     setShowConfetti(true);
+    
+    // Load subscription data
+    loadSubscription();
     
     // Auto-complete step 5 only once
     const completeOnboarding = async () => {
@@ -102,7 +108,30 @@ export default function OnboardingComplete({ onComplete }: OnboardingCompletePro
               </div>
             )}
 
-            {tenant.is_trial_active && (
+            {/* Subscription Info */}
+            {subscription ? (
+              <div className="flex items-start bg-white rounded-lg p-4">
+                <div className="bg-blue-100 rounded-full p-2 mr-3">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">{subscription.plan.name} Plan</p>
+                  <p className="text-sm text-gray-600">
+                    {subscription.is_trial ? (
+                      <>Trial ends on {new Date(subscription.trial_end!).toLocaleDateString()}</>
+                    ) : (
+                      <>Billing cycle: {subscription.billing_cycle}</>
+                    )}
+                  </p>
+                  <Link 
+                    href="/billing/dashboard" 
+                    className="text-sm text-blue-600 hover:text-blue-700 mt-1 inline-block"
+                  >
+                    Manage subscription →
+                  </Link>
+                </div>
+              </div>
+            ) : tenant.is_trial_active && (
               <div className="flex items-start bg-white rounded-lg p-4">
                 <div className="bg-green-100 rounded-full p-2 mr-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />

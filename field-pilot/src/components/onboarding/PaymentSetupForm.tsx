@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useBilling } from '@/contexts/BillingContext';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import { CreditCard, Shield } from 'lucide-react';
 import { OnboardingApiError } from '@/types/onboarding';
+import { PaymentMethodForm } from '@/components/billing/PaymentMethodForm';
+import { StripeProvider } from '@/components/billing/StripeProvider';
 
 interface PaymentSetupFormProps {
   onSuccess?: () => void;
@@ -14,16 +17,28 @@ interface PaymentSetupFormProps {
 
 export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupFormProps) {
   const { completeStep, isLoading: contextLoading, tenant } = useOnboarding();
+  const { createNewSubscription, selectedBillingCycle } = useBilling();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+
+  // Get selected plan from step 2 data
+  const selectedPlanSlug = tenant?.onboarding_step >= 2 
+    ? (tenant as any).step_data?.plan_slug 
+    : null;
 
   const handleSkip = async () => {
     try {
       setIsSubmitting(true);
       setApiError(null);
       
-      // Complete step 3 without payment setup (trial mode)
+      // Create subscription without payment method (trial mode)
+      if (selectedPlanSlug) {
+        await createNewSubscription(selectedPlanSlug, selectedBillingCycle);
+      }
+      
+      // Complete step 3 without payment setup
       await completeStep(3, { skipped: true });
       
       if (onSkip) {
@@ -39,10 +54,32 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
     }
   };
 
-  const handleSetupPayment = () => {
-    // TODO: Integrate with Stripe
-    // This will be implemented when Stripe integration is added
-    setApiError('Stripe integration coming soon. Please skip for now to continue with trial.');
+  const handlePaymentSuccess = async () => {
+    try {
+      setIsSubmitting(true);
+      setApiError(null);
+      
+      // Create subscription with payment method
+      if (selectedPlanSlug) {
+        await createNewSubscription(selectedPlanSlug, selectedBillingCycle);
+      }
+      
+      // Complete step 3 with payment setup
+      await completeStep(3, { payment_completed: true });
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      const apiError = error as OnboardingApiError;
+      setApiError(apiError.message || 'Failed to complete payment setup. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    setApiError(error);
   };
 
   return (
@@ -79,33 +116,46 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
         </div>
       )}
 
-      {/* Payment Form Placeholder */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="bg-gray-100 rounded-full p-4">
-              <CreditCard className="w-8 h-8 text-gray-400" />
+      {/* Payment Form */}
+      {!showPaymentForm ? (
+        <div className="border-2 border-gray-200 rounded-lg p-8">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="bg-blue-100 rounded-full p-4">
+                <CreditCard className="w-8 h-8 text-blue-600" />
+              </div>
             </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Add Payment Method
+              </h3>
+              <p className="text-gray-600">
+                Securely add your payment details to continue after your trial ends.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              onClick={() => setShowPaymentForm(true)}
+              disabled={isSubmitting || contextLoading}
+            >
+              Add Payment Method
+            </Button>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Stripe Integration Coming Soon
-            </h3>
-            <p className="text-gray-600">
-              Payment processing will be available soon. For now, you can skip this step and continue with your trial.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={handleSetupPayment}
-            disabled
-          >
-            Add Payment Method
-          </Button>
         </div>
-      </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg p-6 bg-white">
+          <StripeProvider>
+            <PaymentMethodForm
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              onCancel={() => setShowPaymentForm(false)}
+              showCancel={true}
+            />
+          </StripeProvider>
+        </div>
+      )}
 
       {/* Security Notice */}
       <div className="flex items-start bg-gray-50 rounded-lg p-4">
@@ -117,29 +167,21 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          fullWidth
-          onClick={handleSkip}
-          loading={isSubmitting || contextLoading}
-          disabled={isSubmitting || contextLoading}
-        >
-          Skip for Now
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="lg"
-          fullWidth
-          onClick={handleSetupPayment}
-          disabled
-        >
-          Continue with Payment
-        </Button>
-      </div>
+      {!showPaymentForm && (
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            fullWidth
+            onClick={handleSkip}
+            loading={isSubmitting || contextLoading}
+            disabled={isSubmitting || contextLoading}
+          >
+            Skip for Now
+          </Button>
+        </div>
+      )}
 
       <p className="text-xs text-center text-gray-500">
         You can add payment details later from your account settings

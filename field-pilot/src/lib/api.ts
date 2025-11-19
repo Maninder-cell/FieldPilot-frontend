@@ -1,4 +1,4 @@
-// API Client for Field Pilot Backend
+// API Client for FieldRino Backend
 
 import { ApiResponse, SubscriptionPlan } from '@/types/landing';
 

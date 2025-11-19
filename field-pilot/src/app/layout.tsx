@@ -16,20 +16,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Field Pilot - Streamline Your Field Operations",
+  title: "FieldRino - Streamline Your Field Operations",
   description: "Powerful equipment tracking and work order management for modern field service teams. Increase productivity, reduce costs, and deliver exceptional service.",
   keywords: ["field service", "equipment tracking", "work order management", "field operations", "maintenance management"],
-  authors: [{ name: "Field Pilot" }],
+  authors: [{ name: "FieldRino" }],
   openGraph: {
-    title: "Field Pilot - Streamline Your Field Operations",
+    title: "FieldRino - Streamline Your Field Operations",
     description: "Powerful equipment tracking and work order management for modern field service teams.",
     type: "website",
     locale: "en_US",
-    siteName: "Field Pilot",
+    siteName: "FieldRino",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Field Pilot - Streamline Your Field Operations",
+    title: "FieldRino - Streamline Your Field Operations",
     description: "Powerful equipment tracking and work order management for modern field service teams.",
   },
 };

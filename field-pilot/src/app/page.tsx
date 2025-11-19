@@ -82,7 +82,7 @@ const testimonials = [
     role: 'Operations Manager',
     company: 'BuildCo',
     avatar: 'https://i.pravatar.cc/150?img=1',
-    content: 'Field Pilot has transformed how we manage our equipment. The real-time tracking and maintenance alerts have saved us thousands in repair costs.',
+    content: 'FieldRino has transformed how we manage our equipment. The real-time tracking and maintenance alerts have saved us thousands in repair costs.',
     rating: 5,
   },
   {
@@ -100,7 +100,7 @@ const testimonials = [
     role: 'CEO',
     company: 'GreenScape Solutions',
     avatar: 'https://i.pravatar.cc/150?img=5',
-    content: 'We\'ve seen a 40% increase in productivity since implementing Field Pilot. The analytics help us make data-driven decisions every day.',
+    content: 'We\'ve seen a 40% increase in productivity since implementing FieldRino. The analytics help us make data-driven decisions every day.',
     rating: 5,
   },
 ];
@@ -187,12 +187,12 @@ export default function Home() {
         <Pricing />
         <Testimonials
           title="Trusted by Field Service Teams Worldwide"
-          subtitle="See what our customers have to say about Field Pilot and how it's transformed their operations."
+          subtitle="See what our customers have to say about FieldRino and how it's transformed their operations."
           testimonials={testimonials}
         />
         <CTA
           headline="Ready to Transform Your Field Operations?"
-          subheadline="Join thousands of teams already using Field Pilot to streamline their operations. Start your free 14-day trial today."
+          subheadline="Join thousands of teams already using FieldRino to streamline their operations. Start your free 14-day trial today."
           primaryCTA={{ text: 'Get Started Free', href: '/auth/register' }}
         />
       </main>

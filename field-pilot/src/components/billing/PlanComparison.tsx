@@ -90,7 +90,7 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
       {/* Additional Information */}
       <div className="text-center text-sm text-gray-600 mt-8">
         <p>All plans include a 14-day free trial. No credit card required to start.</p>
-        <p className="mt-2">Need a custom plan? <a href="mailto:sales@fieldpilot.com" className="text-teal-600 hover:underline">Contact sales</a></p>
+        <p className="mt-2">Need a custom plan? <a href="mailto:sales@fieldrino.com" className="text-teal-600 hover:underline">Contact sales</a></p>
       </div>
     </div>
   );

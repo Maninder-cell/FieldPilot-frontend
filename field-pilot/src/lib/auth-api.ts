@@ -1,4 +1,4 @@
-// Authentication API Client for Field Pilot
+// Authentication API Client for FieldRino
 
 import {
   User,

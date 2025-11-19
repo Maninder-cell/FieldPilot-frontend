@@ -223,7 +223,7 @@ export default function OnboardingComplete({ onComplete }: OnboardingCompletePro
       </Button>
 
       <p className="text-xs text-center text-gray-500">
-        Need help? Contact our support team anytime at support@fieldpilot.com
+        Need help? Contact our support team anytime at support@fieldrino.com
       </p>
     </div>
   );

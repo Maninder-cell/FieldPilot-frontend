@@ -93,7 +93,7 @@ export default function RegisterPage() {
             Create your account
           </h1>
           <p className="mt-2 text-center text-sm md:text-base text-gray-600">
-            Join Field Pilot to manage your equipment and operations
+            Join FieldRino to manage your equipment and operations
           </p>
         </div>
 

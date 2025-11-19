@@ -1,4 +1,4 @@
-// TypeScript interfaces for Field Pilot Landing Page
+// TypeScript interfaces for FieldRino Landing Page
 
 export interface SubscriptionPlan {
   id: string;

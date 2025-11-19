@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Menu className="w-6 h-6 text-gray-600" />
           )}
         </button>
-        <span className="ml-3 font-bold text-gray-900">Field Pilot</span>
+        <span className="ml-3 font-bold text-gray-900">FieldRino</span>
       </div>
 
       {/* Header - Full Width, Fixed */}

@@ -12,11 +12,11 @@ export default function Footer({ sections, socialLinks }: FooterProps) {
           {/* Company Info */}
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-2">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Field Pilot Logo">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="FieldRino Logo">
                 <rect width="40" height="40" rx="8" fill="#059669" />
                 <path d="M12 14h16M12 20h16M12 26h10" stroke="white" strokeWidth="2" strokeLinecap="round" />
               </svg>
-              <span className="text-xl font-bold text-white">Field Pilot</span>
+              <span className="text-xl font-bold text-white">FieldRino</span>
             </div>
             <p className="text-base text-gray-400 leading-relaxed max-w-xs">
               Streamline your field operations with powerful equipment tracking and work order management.
@@ -58,7 +58,7 @@ export default function Footer({ sections, socialLinks }: FooterProps) {
         {/* Footer Bottom */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-800 text-center md:text-left">
           <p className="text-sm text-gray-500">
-            © {currentYear} Field Pilot. All rights reserved.
+            © {currentYear} FieldRino. All rights reserved.
           </p>
           <div className="flex gap-6 flex-wrap justify-center">
             <Link href="/privacy" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">

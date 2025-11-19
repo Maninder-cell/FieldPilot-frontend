@@ -28,7 +28,7 @@ export function SubscriptionOverview({
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Active Subscription</h3>
-          <p className="text-gray-600 mb-4">Choose a plan to get started with Field Pilot</p>
+          <p className="text-gray-600 mb-4">Choose a plan to get started with FieldRino</p>
           <Link
             href="/billing/plans"
             className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"

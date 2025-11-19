@@ -1,4 +1,4 @@
-// Billing API Client for Field Pilot
+// Billing API Client for FieldRino
 
 import {
   SubscriptionPlan,

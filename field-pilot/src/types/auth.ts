@@ -1,4 +1,4 @@
-// TypeScript interfaces for Field Pilot Authentication
+// TypeScript interfaces for FieldRino Authentication
 
 export interface User {
   id: string;  // UUID from backend

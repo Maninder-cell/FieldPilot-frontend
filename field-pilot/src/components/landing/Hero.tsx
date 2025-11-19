@@ -62,7 +62,7 @@ export default function Hero({
             <div className="relative w-full aspect-[6/5] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-100 to-cyan-100 group">
               <Image
                 src={heroImage}
-                alt="Field Pilot Dashboard"
+                alt="FieldRino Dashboard"
                 fill
                 priority
                 className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -1,4 +1,4 @@
-// TypeScript interfaces for Field Pilot Onboarding and Tenant Management
+// TypeScript interfaces for FieldRino Onboarding and Tenant Management
 
 // Company/Tenant Types
 export interface Tenant {

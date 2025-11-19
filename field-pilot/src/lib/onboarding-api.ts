@@ -1,4 +1,4 @@
-// Onboarding API Client for Field Pilot
+// Onboarding API Client for FieldRino
 
 import {
   Tenant,

@@ -16,9 +16,9 @@ export default function Header() {
         {/* Logo - Fixed to left */}
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-linear-to-br from-emerald-600 to-cyan-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">FP</span>
+            <span className="text-white font-bold text-lg">FR</span>
           </div>
-          <span className="font-bold text-gray-900 text-lg">Field Pilot</span>
+          <span className="font-bold text-gray-900 text-lg">FieldRino</span>
         </Link>
 
         {/* Right Section */}

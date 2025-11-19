@@ -43,7 +43,7 @@ export default function OnboardingWizard() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome to Field Pilot
+          Welcome to FieldRino
         </h1>
         <p className="text-gray-600">
           Let's get your workspace set up in just a few steps
@@ -94,8 +94,8 @@ export default function OnboardingWizard() {
       <div className="mt-8 text-center text-sm text-gray-500">
         <p>
           Need help? Contact us at{' '}
-          <a href="mailto:support@fieldpilot.com" className="text-teal-600 hover:text-teal-700">
-            support@fieldpilot.com
+          <a href="mailto:support@fieldrino.com" className="text-teal-600 hover:text-teal-700">
+            support@fieldrino.com
           </a>
         </p>
       </div>

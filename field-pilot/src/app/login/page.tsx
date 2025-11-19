@@ -125,7 +125,7 @@ function LoginContent() {
             Sign in to your account
           </h1>
           <p className="mt-2 text-center text-sm md:text-base text-gray-600">
-            Welcome back to Field Pilot
+            Welcome back to FieldRino
           </p>
         </div>
 

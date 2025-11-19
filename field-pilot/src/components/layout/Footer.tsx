@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Copyright */}
           <p className="text-sm text-gray-500">
-            © {currentYear} Field Pilot. All rights reserved.
+            © {currentYear} FieldRino. All rights reserved.
           </p>
 
           {/* Links */}

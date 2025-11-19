@@ -56,7 +56,7 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Billing Cycle Toggle */}
       <div className="flex justify-center">
         <BillingCycleToggle
@@ -67,16 +67,20 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
       </div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans.map((plan) => {
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
+        {plans.map((plan, index) => {
           const isCurrentPlan = showCurrentPlan && subscription?.plan.slug === plan.slug;
           const isRecommended = plan.slug === recommendedPlanSlug;
           const isProcessing = selectedPlanSlug === plan.slug && isLoading;
+          
+          // Get previous plan for feature comparison
+          const previousPlan = index > 0 ? plans[index - 1] : null;
 
           return (
             <PlanCard
               key={plan.id}
               plan={plan}
+              previousPlan={previousPlan}
               billingCycle={selectedBillingCycle}
               isCurrentPlan={isCurrentPlan}
               isRecommended={isRecommended}
@@ -88,9 +92,21 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
       </div>
 
       {/* Additional Information */}
-      <div className="text-center text-sm text-gray-600 mt-8">
-        <p>All plans include a 14-day free trial. No credit card required to start.</p>
-        <p className="mt-2">Need a custom plan? <a href="mailto:sales@fieldrino.com" className="text-teal-600 hover:underline">Contact sales</a></p>
+      <div className="text-center mt-8 sm:mt-12 space-y-4 px-4">
+        <div className="bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl p-4 sm:p-6 max-w-3xl mx-auto border border-teal-100">
+          <p className="text-sm sm:text-base text-gray-700 font-medium mb-2">
+            🎉 All plans include a 14-day free trial
+          </p>
+          <p className="text-xs sm:text-sm text-gray-600">
+            No credit card required to start. Cancel anytime.
+          </p>
+        </div>
+        <p className="text-xs sm:text-sm text-gray-600 px-4">
+          Need a custom plan or have questions? {' '}
+          <a href="mailto:sales@fieldrino.com" className="text-teal-600 hover:text-teal-700 font-semibold underline">
+            Contact our sales team
+          </a>
+        </p>
       </div>
     </div>
   );

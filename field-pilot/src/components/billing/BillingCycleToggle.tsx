@@ -14,13 +14,13 @@ export function BillingCycleToggle({
   yearlyDiscountPercentage = 17,
 }: BillingCycleToggleProps) {
   return (
-    <div className="flex items-center justify-center space-x-3">
+    <div className="inline-flex items-center bg-gray-100 rounded-full p-1 shadow-inner">
       <button
         onClick={() => onCycleChange('monthly')}
-        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+        className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 ${
           selectedCycle === 'monthly'
-            ? 'bg-teal-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-white text-gray-900 shadow-md'
+            : 'text-gray-600 hover:text-gray-900'
         }`}
       >
         Monthly
@@ -28,16 +28,16 @@ export function BillingCycleToggle({
       
       <button
         onClick={() => onCycleChange('yearly')}
-        className={`relative px-4 py-2 rounded-md font-medium transition-colors ${
+        className={`relative px-8 py-3 rounded-full font-semibold transition-all duration-300 ${
           selectedCycle === 'yearly'
-            ? 'bg-teal-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-white text-gray-900 shadow-md'
+            : 'text-gray-600 hover:text-gray-900'
         }`}
       >
         Yearly
         {yearlyDiscountPercentage > 0 && (
-          <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-            Save {Math.round(yearlyDiscountPercentage)}%
+          <span className="absolute -top-3 -right-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg animate-pulse">
+            SAVE {Math.round(yearlyDiscountPercentage)}%
           </span>
         )}
       </button>

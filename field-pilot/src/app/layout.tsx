@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { BillingProvider } from "@/contexts/BillingContext";
+import { StripeProvider } from "@/components/providers/StripeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,7 +48,9 @@ export default function RootLayout({
         <AuthProvider>
           <OnboardingProvider>
             <BillingProvider>
-              {children}
+              <StripeProvider>
+                {children}
+              </StripeProvider>
             </BillingProvider>
           </OnboardingProvider>
         </AuthProvider>

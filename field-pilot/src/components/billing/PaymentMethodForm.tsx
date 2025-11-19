@@ -6,7 +6,7 @@ import { useBilling } from '@/contexts/BillingContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PaymentMethodFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (paymentMethodId?: string) => void;
   onError?: (error: string) => void;
   onCancel?: () => void;
   showCancel?: boolean;
@@ -38,7 +38,7 @@ export function PaymentMethodForm({
 }: PaymentMethodFormProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const { setupPaymentMethod, savePaymentMethod } = useBilling();
+  const { setupPaymentMethod } = useBilling();
   const { user } = useAuth();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -102,16 +102,15 @@ export function PaymentMethodForm({
         throw new Error('Failed to setup payment method');
       }
 
-      // Step 3: Save payment method to backend (SKIPPED - API not ready)
-      // TODO: Uncomment when backend payment-method/add/ endpoint is ready
-      // await savePaymentMethod(setupIntent.payment_method as string, true);
-      
-      console.log('Payment method created:', setupIntent.payment_method);
-      console.log('Skipping savePaymentMethod API call (endpoint not ready)');
+      // Step 3: Pass payment method ID to parent for subscription creation
+      // The backend will automatically save and charge this payment method
+      // when the subscription is created via /api/v1/billing/subscription/create/
+      const paymentMethodId = setupIntent.payment_method as string;
+      console.log('Payment method created:', paymentMethodId);
 
-      // Success
+      // Success - pass payment method ID to parent
       if (onSuccess) {
-        onSuccess();
+        onSuccess(paymentMethodId);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add payment method';

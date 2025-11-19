@@ -241,6 +241,15 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  /**
+   * Save payment method separately (NOT CURRENTLY USED IN MAIN FLOW)
+   * 
+   * Note: Payment methods are automatically saved when creating subscriptions
+   * via createNewSubscription(). This function is kept for potential future use
+   * if the backend adds standalone payment method management endpoints.
+   * 
+   * Current flow: setupPaymentMethod() → Stripe.js → createNewSubscription(payment_method_id)
+   */
   const savePaymentMethod = useCallback(async (
     paymentMethodId: string,
     setAsDefault: boolean

@@ -38,15 +38,21 @@ export default function PlansPage() {
     setShowPaymentForm(true);
   };
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (paymentMethodId?: string) => {
     if (!selectedPlan) return;
+
+    // Validate payment method ID is provided
+    if (!paymentMethodId) {
+      setError('Payment method is required');
+      return;
+    }
 
     setIsCreating(true);
     setError(null);
 
     try {
-      // Payment method is already saved, now create subscription
-      await createNewSubscription(selectedPlan.slug, selectedBillingCycle);
+      // Create subscription with payment method ID for immediate charging
+      await createNewSubscription(selectedPlan.slug, selectedBillingCycle, paymentMethodId);
       router.push('/billing/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create subscription');

@@ -25,6 +25,17 @@ export interface Tenant {
   updated_at: string;
   domain?: string;
   access_url?: string;
+  step_data?: {
+    plan_id?: string;
+    plan_slug?: string;
+    billing_cycle?: 'monthly' | 'yearly';
+    payment_completed?: boolean;
+    payment_method_added?: boolean;
+    payment_method_id?: string;
+    subscription_created?: boolean;
+    trial_mode?: boolean;
+    [key: string]: any;
+  };
 }
 
 export interface CreateCompanyRequest {

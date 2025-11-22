@@ -10,6 +10,7 @@ interface PaymentMethodFormProps {
   onError?: (error: string) => void;
   onCancel?: () => void;
   showCancel?: boolean;
+  isProcessing?: boolean;
 }
 
 const CARD_ELEMENT_OPTIONS = {
@@ -35,6 +36,7 @@ export function PaymentMethodForm({
   onError,
   onCancel,
   showCancel = false,
+  isProcessing: externalProcessing = false,
 }: PaymentMethodFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -45,6 +47,9 @@ export function PaymentMethodForm({
   const [cardError, setCardError] = useState<string | null>(null);
   const [billingName, setBillingName] = useState(user?.full_name || '');
   const [billingEmail, setBillingEmail] = useState(user?.email || '');
+  
+  // Combine internal and external processing states
+  const processing = isProcessing || externalProcessing;
 
   const handleCardChange = (event: any) => {
     if (event.error) {
@@ -137,7 +142,7 @@ export function PaymentMethodForm({
           onChange={(e) => setBillingName(e.target.value)}
           placeholder="John Doe"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-          disabled={isProcessing}
+          disabled={processing}
           required
         />
       </div>
@@ -154,7 +159,7 @@ export function PaymentMethodForm({
           onChange={(e) => setBillingEmail(e.target.value)}
           placeholder="john@example.com"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-          disabled={isProcessing}
+          disabled={processing}
           required
         />
       </div>
@@ -191,10 +196,10 @@ export function PaymentMethodForm({
       <div className="flex space-x-3">
         <button
           type="submit"
-          disabled={!stripe || isProcessing}
+          disabled={!stripe || processing}
           className="flex-1 bg-gradient-to-r from-teal-600 to-teal-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
         >
-          {isProcessing ? (
+          {processing ? (
             <span className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -211,7 +216,7 @@ export function PaymentMethodForm({
           <button
             type="button"
             onClick={onCancel}
-            disabled={isProcessing}
+            disabled={processing}
             className="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Cancel

@@ -158,6 +158,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       if (!accessToken) throw new Error('No access token available');
 
       const updatedTenant = await completeOnboardingStep({ step, data }, accessToken);
+      
+      // Debug: Log the response from backend
+      console.log('OnboardingContext - Step completed:', step);
+      console.log('OnboardingContext - Updated tenant:', updatedTenant);
+      console.log('OnboardingContext - Step data:', updatedTenant.step_data);
+      
       setTenant(updatedTenant);
       
       // If the backend didn't advance the step, manually set it to next step

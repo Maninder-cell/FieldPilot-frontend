@@ -26,11 +26,11 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
   const handleChange = (value: string) => {
     setEmail(value);
-    
+
     if (errors.email) {
       setErrors(prev => ({ ...prev, email: '' }));
     }
-    
+
     if (apiError) setApiError(null);
     if (successMessage) setSuccessMessage(null);
   };
@@ -42,7 +42,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
   const validateField = () => {
     const error = validateEmail(email);
-    
+
     if (error) {
       setErrors(prev => ({ ...prev, email: error }));
     } else {
@@ -57,7 +57,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
   const validateForm = (): boolean => {
     validateField();
     setTouched({ email: true });
-    
+
     const error = validateEmail(email);
     return error === null;
   };
@@ -75,9 +75,9 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
 
     try {
       await forgotPassword({ email });
-      
+
       setSuccessMessage('If the email exists, a password reset code has been sent. Please check your email.');
-      
+
       setTimeout(() => {
         if (onSuccess) {
           onSuccess(email);
@@ -85,12 +85,12 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
       }, 2000);
     } catch (error) {
       const apiErr = error as ApiError;
-      
+
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
       }
-      
+
       setApiError(getErrorMessage(apiErr));
     } finally {
       setIsSubmitting(false);
@@ -143,7 +143,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
         loading={isSubmitting}
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Sending...' : 'Send Reset Code'}
+        {isSubmitting ? 'Sending...' : 'Send Verification Code'}
       </Button>
     </form>
   );

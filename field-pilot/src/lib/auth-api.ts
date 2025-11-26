@@ -13,6 +13,8 @@ import {
   ApiResponse,
   ApiError,
   ForgotPasswordRequest,
+  VerifyResetOTPRequest,
+  VerifyResetOTPResponse,
   ResetPasswordRequest,
   ChangePasswordRequest,
   UserProfile,
@@ -56,7 +58,7 @@ async function fetchAuthAPI<T>(
     if ((error as ApiError).status) {
       throw error;
     }
-    
+
     // Handle network errors
     throw {
       status: 0,
@@ -74,7 +76,7 @@ export async function registerUser(data: RegisterRequest): Promise<RegisterRespo
     method: 'POST',
     body: JSON.stringify(data),
   });
-  
+
   return { user: response.data.user };
 }
 
@@ -87,7 +89,7 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  
+
   return response.data;
 }
 
@@ -100,7 +102,7 @@ export async function verifyEmail(data: VerifyEmailRequest): Promise<VerifyEmail
     method: 'POST',
     body: JSON.stringify(data),
   });
-  
+
   return response.data;
 }
 
@@ -124,7 +126,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<TokenRef
     method: 'POST',
     body: JSON.stringify({ refresh: refreshToken }),
   });
-  
+
   return response;
 }
 
@@ -158,7 +160,7 @@ export async function getCurrentUser(accessToken: string): Promise<User> {
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  
+
   return response.data;
 }
 
@@ -172,6 +174,20 @@ export async function forgotPassword(data: ForgotPasswordRequest): Promise<void>
     body: JSON.stringify(data),
   });
 }
+
+/**
+ * Verify reset OTP and get reset token
+ * POST /api/auth/verify-reset-otp/
+ */
+export async function verifyResetOTP(data: VerifyResetOTPRequest): Promise<VerifyResetOTPResponse> {
+  const response = await fetchAuthAPI<ApiResponse<VerifyResetOTPResponse>>('/auth/verify-reset-otp/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+  return response.data;
+}
+
 
 /**
  * Reset password with OTP
@@ -212,7 +228,7 @@ export async function getProfile(accessToken: string): Promise<UserProfile> {
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  
+
   return response.data;
 }
 
@@ -232,6 +248,6 @@ export async function updateProfile(
       Authorization: `Bearer ${accessToken}`,
     },
   });
-  
+
   return response.data;
 }

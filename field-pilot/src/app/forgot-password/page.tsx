@@ -11,7 +11,7 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
 
   const handleSuccess = (email: string) => {
-    router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+    router.push(`/verify-otp?email=${encodeURIComponent(email)}&purpose=password_reset`);
   };
 
   const footerSections = [

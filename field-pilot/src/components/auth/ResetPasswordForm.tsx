@@ -5,10 +5,8 @@ import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PasswordStrengthIndicator from '@/components/ui/PasswordStrengthIndicator';
-import { resetPassword, resendOTP } from '@/lib/auth-api';
+import { resetPassword } from '@/lib/auth-api';
 import {
-  validateEmail,
-  validateOTP,
   validateNewPassword,
   validateNewPasswordConfirm,
   mapApiErrorsToFields,
@@ -17,47 +15,45 @@ import {
 import { ApiError } from '@/types/auth';
 
 interface ResetPasswordFormProps {
-  email?: string;
   onSuccess?: () => void;
 }
 
-export default function ResetPasswordForm({ email: initialEmail, onSuccess }: ResetPasswordFormProps) {
+export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps) {
   const [formData, setFormData] = useState({
-    email: initialEmail || '',
-    otp_code: '',
+    email: '',
+    reset_token: '',
     new_password: '',
     new_password_confirm: '',
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
-  const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Get email and reset token from session storage
   useEffect(() => {
-    if (initialEmail && initialEmail !== formData.email) {
-      setFormData(prev => ({ ...prev, email: initialEmail }));
-    }
-  }, [initialEmail, formData.email]);
+    if (typeof window !== 'undefined') {
+      const email = sessionStorage.getItem('reset_email') || '';
+      const reset_token = sessionStorage.getItem('reset_token') || '';
 
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-      return () => clearTimeout(timer);
+      if (email && reset_token) {
+        setFormData(prev => ({ ...prev, email, reset_token }));
+      } else {
+        // Redirect to forgot password if no token
+        setApiError('Invalid or expired reset session. Please start the password reset process again.');
+      }
     }
-  }, [resendCooldown]);
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
+
     if (apiError) setApiError(null);
     if (successMessage) setSuccessMessage(null);
   };
@@ -71,12 +67,6 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
     let error: string | null = null;
 
     switch (field) {
-      case 'email':
-        error = validateEmail(formData.email);
-        break;
-      case 'otp_code':
-        error = validateOTP(formData.otp_code);
-        break;
       case 'new_password':
         error = validateNewPassword(formData.new_password);
         break;
@@ -97,22 +87,16 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
   };
 
   const validateForm = (): boolean => {
-    const fields = ['email', 'otp_code', 'new_password', 'new_password_confirm'];
+    const fields = ['new_password', 'new_password_confirm'];
     fields.forEach(validateField);
-    
+
     const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
     setTouched(allTouched);
-    
+
     const hasErrors = fields.some(field => {
       let error: string | null = null;
-      
+
       switch (field) {
-        case 'email':
-          error = validateEmail(formData.email);
-          break;
-        case 'otp_code':
-          error = validateOTP(formData.otp_code);
-          break;
         case 'new_password':
           error = validateNewPassword(formData.new_password);
           break;
@@ -120,10 +104,10 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
           error = validateNewPasswordConfirm(formData.new_password, formData.new_password_confirm);
           break;
       }
-      
+
       return error !== null;
     });
-    
+
     return !hasErrors;
   };
 
@@ -136,13 +120,24 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
       return;
     }
 
+    if (!formData.email || !formData.reset_token) {
+      setApiError('Invalid or expired reset session. Please start the password reset process again.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await resetPassword(formData);
-      
+
+      // Clear session storage
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('reset_token');
+        sessionStorage.removeItem('reset_email');
+      }
+
       setSuccessMessage('Password reset successful! Redirecting to login...');
-      
+
       setTimeout(() => {
         if (onSuccess) {
           onSuccess();
@@ -150,38 +145,15 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
       }, 2000);
     } catch (error) {
       const apiErr = error as ApiError;
-      
+
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
       }
-      
+
       setApiError(getPasswordErrorMessage(apiErr));
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    if (resendCooldown > 0 || !formData.email) return;
-
-    setIsResending(true);
-    setApiError(null);
-    setSuccessMessage(null);
-
-    try {
-      await resendOTP({
-        email: formData.email,
-        purpose: 'password_reset',
-      });
-      
-      setSuccessMessage('Verification code sent! Please check your email.');
-      setResendCooldown(60);
-    } catch (error) {
-      const apiErr = error as ApiError;
-      setApiError(getPasswordErrorMessage(apiErr));
-    } finally {
-      setIsResending(false);
     }
   };
 
@@ -202,34 +174,14 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
         />
       )}
 
-      <FormInput
-        label="Email Address"
-        name="email"
-        type="email"
-        value={formData.email}
-        onChange={(value) => handleChange('email', value)}
-        onBlur={() => handleBlur('email')}
-        error={touched.email ? errors.email : undefined}
-        placeholder="john.doe@example.com"
-        required
-        disabled={isSubmitting || !!initialEmail}
-        autoComplete="email"
-      />
-
-      <FormInput
-        label="Verification Code"
-        name="otp_code"
-        type="text"
-        value={formData.otp_code}
-        onChange={(value) => handleChange('otp_code', value)}
-        onBlur={() => handleBlur('otp_code')}
-        error={touched.otp_code ? errors.otp_code : undefined}
-        placeholder="123456"
-        required
-        disabled={isSubmitting}
-        autoComplete="one-time-code"
-        autoFocus={!!initialEmail}
-      />
+      <div className="text-center mb-6">
+        <p className="text-sm text-gray-600">
+          Enter your new password below
+        </p>
+        <p className="text-xs text-gray-500 mt-2">
+          Your reset token will expire in 15 minutes
+        </p>
+      </div>
 
       <div>
         <FormInput
@@ -244,6 +196,7 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
           required
           disabled={isSubmitting}
           autoComplete="new-password"
+          autoFocus
         />
         <PasswordStrengthIndicator password={formData.new_password} />
       </div>
@@ -262,34 +215,16 @@ export default function ResetPasswordForm({ email: initialEmail, onSuccess }: Re
         autoComplete="new-password"
       />
 
-      <div className="flex flex-col gap-3">
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={isSubmitting}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
-          fullWidth
-          loading={isResending}
-          disabled={isResending || resendCooldown > 0 || !formData.email}
-          onClick={handleResendOTP}
-        >
-          {resendCooldown > 0
-            ? `Resend Code (${resendCooldown}s)`
-            : isResending
-            ? 'Sending...'
-            : 'Resend Verification Code'}
-        </Button>
-      </div>
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        fullWidth
+        loading={isSubmitting}
+        disabled={isSubmitting || !formData.email || !formData.reset_token}
+      >
+        {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
+      </Button>
     </form>
   );
 }

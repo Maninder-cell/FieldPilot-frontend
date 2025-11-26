@@ -98,9 +98,20 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
-export interface ResetPasswordRequest {
+export interface VerifyResetOTPRequest {
   email: string;
   otp_code: string;
+}
+
+export interface VerifyResetOTPResponse {
+  email: string;
+  reset_token: string;
+  expires_in: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  reset_token: string;
   new_password: string;
   new_password_confirm: string;
 }

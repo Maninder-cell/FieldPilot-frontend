@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import Header from '@/components/landing/Header';
@@ -9,8 +9,6 @@ import Footer from '@/components/landing/Footer';
 
 function ResetPasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
 
   const handleSuccess = () => {
     router.push('/login');
@@ -98,7 +96,7 @@ function ResetPasswordContent() {
 
         <div className="relative mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white/80 backdrop-blur-sm py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-white/20">
-            <ResetPasswordForm email={email} onSuccess={handleSuccess} />
+            <ResetPasswordForm onSuccess={handleSuccess} />
 
             <div className="mt-6">
               <div className="relative">

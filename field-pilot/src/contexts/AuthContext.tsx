@@ -106,12 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogin = async (email: string, password: string, rememberMe?: boolean) => {
     try {
       const response = await loginUser({ email, password, remember_me: rememberMe });
-      
+
       // Store tokens and user data
       storeTokens(response.tokens.access, response.tokens.refresh);
       storeUserData(response.user);
       setUser(response.user);
-      
+
       // Store email in localStorage if remember me is checked
       if (rememberMe) {
         localStorage.setItem('remembered_email', email);
@@ -133,8 +133,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear local state regardless of API call success
+      // Clear all authentication data
       clearAuthData();
+
+      // Clear all localStorage to ensure complete logout
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+      }
+
+      // Clear session storage as well (for reset tokens, etc.)
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+      }
+
       setUser(null);
       router.push('/login');
     }

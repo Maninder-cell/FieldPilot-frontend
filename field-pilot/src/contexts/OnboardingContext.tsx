@@ -33,21 +33,21 @@ interface OnboardingContextType {
   userInvitations: InvitationCheckResponse[];
   isLoading: boolean;
   currentStep: number;
-  
+
   // Company Management
   createCompany: (data: CreateCompanyRequest) => Promise<void>;
   updateCompany: (data: UpdateCompanyRequest) => Promise<void>;
   refreshTenant: () => Promise<void>;
-  
+
   // Onboarding Process
   completeStep: (step: number, data?: Record<string, any>) => Promise<void>;
   goToStep: (step: number) => void;
-  
+
   // Team Management
   loadMembers: () => Promise<void>;
   inviteTeamMember: (data: InviteMemberRequest) => Promise<void>;
   loadPendingInvitations: () => Promise<void>;
-  
+
   // Invitation Management
   checkUserInvitations: () => Promise<void>;
   acceptInvite: (invitationId: string) => Promise<void>;
@@ -158,18 +158,24 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       if (!accessToken) throw new Error('No access token available');
 
       const updatedTenant = await completeOnboardingStep({ step, data }, accessToken);
-      
+
       // Debug: Log the response from backend
       console.log('OnboardingContext - Step completed:', step);
       console.log('OnboardingContext - Updated tenant:', updatedTenant);
       console.log('OnboardingContext - Step data:', updatedTenant.step_data);
-      
+
       setTenant(updatedTenant);
-      
+
       // If the backend didn't advance the step, manually set it to next step
-      const nextStep = updatedTenant.onboarding_step > step ? updatedTenant.onboarding_step : step + 1;
+      let nextStep = updatedTenant.onboarding_step > step ? updatedTenant.onboarding_step : step + 1;
+
+      // Cap at step 5 (completion step)
+      if (nextStep > 5) {
+        nextStep = 5;
+      }
+
       setCurrentStep(nextStep);
-      
+
       // Also update the tenant object with the correct step if backend didn't
       if (updatedTenant.onboarding_step === step) {
         setTenant({ ...updatedTenant, onboarding_step: nextStep });
@@ -210,7 +216,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       if (!accessToken) throw new Error('No access token available');
 
       await inviteMemberAPI(data, accessToken);
-      
+
       // Refresh members and pending invitations after successful invite
       await handleLoadMembers();
       await handleLoadPendingInvitations();
@@ -253,7 +259,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       if (!accessToken) throw new Error('No access token available');
 
       await acceptInvitationAPI(invitationId, accessToken);
-      
+
       // Refresh tenant data and user invitations after accepting
       await handleRefreshTenant();
       await handleCheckUserInvitations();
@@ -273,21 +279,21 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     userInvitations,
     isLoading,
     currentStep,
-    
+
     // Company Management
     createCompany: handleCreateCompany,
     updateCompany: handleUpdateCompany,
     refreshTenant: handleRefreshTenant,
-    
+
     // Onboarding Process
     completeStep: handleCompleteStep,
     goToStep: handleGoToStep,
-    
+
     // Team Management
     loadMembers: handleLoadMembers,
     inviteTeamMember: handleInviteTeamMember,
     loadPendingInvitations: handleLoadPendingInvitations,
-    
+
     // Invitation Management
     checkUserInvitations: handleCheckUserInvitations,
     acceptInvite: handleAcceptInvite,

@@ -19,8 +19,8 @@ interface CompanyInfoFormProps {
 }
 
 export default function CompanyInfoForm({ onSuccess }: CompanyInfoFormProps) {
-  const { tenant, createCompany, completeStep, isLoading } = useOnboarding();
-  
+  const { tenant, createCompany, updateCompany, completeStep, isLoading } = useOnboarding();
+
   const [formData, setFormData] = useState({
     name: '',
     company_email: '',
@@ -34,38 +34,39 @@ export default function CompanyInfoForm({ onSuccess }: CompanyInfoFormProps) {
     zip_code: '',
     country: '',
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // If company already exists and we're on step 1, just complete the step
+  // Pre-fill form with existing company data if available
   useEffect(() => {
-    if (tenant && tenant.onboarding_step === 1) {
-      // Company exists but step 1 not completed, auto-complete it
-      const autoCompleteStep = async () => {
-        try {
-          await completeStep(1);
-          if (onSuccess) {
-            onSuccess();
-          }
-        } catch (error) {
-          console.error('Error auto-completing step 1:', error);
-        }
-      };
-      autoCompleteStep();
+    if (tenant) {
+      setFormData({
+        name: tenant.name || '',
+        company_email: tenant.company_email || '',
+        company_phone: tenant.company_phone || '',
+        company_size: tenant.company_size || '',
+        industry: tenant.industry || '',
+        website: tenant.website || '',
+        address: tenant.address || '',
+        city: tenant.city || '',
+        state: tenant.state || '',
+        zip_code: tenant.zip_code || '',
+        country: tenant.country || '',
+      });
     }
-  }, [tenant, completeStep, onSuccess]);
+  }, [tenant]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
+
     // Clear API error when user makes changes
     if (apiError) {
       setApiError(null);
@@ -148,18 +149,24 @@ export default function CompanyInfoForm({ onSuccess }: CompanyInfoFormProps) {
         }
       });
 
-      // Create the company
-      await createCompany(submitData);
-      
+      // Check if company already exists
+      if (tenant) {
+        // Update existing company
+        await updateCompany(submitData);
+      } else {
+        // Create new company
+        await createCompany(submitData);
+      }
+
       // Mark step 1 as complete and advance to step 2
       await completeStep(1);
-      
+
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       const apiError = error as OnboardingApiError;
-      
+
       // Map API errors to form fields
       if (apiError.details) {
         const fieldErrors: Record<string, string> = {};
@@ -168,25 +175,13 @@ export default function CompanyInfoForm({ onSuccess }: CompanyInfoFormProps) {
         });
         setErrors(prev => ({ ...prev, ...fieldErrors }));
       }
-      
+
       // Set general error message
       setApiError(apiError.message || 'An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // If company already exists, show loading while we auto-complete
-  if (tenant && tenant.onboarding_step === 1) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
-          <p className="text-gray-600">Company already created. Moving to next step...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -284,7 +279,7 @@ export default function CompanyInfoForm({ onSuccess }: CompanyInfoFormProps) {
       {/* Optional Address Fields */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">Address (Optional)</h3>
-        
+
         <FormInput
           label="Street Address"
           name="address"

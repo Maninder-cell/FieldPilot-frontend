@@ -16,10 +16,11 @@ export default function OnboardingWizard() {
 
   useEffect(() => {
     // Redirect to dashboard if onboarding is already completed
-    if (tenant && tenant.onboarding_completed) {
+    // BUT allow step 5 to display the completion screen first
+    if (tenant && tenant.onboarding_completed && currentStep !== 5) {
       router.push('/dashboard');
     }
-  }, [tenant, router]);
+  }, [tenant, currentStep, router]);
 
   const handleStepSuccess = () => {
     // The context will automatically update currentStep when completeStep is called
@@ -39,7 +40,7 @@ export default function OnboardingWizard() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className={currentStep === 2 ? "max-w-7xl mx-auto" : "max-w-4xl mx-auto"}>
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -53,42 +54,46 @@ export default function OnboardingWizard() {
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} totalSteps={5} />
 
-        {/* Step Content */}
+      {/* Step Content */}
+      {currentStep === 2 ? (
+        // Step 2: No card wrapper for plan selection to allow full width
+        <div className="mt-8">
+          <PlanSelectionForm onSuccess={handleStepSuccess} />
+        </div>
+      ) : (
+        // Other steps: Use card wrapper
         <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mt-8">
           {currentStep === 1 && (
             <CompanyInfoForm onSuccess={handleStepSuccess} />
           )}
-          
-          {currentStep === 2 && (
-            <PlanSelectionForm onSuccess={handleStepSuccess} />
-          )}
-          
+
           {currentStep === 3 && (
             <PaymentSetupForm onSuccess={handleStepSuccess} />
           )}
-          
+
           {currentStep === 4 && (
             <TeamInvitationForm onSuccess={handleStepSuccess} />
           )}
-          
+
           {currentStep === 5 && (
             <OnboardingComplete onComplete={() => router.push('/dashboard')} />
           )}
         </div>
+      )}
 
-        {/* Navigation Helper (for steps 2-4) */}
-        {currentStep > 1 && currentStep < 5 && (
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => goToStep(currentStep - 1)}
-              className="text-sm text-teal-600 hover:text-teal-700 font-medium"
-              disabled={isLoading}
-            >
-              ← Back to previous step
-            </button>
-          </div>
-        )}
+      {/* Navigation Helper (for steps 2-4) */}
+      {currentStep > 1 && currentStep < 5 && (
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => goToStep(currentStep - 1)}
+            className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+            disabled={isLoading}
+          >
+            ← Back to previous step
+          </button>
+        </div>
+      )}
 
       {/* Help Text */}
       <div className="mt-8 text-center text-sm text-gray-500">

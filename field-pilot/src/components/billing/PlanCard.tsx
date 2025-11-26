@@ -31,9 +31,9 @@ export function PlanCard({
 
   // Get all features for current plan
   const currentPlanFeatures = Object.keys(plan.features).filter(key => plan.features[key]);
-  
+
   // Get features from previous plan (if exists)
-  const previousPlanFeatures = previousPlan 
+  const previousPlanFeatures = previousPlan
     ? Object.keys(previousPlan.features).filter(key => previousPlan.features[key])
     : [];
 
@@ -45,13 +45,13 @@ export function PlanCard({
   // Convert features to display format
   const allFeatures = uniqueFeatures.map((key) => {
     // Convert snake_case to Title Case
-    return key.split('_').map(word => 
+    return key.split('_').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   });
 
   // Determine the previous plan name for "Everything in X, plus:" text
-  const previousPlanText = previousPlan 
+  const previousPlanText = previousPlan
     ? `Everything in ${previousPlan.name}, plus:`
     : null;
 
@@ -61,18 +61,17 @@ export function PlanCard({
 
   return (
     <div
-      className={`relative bg-white rounded-2xl border-2 p-6 sm:p-8 flex flex-col h-full shadow-sm group ${
-        isRecommended
+      className={`relative bg-white rounded-2xl border-2 p-6 sm:p-8 flex flex-col h-full shadow-sm group ${isRecommended
           ? 'border-teal-500 shadow-xl z-10'
           : isCurrentPlan
-          ? 'border-green-500 shadow-lg'
-          : 'border-gray-200 hover:border-teal-300 hover:shadow-lg hover:-translate-y-1'
-      } transition-all duration-200 ease-out`}
+            ? 'border-green-500 shadow-lg'
+            : 'border-gray-200 hover:border-teal-300 hover:shadow-lg hover:-translate-y-1'
+        } transition-all duration-200 ease-out`}
     >
       {/* Recommended Badge */}
       {isRecommended && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="bg-gradient-to-r from-teal-500 to-teal-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
+          <span className="bg-gradient-to-r from-teal-500 to-teal-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md whitespace-nowrap">
             ⭐ RECOMMENDED
           </span>
         </div>
@@ -89,7 +88,7 @@ export function PlanCard({
 
       {/* Plan Name */}
       <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">{plan.name}</h3>
-      
+
       {/* Plan Description */}
       <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6 min-h-[2.5rem] sm:min-h-12">{plan.description}</p>
 
@@ -189,11 +188,10 @@ export function PlanCard({
         <button
           onClick={onSelect}
           disabled={isCurrentPlan || isLoading}
-          className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all transform sm:hover:scale-105 ${
-            isCurrentPlan
+          className={`w-full py-3 sm:py-4 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all transform sm:hover:scale-105 ${isCurrentPlan
               ? 'bg-gray-100 text-gray-500 cursor-not-allowed hover:scale-100'
               : 'bg-gradient-to-r from-teal-600 to-teal-700 text-white hover:from-teal-700 hover:to-teal-800 shadow-lg'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {isLoading ? (
             <span className="flex items-center justify-center">

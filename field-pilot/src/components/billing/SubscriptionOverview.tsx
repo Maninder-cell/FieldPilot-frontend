@@ -97,7 +97,7 @@ export function SubscriptionOverview({
             <div>
               <p className="text-sm font-medium text-yellow-900">Subscription Ending</p>
               <p className="text-sm text-yellow-700">
-                Your subscription will be canceled on {formatDate(subscription.current_period_end)}
+                Your subscription will be canceled on {formatDate(subscription.next_renewal_date || subscription.current_period_end)}
               </p>
             </div>
           </div>
@@ -113,13 +113,19 @@ export function SubscriptionOverview({
           </div>
         </div>
         <div className="p-4 bg-gray-50 rounded-md">
-          <div className="text-sm text-gray-600 mb-1">Next Renewal</div>
+          <div className="text-sm text-gray-600 mb-1">
+            {subscription.is_trial ? 'Trial Ends' : 'Next Renewal'}
+          </div>
           <div className="text-lg font-semibold text-gray-900">
-            {subscription.cancel_at_period_end ? 'N/A' : formatDate(subscription.current_period_end)}
+            {subscription.cancel_at_period_end 
+              ? 'N/A' 
+              : formatDate(subscription.next_renewal_date || subscription.current_period_end)}
           </div>
         </div>
         <div className="p-4 bg-gray-50 rounded-md">
-          <div className="text-sm text-gray-600 mb-1">Days Until Renewal</div>
+          <div className="text-sm text-gray-600 mb-1">
+            {subscription.is_trial ? 'Days Left in Trial' : 'Days Until Renewal'}
+          </div>
           <div className="text-lg font-semibold text-gray-900">
             {subscription.cancel_at_period_end ? 'N/A' : `${subscription.days_until_renewal} days`}
           </div>

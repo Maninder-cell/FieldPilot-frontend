@@ -95,7 +95,7 @@ export default function PlansPage() {
             {!showPaymentForm && (
               <PlanComparison
                 onPlanSelect={handlePlanSelect}
-                showCurrentPlan={false}
+                showCurrentPlan={true}
               />
             )}
 

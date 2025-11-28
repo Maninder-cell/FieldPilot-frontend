@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { PaymentMethodForm } from '@/components/billing/PaymentMethodForm';
 import { StripeProvider } from '@/components/billing/StripeProvider';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { getPaymentMethods, setDefaultPaymentMethod, removePaymentMethod } from '@/lib/billing-api';
 import { getAccessToken } from '@/lib/token-utils';
 
@@ -27,6 +28,8 @@ export default function PaymentMethodsPage() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [paymentMethodToRemove, setPaymentMethodToRemove] = useState<PaymentMethod | null>(null);
 
   const loadPaymentMethods = async () => {
     try {
@@ -73,23 +76,30 @@ export default function PaymentMethodsPage() {
     }
   };
 
-  const handleRemove = async (paymentMethodId: string) => {
-    if (!confirm('Are you sure you want to remove this payment method?')) {
-      return;
-    }
+  const handleRemoveClick = (method: PaymentMethod) => {
+    setPaymentMethodToRemove(method);
+    setShowRemoveModal(true);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!paymentMethodToRemove) return;
 
     try {
       setIsProcessing(true);
       const accessToken = getAccessToken();
       if (!accessToken) return;
 
-      await removePaymentMethod(paymentMethodId, accessToken);
+      await removePaymentMethod(paymentMethodToRemove.id, accessToken);
       setSuccessMessage('Payment method removed successfully!');
       setTimeout(() => setSuccessMessage(null), 5000);
+      setShowRemoveModal(false);
+      setPaymentMethodToRemove(null);
       loadPaymentMethods();
     } catch (error) {
       setErrorMessage('Failed to remove payment method');
       setTimeout(() => setErrorMessage(null), 5000);
+      setShowRemoveModal(false);
+      setPaymentMethodToRemove(null);
     } finally {
       setIsProcessing(false);
     }
@@ -191,7 +201,7 @@ export default function PaymentMethodsPage() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleRemove(method.id)}
+                          onClick={() => handleRemoveClick(method)}
                           disabled={isProcessing}
                           className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         >
@@ -272,6 +282,26 @@ export default function PaymentMethodsPage() {
           </div>
         </div>
         </div>
+
+        {/* Remove Payment Method Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showRemoveModal}
+          onClose={() => {
+            setShowRemoveModal(false);
+            setPaymentMethodToRemove(null);
+          }}
+          onConfirm={handleRemoveConfirm}
+          title="Remove Payment Method"
+          message={
+            paymentMethodToRemove
+              ? `Are you sure you want to remove ${paymentMethodToRemove.card?.brand} ending in ${paymentMethodToRemove.card?.last4}? This action cannot be undone.`
+              : 'Are you sure you want to remove this payment method?'
+          }
+          confirmText="Remove"
+          cancelText="Cancel"
+          isProcessing={isProcessing}
+          variant="danger"
+        />
       </DashboardLayout>
     </ProtectedRoute>
   );

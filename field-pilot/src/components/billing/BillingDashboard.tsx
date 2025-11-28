@@ -49,10 +49,10 @@ export function BillingDashboard() {
     );
   }
 
-  // Note: The backend returns recent_payments in the overview
-  // For now, we'll show empty invoices and use recent_payments for payments
-  // TODO: Update backend to return separate recent_invoices
-  const recentInvoices: any[] = [];
+  // Show current invoice if available
+  const recentInvoices = billingOverview?.current_invoice 
+    ? [billingOverview.current_invoice] 
+    : [];
   const recentPayments = billingOverview?.recent_payments?.slice(0, 5) || [];
 
   return (

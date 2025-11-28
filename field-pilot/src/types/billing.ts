@@ -50,19 +50,17 @@ export type SubscriptionStatus =
 // Invoice Types
 export interface Invoice {
   id: string;
-  invoice_number: string;
-  subtotal: string;
-  tax: string;
-  total: string;
+  number: string; // Invoice number like "IV8YRT6T-0002"
+  amount_due: number;
+  amount_paid: number;
   currency: string;
   status: InvoiceStatus;
-  issue_date: string;
-  due_date: string;
+  created: string;
+  due_date: string | null;
   paid_at: string | null;
-  invoice_pdf_url: string | null;
+  invoice_pdf: string; // PDF download URL
   period_start: string;
   period_end: string;
-  created_at: string;
 }
 
 export type InvoiceStatus = 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
@@ -70,14 +68,22 @@ export type InvoiceStatus = 'draft' | 'open' | 'paid' | 'void' | 'uncollectible'
 // Payment Types
 export interface Payment {
   id: string;
-  amount: string;
+  amount: number;
   currency: string;
-  payment_method: PaymentMethodType;
+  payment_method_details: PaymentMethodDetails;
   status: PaymentStatus;
-  failure_code: string;
-  failure_message: string;
-  processed_at: string | null;
+  failure_code: string | null;
+  failure_message: string | null;
   created: string;
+  receipt_url: string;
+}
+
+export interface PaymentMethodDetails {
+  type: PaymentMethodType;
+  brand?: string; // e.g., "Visa", "Mastercard"
+  last4?: string; // Last 4 digits of card
+  exp_month?: number;
+  exp_year?: number;
 }
 
 export type PaymentMethodType = 'card' | 'bank_transfer' | 'ach' | 'wire';

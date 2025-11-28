@@ -240,3 +240,50 @@ export async function addPaymentMethod(
     },
   });
 }
+
+/**
+ * Get payment methods
+ * GET /api/v1/billing/payment-methods/
+ */
+export async function getPaymentMethods(accessToken: string): Promise<any[]> {
+  const response = await fetchBillingAPI<BillingApiResponse<any[]>>('/billing/payment-methods/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data;
+}
+
+/**
+ * Set default payment method
+ * POST /api/v1/billing/payment-methods/set-default/
+ */
+export async function setDefaultPaymentMethod(
+  paymentMethodId: string,
+  accessToken: string
+): Promise<void> {
+  await fetchBillingAPI<BillingApiResponse<null>>('/billing/payment-methods/set-default/', {
+    method: 'POST',
+    body: JSON.stringify({ payment_method_id: paymentMethodId }),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+}
+
+/**
+ * Remove payment method
+ * DELETE /api/v1/billing/payment-methods/{payment_method_id}/
+ */
+export async function removePaymentMethod(
+  paymentMethodId: string,
+  accessToken: string
+): Promise<void> {
+  await fetchBillingAPI<BillingApiResponse<null>>(`/billing/payment-methods/${paymentMethodId}/`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+}

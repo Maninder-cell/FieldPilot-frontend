@@ -230,7 +230,11 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
                       {subscription.is_trial ? 'Trial Ends:' : 'Next Billing:'}
                     </p>
                     <p className="font-semibold text-gray-900">
-                      {new Date(subscription.current_period_end).toLocaleDateString()}
+                      {new Date(
+                        subscription.is_trial 
+                          ? subscription.trial_end! 
+                          : (subscription.current_period_end || subscription.trial_end!)
+                      ).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

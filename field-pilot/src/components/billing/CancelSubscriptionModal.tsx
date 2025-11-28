@@ -99,7 +99,11 @@ export function CancelSubscriptionModal({
                           Cancel at period end
                         </div>
                         <div className="text-sm text-gray-600">
-                          Keep access until {formatDate(subscription.current_period_end)}
+                          Keep access until {formatDate(
+                            subscription.is_trial 
+                              ? subscription.trial_end! 
+                              : (subscription.current_period_end || subscription.trial_end!)
+                          )}
                         </div>
                       </div>
                     </label>
@@ -155,7 +159,11 @@ export function CancelSubscriptionModal({
                             </>
                           ) : (
                             <>
-                              <li>Continue using until {formatDate(subscription.current_period_end)}</li>
+                              <li>Continue using until {formatDate(
+                                subscription.is_trial 
+                                  ? subscription.trial_end! 
+                                  : (subscription.current_period_end || subscription.trial_end!)
+                              )}</li>
                               <li>No further charges</li>
                               <li>Can reactivate anytime before period ends</li>
                             </>

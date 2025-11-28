@@ -97,7 +97,11 @@ export function SubscriptionOverview({
             <div>
               <p className="text-sm font-medium text-yellow-900">Subscription Ending</p>
               <p className="text-sm text-yellow-700">
-                Your subscription will be canceled on {formatDate(subscription.next_renewal_date || subscription.current_period_end)}
+                Your subscription will be canceled on {formatDate(
+                  subscription.is_trial 
+                    ? subscription.trial_end! 
+                    : (subscription.current_period_end || subscription.trial_end!)
+                )}
               </p>
             </div>
           </div>
@@ -119,7 +123,11 @@ export function SubscriptionOverview({
           <div className="text-lg font-semibold text-gray-900">
             {subscription.cancel_at_period_end 
               ? 'N/A' 
-              : formatDate(subscription.next_renewal_date || subscription.current_period_end)}
+              : formatDate(
+                  subscription.is_trial 
+                    ? subscription.trial_end! 
+                    : (subscription.current_period_end || subscription.trial_end!)
+                )}
           </div>
         </div>
         <div className="p-4 bg-gray-50 rounded-md">

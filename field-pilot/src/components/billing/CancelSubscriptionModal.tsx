@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useBilling } from '@/contexts/BillingContext';
+import { Modal } from '@/components/ui/Modal';
 
 interface CancelSubscriptionModalProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export function CancelSubscriptionModal({
   const [cancelImmediately, setCancelImmediately] = useState(false);
   const [reason, setReason] = useState('');
 
-  if (!isOpen || !subscription) return null;
+  if (!subscription) return null;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -48,17 +49,8 @@ export function CancelSubscriptionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          onClick={onClose}
-        />
-
-        {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                 <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,8 +195,6 @@ export function CancelSubscriptionModal({
               Keep Subscription
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

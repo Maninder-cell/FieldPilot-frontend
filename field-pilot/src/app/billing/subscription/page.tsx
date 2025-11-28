@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useBilling } from '@/contexts/BillingContext';
@@ -11,7 +12,8 @@ import { UpgradeDowngradeModal } from '@/components/billing/UpgradeDowngradeModa
 import { SubscriptionPlan } from '@/types/billing';
 
 export default function SubscriptionManagementPage() {
-  const { subscription, loadSubscription, reactivateSubscription, isLoading } = useBilling();
+  const searchParams = useSearchParams();
+  const { subscription, plans, loadSubscription, loadPlans, reactivateSubscription, isLoading } = useBilling();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
@@ -19,9 +21,23 @@ export default function SubscriptionManagementPage() {
 
   useEffect(() => {
     loadSubscription();
-  }, [loadSubscription]);
+    loadPlans();
+  }, [loadSubscription, loadPlans]);
 
-  const handlePlanSelect = (plan: SubscriptionPlan) => {
+  // Handle URL query parameters for automatic upgrade modal
+  useEffect(() => {
+    const upgradePlanSlug = searchParams.get('upgrade');
+    
+    if (upgradePlanSlug && subscription && plans.length > 0 && !selectedPlan) {
+      const planToUpgrade = plans.find(p => p.slug === upgradePlanSlug);
+      if (planToUpgrade && planToUpgrade.slug !== subscription.plan.slug) {
+        setSelectedPlan(planToUpgrade);
+        setShowUpgradeModal(true);
+      }
+    }
+  }, [searchParams, subscription, plans, selectedPlan]);
+
+  const handlePlanSelect = (plan: SubscriptionPlan, billingCycle: 'monthly' | 'yearly') => {
     if (subscription && plan.slug !== subscription.plan.slug) {
       setSelectedPlan(plan);
       setShowUpgradeModal(true);

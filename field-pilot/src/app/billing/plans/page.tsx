@@ -28,8 +28,8 @@ export default function PlansPage() {
     }
 
     if (subscription) {
-      // Already has subscription, redirect to subscription management
-      router.push('/billing/subscription');
+      // Already has subscription, redirect to subscription management page with plan selection
+      router.push(`/billing/subscription?upgrade=${plan.slug}&cycle=${billingCycle}`);
       return;
     }
 

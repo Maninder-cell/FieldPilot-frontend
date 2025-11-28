@@ -101,7 +101,7 @@ export function PaymentHistory({
             {payments.map((payment) => (
               <tr key={payment.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{formatDate(payment.processed_at || payment.created_at)}</div>
+                  <div className="text-sm text-gray-900">{formatDate(payment.processed_at || payment.created)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
@@ -144,7 +144,7 @@ export function PaymentHistory({
                   {formatCurrency(payment.amount, payment.currency)}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {formatDate(payment.processed_at || payment.created_at)}
+                  {formatDate(payment.processed_at || payment.created)}
                 </div>
               </div>
               <PaymentStatusBadge status={payment.status} />

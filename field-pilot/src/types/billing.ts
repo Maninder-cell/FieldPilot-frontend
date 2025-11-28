@@ -77,7 +77,7 @@ export interface Payment {
   failure_code: string;
   failure_message: string;
   processed_at: string | null;
-  created_at: string;
+  created: string;
 }
 
 export type PaymentMethodType = 'card' | 'bank_transfer' | 'ach' | 'wire';

@@ -31,6 +31,8 @@ export interface Subscription {
   is_trial: boolean;
   days_until_renewal: number;
   next_renewal_date: string | null; // Shows trial_end if in trial, otherwise current_period_end
+  next_payment_amount: number; // Amount to be charged on next renewal (from Stripe, includes prorations)
+  has_proration_credit: boolean; // True if there's a credit from downgrade/upgrade
   current_users_count: number;
   current_equipment_count: number;
   current_storage_gb: string;

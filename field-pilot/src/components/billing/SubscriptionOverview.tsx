@@ -109,7 +109,7 @@ export function SubscriptionOverview({
       )}
 
       {/* Subscription Details */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="p-4 bg-gray-50 rounded-md">
           <div className="text-sm text-gray-600 mb-1">Billing Cycle</div>
           <div className="text-lg font-semibold text-gray-900 capitalize">
@@ -136,6 +136,23 @@ export function SubscriptionOverview({
           </div>
           <div className="text-lg font-semibold text-gray-900">
             {subscription.cancel_at_period_end ? 'N/A' : `${subscription.days_until_renewal} days`}
+          </div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-200 rounded-md">
+          <div className="text-sm text-teal-700 font-medium mb-1">
+            {subscription.is_trial ? 'After Trial' : 'Next Payment'}
+          </div>
+          <div className="flex items-baseline gap-2">
+            <div className="text-lg font-bold text-teal-900">
+              {subscription.cancel_at_period_end 
+                ? 'N/A' 
+                : `$${subscription.next_payment_amount?.toFixed(2) || '0.00'}`}
+            </div>
+            {subscription.has_proration_credit && !subscription.cancel_at_period_end && (
+              <span className="text-xs text-teal-600 font-medium">
+                (with credit)
+              </span>
+            )}
           </div>
         </div>
       </div>

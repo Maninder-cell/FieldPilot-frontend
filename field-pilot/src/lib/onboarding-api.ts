@@ -253,3 +253,100 @@ export async function acceptInvitation(
   
   return response.data;
 }
+
+/**
+ * Update a team member's role
+ * PATCH /api/v1/onboarding/members/{member_id}/role/
+ */
+export async function updateMemberRole(
+  memberId: string,
+  role: string,
+  accessToken: string
+): Promise<TenantMember> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<TenantMember>>(
+    `/onboarding/members/${memberId}/role/`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Remove a team member from the tenant
+ * DELETE /api/v1/onboarding/members/{member_id}/remove/
+ */
+export async function removeMember(
+  memberId: string,
+  accessToken: string
+): Promise<void> {
+  await fetchOnboardingAPI<OnboardingApiResponse<void>>(
+    `/onboarding/members/${memberId}/remove/`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+}
+
+/**
+ * Resend an invitation email
+ * POST /api/v1/onboarding/invitations/{invitation_id}/resend/
+ */
+export async function resendInvitation(
+  invitationId: string,
+  accessToken: string
+): Promise<void> {
+  await fetchOnboardingAPI<OnboardingApiResponse<void>>(
+    `/onboarding/invitations/${invitationId}/resend/`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+}
+
+/**
+ * Revoke/cancel a pending invitation
+ * DELETE /api/v1/onboarding/invitations/{invitation_id}/revoke/
+ */
+export async function revokeInvitation(
+  invitationId: string,
+  accessToken: string
+): Promise<void> {
+  await fetchOnboardingAPI<OnboardingApiResponse<void>>(
+    `/onboarding/invitations/${invitationId}/revoke/`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+}
+
+// Export a single object with all API methods for easier imports
+export const onboardingApi = {
+  createCompany,
+  getCurrentTenant,
+  updateTenant,
+  completeOnboardingStep,
+  getTenantMembers,
+  inviteMember,
+  getPendingInvitations,
+  checkInvitations,
+  acceptInvitation,
+  updateMemberRole,
+  removeMember,
+  resendInvitation,
+  revokeInvitation,
+};

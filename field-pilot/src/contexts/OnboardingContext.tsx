@@ -22,6 +22,10 @@ import {
   getPendingInvitations as getPendingInvitationsAPI,
   checkInvitations as checkInvitationsAPI,
   acceptInvitation as acceptInvitationAPI,
+  updateMemberRole as updateMemberRoleAPI,
+  removeMember as removeMemberAPI,
+  resendInvitation as resendInvitationAPI,
+  revokeInvitation as revokeInvitationAPI,
 } from '@/lib/onboarding-api';
 import { getAccessToken } from '@/lib/token-utils';
 
@@ -46,7 +50,11 @@ interface OnboardingContextType {
   // Team Management
   loadMembers: () => Promise<void>;
   inviteTeamMember: (data: InviteMemberRequest) => Promise<void>;
+  updateMemberRole: (memberId: string, role: string) => Promise<void>;
+  removeMember: (memberId: string) => Promise<void>;
   loadPendingInvitations: () => Promise<void>;
+  resendInvitation: (invitationId: string) => Promise<void>;
+  revokeInvitation: (invitationId: string) => Promise<void>;
 
   // Invitation Management
   checkUserInvitations: () => Promise<void>;
@@ -271,6 +279,82 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const handleUpdateMemberRole = async (memberId: string, role: string) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    setIsLoading(true);
+    try {
+      await updateMemberRoleAPI(memberId, role, accessToken);
+      // Refresh members list after update
+      await handleLoadMembers();
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    setIsLoading(true);
+    try {
+      await removeMemberAPI(memberId, accessToken);
+      // Refresh members list after removal
+      await handleLoadMembers();
+    } catch (error) {
+      console.error('Error removing member:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    setIsLoading(true);
+    try {
+      await resendInvitationAPI(invitationId, accessToken);
+      // Refresh invitations list after resend
+      await handleLoadPendingInvitations();
+    } catch (error) {
+      console.error('Error resending invitation:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    setIsLoading(true);
+    try {
+      await revokeInvitationAPI(invitationId, accessToken);
+      // Refresh invitations list after revoke
+      await handleLoadPendingInvitations();
+    } catch (error) {
+      console.error('Error revoking invitation:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: OnboardingContextType = {
     // State
     tenant,
@@ -292,7 +376,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     // Team Management
     loadMembers: handleLoadMembers,
     inviteTeamMember: handleInviteTeamMember,
+    updateMemberRole: handleUpdateMemberRole,
+    removeMember: handleRemoveMember,
     loadPendingInvitations: handleLoadPendingInvitations,
+    resendInvitation: handleResendInvitation,
+    revokeInvitation: handleRevokeInvitation,
 
     // Invitation Management
     checkUserInvitations: handleCheckUserInvitations,

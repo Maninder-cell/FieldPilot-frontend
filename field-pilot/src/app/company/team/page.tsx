@@ -2,15 +2,18 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import MemberList from '@/components/onboarding/MemberList';
+import TeamMemberList from '@/components/team/TeamMemberList';
 import InviteMemberForm from '@/components/onboarding/InviteMemberForm';
-import PendingInvitationsList from '@/components/onboarding/PendingInvitationsList';
+import PendingInvitationsList from '@/components/team/PendingInvitationsList';
 
 function TeamManagementContent() {
   const { user } = useAuth();
+  const { members } = useOnboarding();
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleInvite = () => {
     setShowInviteForm(true);
@@ -18,20 +21,38 @@ function TeamManagementContent() {
 
   const handleInviteSuccess = () => {
     setShowInviteForm(false);
-    // The context will automatically refresh members and invitations
+    // Trigger refresh of members and invitations
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleInviteClose = () => {
     setShowInviteForm(false);
   };
 
-  // Check if user has permission to view invitations (owner or admin)
-  const canViewInvitations = user?.role === 'owner' || user?.role === 'admin';
+  const handleMemberUpdate = () => {
+    // Trigger refresh when member is updated/removed
+    setRefreshKey(prev => prev + 1);
+  };
+
+  // Find current user's member record to get their tenant-specific role
+  const currentUserMember = members.find(m => m.user.id === user?.id);
+  const userTenantRole = currentUserMember?.role;
+  
+  // Check if user has permission to manage team (owner, admin, or manager)
+  const canManageTeam = userTenantRole === 'owner' || userTenantRole === 'admin' || userTenantRole === 'manager';
 
   return (
     <DashboardLayout>
       <div className="py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Page Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
+            <p className="mt-2 text-gray-600">
+              Manage your team members, roles, and invitations
+            </p>
+          </div>
+
           {/* Invite Form Modal/Section */}
           {showInviteForm && (
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
@@ -45,14 +66,21 @@ function TeamManagementContent() {
           {/* Member List */}
           {!showInviteForm && (
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-              <MemberList onInvite={handleInvite} />
+              <TeamMemberList 
+                key={`members-${refreshKey}`}
+                onInvite={handleInvite}
+                onMemberUpdate={handleMemberUpdate}
+              />
             </div>
           )}
 
           {/* Pending Invitations (Owner/Admin only) */}
-          {!showInviteForm && canViewInvitations && (
+          {!showInviteForm && canManageTeam && (
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-              <PendingInvitationsList />
+              <PendingInvitationsList 
+                key={`invitations-${refreshKey}`}
+                onInvitationUpdate={handleMemberUpdate}
+              />
             </div>
           )}
         </div>

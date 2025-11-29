@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import RegisterForm from '@/components/auth/RegisterForm';
 import Header from '@/components/landing/Header';
@@ -9,10 +9,18 @@ import Footer from '@/components/landing/Footer';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get('email');
+  const redirectParam = searchParams.get('redirect');
 
   const handleSuccess = (email: string) => {
-    // Redirect to email verification page with email parameter
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    // If there's a redirect parameter, go there after verification
+    if (redirectParam) {
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectParam)}`);
+    } else {
+      // Redirect to email verification page with email parameter
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    }
   };
 
   // Footer data
@@ -99,7 +107,14 @@ export default function RegisterPage() {
 
         <div className="relative mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white/80 backdrop-blur-sm py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-white/20">
-            <RegisterForm onSuccess={handleSuccess} />
+            {emailParam && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 text-center">
+                  Creating account for <span className="font-semibold">{emailParam}</span>
+                </p>
+              </div>
+            )}
+            <RegisterForm onSuccess={handleSuccess} initialEmail={emailParam || undefined} />
 
             <div className="mt-6">
               <div className="relative">

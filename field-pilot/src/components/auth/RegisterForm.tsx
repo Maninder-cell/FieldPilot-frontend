@@ -20,14 +20,15 @@ import { ApiError } from '@/types/auth';
 
 interface RegisterFormProps {
   onSuccess?: (email: string) => void;
+  initialEmail?: string;
 }
 
-export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+export default function RegisterForm({ onSuccess, initialEmail }: RegisterFormProps) {
   const { register } = useAuth();
   const scrollToError = useScrollToError();
   
   const [formData, setFormData] = useState({
-    email: '',
+    email: initialEmail || '',
     password: '',
     password_confirm: '',
     first_name: '',

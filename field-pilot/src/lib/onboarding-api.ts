@@ -234,7 +234,59 @@ export async function checkInvitations(accessToken: string): Promise<InvitationC
 }
 
 /**
- * Accept a pending invitation to join a tenant
+ * Get invitation details by token (Public - No auth required)
+ * GET /api/v1/onboarding/invitations/{token}/
+ */
+export async function getInvitationByToken(
+  token: string
+): Promise<{
+  id: string;
+  email: string;
+  tenant_name: string;
+  role: string;
+  invited_by: string | null;
+  expires_at: string;
+}> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<{
+    id: string;
+    email: string;
+    tenant_name: string;
+    role: string;
+    invited_by: string | null;
+    expires_at: string;
+  }>>(
+    `/onboarding/invitations/${token}/`,
+    {
+      method: 'GET',
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Accept a pending invitation to join a tenant using token
+ * POST /api/v1/onboarding/invitations/accept/{token}/
+ */
+export async function acceptInvitationByToken(
+  token: string,
+  accessToken: string
+): Promise<{ tenant_name: string; role: string }> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<{ tenant_name: string; role: string }>>(
+    `/onboarding/invitations/accept/${token}/`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Accept a pending invitation to join a tenant (deprecated - use acceptInvitationByToken)
  * POST /api/v1/onboarding/invitations/{invitation_id}/accept/
  */
 export async function acceptInvitation(
@@ -344,6 +396,8 @@ export const onboardingApi = {
   inviteMember,
   getPendingInvitations,
   checkInvitations,
+  getInvitationByToken,
+  acceptInvitationByToken,
   acceptInvitation,
   updateMemberRole,
   removeMember,

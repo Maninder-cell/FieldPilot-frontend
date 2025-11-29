@@ -40,8 +40,13 @@ function DashboardContent() {
     );
   }
 
-  // Show onboarding wizard if no tenant or onboarding not completed
-  if (!tenant || !tenant.onboarding_completed) {
+  // Show onboarding wizard only if:
+  // 1. No tenant exists (user needs to create a company), OR
+  // 2. User is the owner AND onboarding is not completed
+  // Users who joined via invitation should skip onboarding
+  const shouldShowOnboarding = !tenant || (user.role === 'owner' && !tenant.onboarding_completed);
+  
+  if (shouldShowOnboarding) {
     return (
       <DashboardLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -63,6 +68,23 @@ function DashboardContent() {
             Here's what's happening with your account today.
           </p>
         </div>
+
+        {/* Welcome message for invited users */}
+        {tenant && !tenant.onboarding_completed && user.role !== 'owner' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-blue-900">
+                  Welcome to {tenant.name}!
+                </h3>
+                <p className="text-sm text-blue-800 mt-1">
+                  You've successfully joined the team. The company owner is still completing the setup process. You'll have full access once setup is complete.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Billing Alert - Trial Ending Soon */}
         {subscription?.is_trial && subscription?.days_until_renewal <= 7 && (

@@ -67,14 +67,16 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
     };
     
     checkExistingSubscription();
-  }, [loadSubscription]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load plans if not already loaded
   useEffect(() => {
     if (plans.length === 0) {
       loadPlans();
     }
-  }, [plans.length, loadPlans]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plans.length]);
 
   // Find the selected plan details
   const selectedPlan = plans.find(p => p.id === selectedPlanId || p.slug === selectedPlanSlug);
@@ -182,10 +184,11 @@ export default function PaymentSetupForm({ onSuccess, onSkip }: PaymentSetupForm
     plansLoaded: plans.length,
   };
 
-  // Show debug info in development
+  // Show debug info in development (only on mount)
   useEffect(() => {
     console.log('PaymentSetupForm Debug:', debugInfo);
-  }, [selectedPlanSlug, selectedPlanId, selectedPlan]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show loading state while initializing, checking subscription, or plans are loading
   if (!isInitialized || isCheckingSubscription || plans.length === 0) {

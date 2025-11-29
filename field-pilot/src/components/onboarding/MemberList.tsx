@@ -24,9 +24,10 @@ export default function MemberList({ onInvite }: MemberListProps) {
     // Only load if we haven't loaded yet and members array is empty
     if (!hasLoaded && members.length === 0) {
       handleLoadMembers();
-    } else if (members.length > 0) {
+    } else if (members.length > 0 && !hasLoaded) {
       setHasLoaded(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [members.length, hasLoaded]);
 
   const handleLoadMembers = async () => {

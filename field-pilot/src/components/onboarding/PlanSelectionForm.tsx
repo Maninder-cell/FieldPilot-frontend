@@ -26,6 +26,7 @@ export default function PlanSelectionForm({ onSuccess }: PlanSelectionFormProps)
 
   useEffect(() => {
     loadPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPlans = async () => {

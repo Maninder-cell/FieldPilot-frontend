@@ -13,9 +13,20 @@ import Button from '@/components/ui/Button';
 
 function DashboardContent() {
   const { user } = useAuth();
-  const { tenant, isLoading, checkUserInvitations, userInvitations, acceptInvite } = useOnboarding();
+  const { tenant, isLoading, checkUserInvitations, userInvitations, acceptInvite, members, loadMembers } = useOnboarding();
   const { subscription, billingOverview, loadBillingOverview } = useBilling();
   const [showInvitationPrompt, setShowInvitationPrompt] = React.useState(false);
+  
+  // Get user's role in current tenant from members list
+  const currentUserMembership = members.find(m => m.user.id === user?.id);
+  const userRole = currentUserMembership?.role || null;
+
+  // Load members when tenant exists to determine user role
+  React.useEffect(() => {
+    if (tenant && members.length === 0) {
+      loadMembers().catch(console.error);
+    }
+  }, [tenant, members.length, loadMembers]);
 
   // Check for pending invitations when user has no tenant
   React.useEffect(() => {
@@ -159,7 +170,7 @@ function DashboardContent() {
   // 1. No tenant exists (user needs to create a company), OR
   // 2. User is the owner AND onboarding is not completed
   // Users who joined via invitation should skip onboarding
-  const shouldShowOnboarding = !tenant || (user.role === 'owner' && !tenant.onboarding_completed);
+  const shouldShowOnboarding = !tenant || (userRole === 'owner' && tenant && !tenant.onboarding_completed);
   
   if (shouldShowOnboarding) {
     return (
@@ -185,7 +196,7 @@ function DashboardContent() {
         </div>
 
         {/* Welcome message for invited users */}
-        {tenant && !tenant.onboarding_completed && user.role !== 'owner' && (
+        {tenant && !tenant.onboarding_completed && userRole && userRole !== 'owner' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />

@@ -18,6 +18,7 @@ export default function InvitationAcceptance() {
 
   useEffect(() => {
     handleCheckInvitations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCheckInvitations = async () => {

@@ -202,7 +202,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const handleLoadMembers = async () => {
+  const handleLoadMembers = useCallback(async () => {
     try {
       setIsLoading(true);
       const accessToken = getAccessToken();
@@ -216,9 +216,22 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleInviteTeamMember = async (data: InviteMemberRequest) => {
+  const handleLoadPendingInvitations = useCallback(async () => {
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) throw new Error('No access token available');
+
+      const invitationsData = await getPendingInvitationsAPI(accessToken);
+      setPendingInvitations(invitationsData);
+    } catch (error) {
+      console.error('Error loading pending invitations:', error);
+      throw error;
+    }
+  }, []);
+
+  const handleInviteTeamMember = useCallback(async (data: InviteMemberRequest) => {
     try {
       const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
@@ -232,22 +245,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       console.error('Error inviting team member:', error);
       throw error;
     }
-  };
+  }, [handleLoadMembers, handleLoadPendingInvitations]);
 
-  const handleLoadPendingInvitations = async () => {
-    try {
-      const accessToken = getAccessToken();
-      if (!accessToken) throw new Error('No access token available');
-
-      const invitationsData = await getPendingInvitationsAPI(accessToken);
-      setPendingInvitations(invitationsData);
-    } catch (error) {
-      console.error('Error loading pending invitations:', error);
-      throw error;
-    }
-  };
-
-  const handleCheckUserInvitations = async () => {
+  const handleCheckUserInvitations = useCallback(async () => {
     try {
       const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
@@ -258,7 +258,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       console.error('Error checking user invitations:', error);
       throw error;
     }
-  };
+  }, []);
 
   const handleAcceptInvite = async (invitationId: string) => {
     try {
@@ -279,7 +279,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const handleUpdateMemberRole = async (memberId: string, role: string) => {
+  const handleUpdateMemberRole = useCallback(async (memberId: string, role: string) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
       throw new Error('No access token available');
@@ -296,9 +296,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleLoadMembers]);
 
-  const handleRemoveMember = async (memberId: string) => {
+  const handleRemoveMember = useCallback(async (memberId: string) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
       throw new Error('No access token available');
@@ -315,9 +315,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleLoadMembers]);
 
-  const handleResendInvitation = async (invitationId: string) => {
+  const handleResendInvitation = useCallback(async (invitationId: string) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
       throw new Error('No access token available');
@@ -334,9 +334,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleLoadPendingInvitations]);
 
-  const handleRevokeInvitation = async (invitationId: string) => {
+  const handleRevokeInvitation = useCallback(async (invitationId: string) => {
     const accessToken = getAccessToken();
     if (!accessToken) {
       throw new Error('No access token available');
@@ -353,7 +353,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleLoadPendingInvitations]);
 
   const value: OnboardingContextType = {
     // State

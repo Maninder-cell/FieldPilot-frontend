@@ -15,6 +15,7 @@ export default function PendingInvitationsList() {
     if (!hasLoaded) {
       handleLoadInvitations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasLoaded]);
 
   const handleLoadInvitations = async () => {

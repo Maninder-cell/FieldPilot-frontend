@@ -12,11 +12,12 @@ interface CompanyInfoViewProps {
 }
 
 export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
-  const { tenant, isLoading } = useOnboarding();
+  const { tenant, isLoading, members } = useOnboarding();
   const { user } = useAuth();
 
-  // Check if user has permission to edit (owner or admin)
-  const canEdit = user?.role === 'owner' || user?.role === 'admin';
+  // Check if user has permission to edit (owner or admin) from tenant membership
+  const currentUserMembership = members.find(m => m.user.id === user?.id);
+  const canEdit = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
 
   if (isLoading) {
     return (

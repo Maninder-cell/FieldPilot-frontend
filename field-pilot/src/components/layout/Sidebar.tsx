@@ -24,16 +24,16 @@ import TrialStatusBadge from '@/components/onboarding/TrialStatusBadge';
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { tenant } = useOnboarding();
+  const { tenant, members } = useOnboarding();
   const { subscription } = useBilling();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (!user) return null;
 
-  // Check if user is owner or admin
-  // If user has a tenant and their global role is owner/admin, OR if they have a tenant (they created it, so they're the owner)
-  const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin' || (tenant !== null);
+  // Check if user is owner or admin from tenant membership
+  const currentUserMembership = members.find(m => m.user.id === user?.id);
+  const isOwnerOrAdmin = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

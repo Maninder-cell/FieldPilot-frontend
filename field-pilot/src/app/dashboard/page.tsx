@@ -17,16 +17,16 @@ function DashboardContent() {
   const { subscription, billingOverview, loadBillingOverview } = useBilling();
   const [showInvitationPrompt, setShowInvitationPrompt] = React.useState(false);
   
-  // Get user's role in current tenant from members list
+  // Get user's role from tenant membership (not from user.role which is the base role)
   const currentUserMembership = members.find(m => m.user.id === user?.id);
   const userRole = currentUserMembership?.role || null;
 
-  // Load members when tenant exists to determine user role
+  // Load members when tenant exists to determine user's actual role
   React.useEffect(() => {
-    if (tenant && members.length === 0) {
+    if (tenant && members.length === 0 && !isLoading) {
       loadMembers().catch(console.error);
     }
-  }, [tenant, members.length, loadMembers]);
+  }, [tenant, members.length, isLoading, loadMembers]);
 
   // Check for pending invitations when user has no tenant
   React.useEffect(() => {
@@ -392,18 +392,20 @@ function DashboardContent() {
               </div>
             )}
 
-            <div className="border-t border-gray-200 pt-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Briefcase className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-500">Role</span>
+            {userRole && (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Briefcase className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-500">Role</span>
+                </div>
+                <p className="text-base text-gray-900 capitalize">{userRole}</p>
+                {user.employee_id && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Employee ID: {user.employee_id}
+                  </p>
+                )}
               </div>
-              <p className="text-base text-gray-900 capitalize">{user.role}</p>
-              {user.employee_id && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Employee ID: {user.employee_id}
-                </p>
-              )}
-            </div>
+            )}
 
             {(user.department || user.job_title) && (
               <div className="border-t border-gray-200 pt-4">

@@ -17,8 +17,9 @@ export default function MemberList({ onInvite }: MemberListProps) {
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Check if user has permission to invite (owner or admin)
-  const canInvite = user?.role === 'owner' || user?.role === 'admin';
+  // Check if user has permission to invite (owner or admin) from tenant membership
+  const currentUserMembership = members.find(m => m.user.id === user?.id);
+  const canInvite = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
 
   useEffect(() => {
     // Only load if we haven't loaded yet and members array is empty

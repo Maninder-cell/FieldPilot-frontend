@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import TagInput from '@/components/ui/TagInput';
 import Toggle from '@/components/ui/Toggle';
+import ImageCropModal from '@/components/ui/ImageCropModal';
 import { getProfile, updateProfile } from '@/lib/auth-api';
 import { getAccessToken } from '@/lib/token-utils';
 import {
@@ -58,6 +59,8 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -343,6 +346,38 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
     }
   };
 
+  const handleCropComplete = async (croppedImage: Blob) => {
+    setIsSubmitting(true);
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        setApiError('You must be logged in to upload avatar');
+        return;
+      }
+      
+      // Convert blob to file
+      const file = new File([croppedImage], 'avatar.jpg', { type: 'image/jpeg' });
+      
+      const { uploadAvatar } = await import('@/lib/auth-api');
+      const result = await uploadAvatar(file, accessToken);
+      handleChange('avatar_url', result.avatar_url);
+      setSuccessMessage('Avatar uploaded successfully!');
+      
+      // Refresh user data in AuthContext to update navbar
+      try {
+        await refreshUserData();
+      } catch (refreshError) {
+        console.error('Failed to refresh user data:', refreshError);
+      }
+    } catch (error: any) {
+      setApiError(error.message || 'Failed to upload avatar');
+    } finally {
+      setIsSubmitting(false);
+      setShowCropModal(false);
+      setSelectedImage(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -401,39 +436,26 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
               <input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={async (e) => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     // Validate file size (5MB)
                     if (file.size > 5 * 1024 * 1024) {
                       setApiError('File size too large. Maximum size is 5MB');
+                      e.target.value = '';
                       return;
                     }
                     
-                    setIsSubmitting(true);
-                    try {
-                      const accessToken = getAccessToken();
-                      if (!accessToken) {
-                        setApiError('You must be logged in to upload avatar');
-                        return;
-                      }
-                      
-                      const { uploadAvatar } = await import('@/lib/auth-api');
-                      const result = await uploadAvatar(file, accessToken);
-                      handleChange('avatar_url', result.avatar_url);
-                      setSuccessMessage('Avatar uploaded successfully!');
-                      
-                      // Refresh user data in AuthContext to update navbar
-                      try {
-                        await refreshUserData();
-                      } catch (refreshError) {
-                        console.error('Failed to refresh user data:', refreshError);
-                      }
-                    } catch (error: any) {
-                      setApiError(error.message || 'Failed to upload avatar');
-                    } finally {
-                      setIsSubmitting(false);
-                    }
+                    // Read file and show crop modal
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      setSelectedImage(reader.result as string);
+                      setShowCropModal(true);
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    // Clear input so same file can be selected again
+                    e.target.value = '';
                   }
                 }}
                 disabled={isSubmitting}
@@ -729,6 +751,19 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
           Cancel
         </Button>
       </div>
+
+      {/* Image Crop Modal */}
+      {showCropModal && selectedImage && (
+        <ImageCropModal
+          isOpen={showCropModal}
+          imageSrc={selectedImage}
+          onClose={() => {
+            setShowCropModal(false);
+            setSelectedImage(null);
+          }}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </form>
   );
 }

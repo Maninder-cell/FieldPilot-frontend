@@ -143,8 +143,9 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="hidden md:block bg-white border border-gray-200 rounded-lg">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -242,6 +243,7 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Mobile Card View */}
@@ -260,10 +262,10 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
               </div>
               <div className="flex items-center gap-2">
                 <RoleBadge role={invitation.role as any} size="sm" />
-                <div className="relative">
+                <div className="relative inline-block">
                   <button
                     onClick={() => setOpenMenuId(openMenuId === invitation.id ? null : invitation.id)}
-                    className="text-gray-400 hover:text-gray-600 p-1"
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
@@ -271,23 +273,24 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
                   {openMenuId === invitation.id && (
                     <>
                       <div 
-                        className="fixed inset-0 z-10" 
+                        className="fixed inset-0 z-40" 
                         onClick={() => setOpenMenuId(null)}
                       />
-                      <div className="absolute right-0 z-20 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                      <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 z-50 overflow-hidden">
                         <div className="py-1">
                           <button
                             onClick={() => openResendModal(invitation)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
                           >
-                            <RefreshCw className="w-4 h-4 mr-2" />
+                            <RefreshCw className="w-4 h-4 mr-3" />
                             Resend Invitation
                           </button>
+                          <div className="border-t border-gray-100"></div>
                           <button
                             onClick={() => openRevokeModal(invitation)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                            className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                           >
-                            <XCircle className="w-4 h-4 mr-2" />
+                            <XCircle className="w-4 h-4 mr-3" />
                             Revoke Invitation
                           </button>
                         </div>

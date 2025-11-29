@@ -7,13 +7,31 @@ import { useBilling } from '@/contexts/BillingContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
-import { User, Mail, Phone, Briefcase, CreditCard, AlertCircle, TrendingUp } from 'lucide-react';
+import { User, Mail, Phone, Briefcase, CreditCard, AlertCircle, TrendingUp, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
 
 function DashboardContent() {
   const { user } = useAuth();
-  const { tenant, isLoading } = useOnboarding();
+  const { tenant, isLoading, checkUserInvitations, userInvitations, acceptInvite } = useOnboarding();
   const { subscription, billingOverview, loadBillingOverview } = useBilling();
+  const [showInvitationPrompt, setShowInvitationPrompt] = React.useState(false);
+
+  // Check for pending invitations when user has no tenant
+  React.useEffect(() => {
+    if (user && !tenant && !isLoading) {
+      checkUserInvitations().catch(console.error);
+    }
+  }, [user, tenant, isLoading, checkUserInvitations]);
+
+  // Show invitation prompt if user has pending invitations and no tenant
+  React.useEffect(() => {
+    if (!tenant && userInvitations && userInvitations.length > 0) {
+      setShowInvitationPrompt(true);
+    } else {
+      setShowInvitationPrompt(false);
+    }
+  }, [tenant, userInvitations]);
 
   // Load billing data when component mounts
   React.useEffect(() => {
@@ -33,6 +51,103 @@ function DashboardContent() {
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
               <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show invitation prompt if user has pending invitations
+  if (showInvitationPrompt && userInvitations && userInvitations.length > 0) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-8 py-6">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold text-white text-center">
+                You Have Pending Invitations!
+              </h1>
+              <p className="text-emerald-50 text-center mt-2">
+                You've been invited to join {userInvitations.length === 1 ? 'a team' : 'teams'} on FieldPilot
+              </p>
+            </div>
+
+            {/* Invitations List */}
+            <div className="p-8">
+              <div className="space-y-4 mb-6">
+                {userInvitations.map((invitation) => (
+                  <div
+                    key={invitation.id}
+                    className="border-2 border-emerald-200 rounded-lg p-6 bg-emerald-50 hover:border-emerald-400 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                            <Building2 className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {invitation.tenant_name}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Role: <span className="font-semibold capitalize">{invitation.role}</span>
+                            </p>
+                          </div>
+                        </div>
+                        {invitation.invited_by && (
+                          <p className="text-sm text-gray-600 mb-2">
+                            Invited by: <span className="font-medium">{invitation.invited_by}</span>
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          Expires: {new Date(invitation.expires_at).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <Button
+                        variant="primary"
+                        onClick={async () => {
+                          try {
+                            await acceptInvite(invitation.id);
+                            // Refresh to show dashboard with new tenant
+                            window.location.reload();
+                          } catch (error: any) {
+                            alert(error.message || 'Failed to accept invitation');
+                          }
+                        }}
+                        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                      >
+                        Accept
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Option to create own company */}
+              <div className="border-t border-gray-200 pt-6">
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Or, if you prefer to create your own company:
+                </p>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowInvitationPrompt(false)}
+                >
+                  Create My Own Company
+                </Button>
+              </div>
             </div>
           </div>
         </div>

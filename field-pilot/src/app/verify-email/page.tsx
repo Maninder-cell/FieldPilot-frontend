@@ -20,9 +20,16 @@ function VerifyEmailContent() {
   }, [searchParams]);
 
   const handleSuccess = () => {
-    // Redirect to login page after successful verification
+    // Check if there's a redirect parameter
+    const redirectParam = searchParams.get('redirect');
+    
+    // Redirect to the specified page or login page after successful verification
     setTimeout(() => {
-      router.push('/login');
+      if (redirectParam) {
+        router.push(redirectParam);
+      } else {
+        router.push('/login');
+      }
     }, 2000);
   };
 

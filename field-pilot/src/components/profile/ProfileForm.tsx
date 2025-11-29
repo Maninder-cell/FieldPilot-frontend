@@ -44,6 +44,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
     emergency_contact_name: null,
     emergency_contact_phone: null,
     emergency_contact_relationship: null,
+    hire_date: null,
     skills: [],
     certifications: [],
     timezone: 'America/Los_Angeles',
@@ -97,6 +98,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
           emergency_contact_name: emptyToNull(data.emergency_contact_name),
           emergency_contact_phone: emptyToNull(data.emergency_contact_phone),
           emergency_contact_relationship: emptyToNull(data.emergency_contact_relationship),
+          hire_date: emptyToNull(data.hire_date),
           skills: data.skills || [],
           certifications: data.certifications || [],
           timezone: data.timezone || 'UTC',
@@ -136,6 +138,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       formData.emergency_contact_name !== originalData.emergency_contact_name ||
       formData.emergency_contact_phone !== originalData.emergency_contact_phone ||
       formData.emergency_contact_relationship !== originalData.emergency_contact_relationship ||
+      formData.hire_date !== originalData.hire_date ||
       JSON.stringify(formData.skills) !== JSON.stringify(originalData.skills) ||
       JSON.stringify(formData.certifications) !== JSON.stringify(originalData.certifications) ||
       formData.timezone !== originalData.timezone ||
@@ -170,6 +173,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
     if (formData.emergency_contact_name !== originalData.emergency_contact_name) changes.emergency_contact_name = formData.emergency_contact_name;
     if (formData.emergency_contact_phone !== originalData.emergency_contact_phone) changes.emergency_contact_phone = formData.emergency_contact_phone;
     if (formData.emergency_contact_relationship !== originalData.emergency_contact_relationship) changes.emergency_contact_relationship = formData.emergency_contact_relationship;
+    if (formData.hire_date !== originalData.hire_date) changes.hire_date = formData.hire_date;
     if (JSON.stringify(formData.skills) !== JSON.stringify(originalData.skills)) changes.skills = formData.skills;
     if (JSON.stringify(formData.certifications) !== JSON.stringify(originalData.certifications)) changes.certifications = formData.certifications;
     if (formData.timezone !== originalData.timezone) changes.timezone = formData.timezone;
@@ -364,6 +368,73 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
           <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
         </div>
         <div className="px-6 py-4 space-y-4">
+          {/* Avatar Upload */}
+          <div className="flex items-center space-x-6">
+            <div className="flex-shrink-0">
+              {formData.avatar_url ? (
+                <img
+                  className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                  src={formData.avatar_url}
+                  alt="Avatar"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-teal-100 flex items-center justify-center border-4 border-gray-200">
+                  <span className="text-teal-600 font-bold text-2xl">
+                    {formData.first_name[0]}{formData.last_name[0]}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Profile Picture
+              </label>
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    // Validate file size (5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                      setApiError('File size too large. Maximum size is 5MB');
+                      return;
+                    }
+                    
+                    setIsSubmitting(true);
+                    try {
+                      const accessToken = getAccessToken();
+                      if (!accessToken) {
+                        setApiError('You must be logged in to upload avatar');
+                        return;
+                      }
+                      
+                      const { uploadAvatar } = await import('@/lib/auth-api');
+                      const result = await uploadAvatar(file, accessToken);
+                      handleChange('avatar_url', result.avatar_url);
+                      setSuccessMessage('Avatar uploaded successfully!');
+                    } catch (error: any) {
+                      setApiError(error.message || 'Failed to upload avatar');
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }
+                }}
+                disabled={isSubmitting}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-teal-50 file:text-teal-700
+                  hover:file:bg-teal-100
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                JPG, PNG, GIF or WebP. Max size 5MB.
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="First Name"
@@ -532,6 +603,15 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
               type="text"
               value={formData.job_title || ''}
               onChange={(value) => handleChange('job_title', value || null)}
+              disabled={isSubmitting}
+            />
+
+            <FormInput
+              label="Hire Date"
+              name="hire_date"
+              type="date"
+              value={formData.hire_date || ''}
+              onChange={(value) => handleChange('hire_date', value || null)}
               disabled={isSubmitting}
             />
           </div>

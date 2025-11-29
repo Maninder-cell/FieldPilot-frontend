@@ -251,3 +251,50 @@ export async function updateProfile(
 
   return response.data;
 }
+
+/**
+ * Get user profile by user ID (for viewing team member profiles)
+ * GET /api/v1/auth/profile/{userId}/
+ */
+export async function getUserProfileById(userId: string, accessToken: string): Promise<UserProfile> {
+  const response = await fetchAuthAPI<AuthApiResponse<UserProfile>>(
+    `/auth/users/${userId}/profile/`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Upload user avatar
+ * POST /api/v1/auth/profile/avatar/
+ */
+export async function uploadAvatar(file: File, accessToken: string): Promise<{ avatar_url: string }> {
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const response = await fetch(`${API_BASE_URL}/auth/profile/avatar/`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      status: response.status,
+      message: errorData.message || 'Failed to upload avatar',
+      details: errorData.details,
+    } as ApiError;
+  }
+
+  const data: AuthApiResponse<{ avatar_url: string }> = await response.json();
+  return data.data;
+}

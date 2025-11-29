@@ -275,27 +275,6 @@ function DashboardContent() {
             )}
           </div>
         </div>
-
-        {/* Placeholder for future features */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Equipment</h4>
-            <p className="text-gray-600 text-sm">Track and manage your equipment</p>
-            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Work Orders</h4>
-            <p className="text-gray-600 text-sm">Manage your work orders</p>
-            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">Reports</h4>
-            <p className="text-gray-600 text-sm">View analytics and reports</p>
-            <p className="text-3xl font-bold text-teal-600 mt-4">Coming Soon</p>
-          </div>
-        </div>
       </div>
     </DashboardLayout>
   );

@@ -161,6 +161,7 @@ export interface UserProfileFormData {
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
   emergency_contact_relationship: string | null;
+  hire_date: string | null;
   skills: string[];
   certifications: string[];
   timezone: string;

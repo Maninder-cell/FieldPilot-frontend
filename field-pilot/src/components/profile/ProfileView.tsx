@@ -136,7 +136,7 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
         </div>
         <div className="px-6 py-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-500">Address</label>
               <p className="mt-1 text-base text-gray-900">{displayValue(profile.address)}</p>
             </div>
@@ -215,11 +215,11 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
           <div>
             <label className="block text-sm font-medium text-gray-500">Skills</label>
             <div className="mt-2 flex flex-wrap gap-2">
-              {profile.skills.length > 0 ? (
+              {profile.skills && profile.skills.length > 0 ? (
                 profile.skills.map((skill, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-sm rounded-md"
+                    className="inline-flex items-center px-3 py-1 bg-teal-100 text-teal-800 text-sm rounded-md"
                   >
                     {skill}
                   </span>
@@ -233,7 +233,7 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
           <div>
             <label className="block text-sm font-medium text-gray-500">Certifications</label>
             <div className="mt-2 flex flex-wrap gap-2">
-              {profile.certifications.length > 0 ? (
+              {profile.certifications && profile.certifications.length > 0 ? (
                 profile.certifications.map((cert, index) => (
                   <span
                     key={index}

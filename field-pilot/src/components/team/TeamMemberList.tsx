@@ -7,7 +7,7 @@ import { TenantMember } from '@/types/onboarding';
 import Button from '@/components/ui/Button';
 import RoleBadge from '../onboarding/RoleBadge';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { UserPlus, Mail, Briefcase, Calendar, User as UserIcon, MoreVertical, Shield, Trash2 } from 'lucide-react';
+import { UserPlus, Mail, Briefcase, Calendar, User as UserIcon, MoreVertical, Shield, Trash2, Eye, XCircle } from 'lucide-react';
 
 interface TeamMemberListProps {
   onInvite?: () => void;
@@ -26,6 +26,8 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
   const [actionLoading, setActionLoading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
+  const [viewingMember, setViewingMember] = useState<TenantMember | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Find current user's member record to get their tenant-specific role
   const currentUserMember = members.find(m => m.user.id === user?.id);
@@ -99,6 +101,13 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
   const openRemoveModal = (member: TenantMember) => {
     setSelectedMember(member);
     setShowRemoveModal(true);
+    setOpenMenuId(null);
+    setMenuPosition(null);
+  };
+
+  const openProfileModal = (member: TenantMember) => {
+    setViewingMember(member);
+    setShowProfileModal(true);
     setOpenMenuId(null);
     setMenuPosition(null);
   };
@@ -180,11 +189,9 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              {canManageTeam && (
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              )}
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -252,10 +259,8 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                       {member.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  {canManageTeam && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {canModify ? (
-                        <div className="relative inline-block">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="relative inline-block">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -289,30 +294,38 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                               >
                                 <div className="py-1">
                                   <button
-                                    onClick={() => openRoleModal(member)}
-                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                    onClick={() => openProfileModal(member)}
+                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                                   >
-                                    <Shield className="w-4 h-4 mr-3" />
-                                    Change Role
+                                    <Eye className="w-4 h-4 mr-3" />
+                                    View Profile
                                   </button>
-                                  <div className="border-t border-gray-100"></div>
-                                  <button
-                                    onClick={() => openRemoveModal(member)}
-                                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-3" />
-                                    Remove Member
-                                  </button>
+                                  {canModify && (
+                                    <>
+                                      <div className="border-t border-gray-100"></div>
+                                      <button
+                                        onClick={() => openRoleModal(member)}
+                                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                      >
+                                        <Shield className="w-4 h-4 mr-3" />
+                                        Change Role
+                                      </button>
+                                      <div className="border-t border-gray-100"></div>
+                                      <button
+                                        onClick={() => openRemoveModal(member)}
+                                        className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4 mr-3" />
+                                        Remove Member
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </>
                           )}
                         </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
                     </td>
-                  )}
                 </tr>
               );
             })}
@@ -357,8 +370,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                 </div>
                 <div className="flex items-center gap-2">
                   <RoleBadge role={member.role} size="sm" />
-                  {canModify && (
-                    <div className="relative">
+                  <div className="relative">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -392,26 +404,37 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                           >
                             <div className="py-1">
                               <button
-                                onClick={() => openRoleModal(member)}
-                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                onClick={() => openProfileModal(member)}
+                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                               >
-                                <Shield className="w-4 h-4 mr-2" />
-                                Change Role
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Profile
                               </button>
-                              <div className="border-t border-gray-100"></div>
-                              <button
-                                onClick={() => openRemoveModal(member)}
-                                className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Remove Member
-                              </button>
+                              {canModify && (
+                                <>
+                                  <div className="border-t border-gray-100"></div>
+                                  <button
+                                    onClick={() => openRoleModal(member)}
+                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                  >
+                                    <Shield className="w-4 h-4 mr-2" />
+                                    Change Role
+                                  </button>
+                                  <div className="border-t border-gray-100"></div>
+                                  <button
+                                    onClick={() => openRemoveModal(member)}
+                                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Remove Member
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </>
                       )}
                     </div>
-                  )}
                 </div>
               </div>
 
@@ -525,6 +548,187 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Profile Modal */}
+      {showProfileModal && viewingMember && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => {
+              setShowProfileModal(false);
+              setViewingMember(null);
+            }}></div>
+
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full z-[101]">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-teal-500 to-blue-500 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {viewingMember.user.avatar_url ? (
+                      <img
+                        className="h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg"
+                        src={viewingMember.user.avatar_url}
+                        alt={viewingMember.user.full_name}
+                      />
+                    ) : (
+                      <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center border-4 border-white shadow-lg">
+                        <span className="text-teal-600 font-bold text-2xl">
+                          {viewingMember.user.first_name[0]}{viewingMember.user.last_name[0]}
+                        </span>
+                      </div>
+                    )}
+                    <div className="ml-4">
+                      <h3 className="text-2xl font-bold text-white">{viewingMember.user.full_name}</h3>
+                      <p className="text-teal-100 flex items-center">
+                        <Mail className="w-4 h-4 mr-1" />
+                        {viewingMember.user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      setViewingMember(null);
+                    }}
+                    className="text-white hover:text-gray-200 transition-colors"
+                  >
+                    <XCircle className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="bg-white px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div className="space-y-6">
+                  {/* Personal Information */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <UserIcon className="w-5 h-5 mr-2 text-teal-600" />
+                      Personal Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Full Name</label>
+                        <p className="mt-1 text-base text-gray-900 font-medium">{viewingMember.user.full_name}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Email</label>
+                        <p className="mt-1 text-base text-gray-900">{viewingMember.user.email}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Phone</label>
+                        <p className="mt-1 text-base text-gray-900">{viewingMember.user.phone || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Employee ID</label>
+                        <p className="mt-1 text-base text-gray-900 font-mono">{viewingMember.user.employee_id}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Information */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <Briefcase className="w-5 h-5 mr-2 text-teal-600" />
+                      Professional Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Tenant Role</label>
+                        <p className="mt-1">
+                          <RoleBadge role={viewingMember.role} size="md" />
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">System Role</label>
+                        <p className="mt-1 text-base text-gray-900 capitalize">{viewingMember.user.role}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Department</label>
+                        <p className="mt-1 text-base text-gray-900">{viewingMember.user.department || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Job Title</label>
+                        <p className="mt-1 text-base text-gray-900">{viewingMember.user.job_title || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Joined Company</label>
+                        <p className="mt-1 text-base text-gray-900 flex items-center">
+                          <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                          {new Date(viewingMember.joined_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Account Created</label>
+                        <p className="mt-1 text-base text-gray-900 flex items-center">
+                          <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                          {new Date(viewingMember.user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account Status */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <Shield className="w-5 h-5 mr-2 text-teal-600" />
+                      Account Status
+                    </h4>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex flex-wrap gap-3">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+                          viewingMember.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {viewingMember.is_active ? '✓ Active Member' : '✗ Inactive Member'}
+                        </span>
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+                          viewingMember.user.is_verified ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {viewingMember.user.is_verified ? '✓ Email Verified' : '⚠ Email Not Verified'}
+                        </span>
+                        {viewingMember.user.two_factor_enabled && (
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                            🔒 2FA Enabled
+                          </span>
+                        )}
+                      </div>
+                      {viewingMember.user.last_login_at && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <label className="block text-sm font-medium text-gray-500">Last Login</label>
+                          <p className="mt-1 text-base text-gray-900">
+                            {new Date(viewingMember.user.last_login_at).toLocaleString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    setViewingMember(null);
+                  }}
+                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </div>

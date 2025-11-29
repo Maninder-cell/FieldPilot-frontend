@@ -29,6 +29,7 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -86,12 +87,14 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
     setSelectedInvitation(invitation);
     setShowResendModal(true);
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   const openRevokeModal = (invitation: Invitation) => {
     setSelectedInvitation(invitation);
     setShowRevokeModal(true);
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   const getTimeUntilExpiration = (expiresAt: string) => {
@@ -204,19 +207,36 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="relative inline-block">
                     <button
-                      onClick={() => setOpenMenuId(openMenuId === invitation.id ? null : invitation.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setMenuPosition({
+                          top: rect.bottom + window.scrollY + 8,
+                          right: window.innerWidth - rect.right - window.scrollX
+                        });
+                        setOpenMenuId(openMenuId === invitation.id ? null : invitation.id);
+                      }}
                       className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
                     
-                    {openMenuId === invitation.id && (
+                    {openMenuId === invitation.id && menuPosition && (
                       <>
                         <div 
                           className="fixed inset-0 z-40" 
-                          onClick={() => setOpenMenuId(null)}
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            setMenuPosition(null);
+                          }}
                         />
-                        <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 z-50 overflow-hidden">
+                        <div 
+                          className="fixed z-50 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 overflow-hidden"
+                          style={{
+                            top: `${menuPosition.top}px`,
+                            right: `${menuPosition.right}px`
+                          }}
+                        >
                           <div className="py-1">
                             <button
                               onClick={() => openResendModal(invitation)}
@@ -264,19 +284,36 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
                 <RoleBadge role={invitation.role as any} size="sm" />
                 <div className="relative inline-block">
                   <button
-                    onClick={() => setOpenMenuId(openMenuId === invitation.id ? null : invitation.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setMenuPosition({
+                        top: rect.bottom + window.scrollY + 8,
+                        right: window.innerWidth - rect.right - window.scrollX
+                      });
+                      setOpenMenuId(openMenuId === invitation.id ? null : invitation.id);
+                    }}
                     className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
                   
-                  {openMenuId === invitation.id && (
+                  {openMenuId === invitation.id && menuPosition && (
                     <>
                       <div 
                         className="fixed inset-0 z-40" 
-                        onClick={() => setOpenMenuId(null)}
+                        onClick={() => {
+                          setOpenMenuId(null);
+                          setMenuPosition(null);
+                        }}
                       />
-                      <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 z-50 overflow-hidden">
+                      <div 
+                        className="fixed z-50 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 overflow-hidden"
+                        style={{
+                          top: `${menuPosition.top}px`,
+                          right: `${menuPosition.right}px`
+                        }}
+                      >
                         <div className="py-1">
                           <button
                             onClick={() => openResendModal(invitation)}

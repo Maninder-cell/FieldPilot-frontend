@@ -25,6 +25,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
   const [newRole, setNewRole] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
 
   // Find current user's member record to get their tenant-specific role
   const currentUserMember = members.find(m => m.user.id === user?.id);
@@ -92,12 +93,14 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
     setNewRole(member.role);
     setShowRoleModal(true);
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   const openRemoveModal = (member: TenantMember) => {
     setSelectedMember(member);
     setShowRemoveModal(true);
     setOpenMenuId(null);
+    setMenuPosition(null);
   };
 
   if (isLoadingMembers && !hasLoaded) {
@@ -158,7 +161,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -254,19 +257,36 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                       {canModify ? (
                         <div className="relative inline-block">
                           <button
-                            onClick={() => setOpenMenuId(openMenuId === member.id ? null : member.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setMenuPosition({
+                                top: rect.bottom + window.scrollY + 8,
+                                right: window.innerWidth - rect.right - window.scrollX
+                              });
+                              setOpenMenuId(openMenuId === member.id ? null : member.id);
+                            }}
                             className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
                           >
                             <MoreVertical className="w-5 h-5" />
                           </button>
                           
-                          {openMenuId === member.id && (
+                          {openMenuId === member.id && menuPosition && (
                             <>
                               <div 
                                 className="fixed inset-0 z-40" 
-                                onClick={() => setOpenMenuId(null)}
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  setMenuPosition(null);
+                                }}
                               />
-                              <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 z-50 overflow-hidden">
+                              <div 
+                                className="fixed z-50 w-56 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 overflow-hidden"
+                                style={{
+                                  top: `${menuPosition.top}px`,
+                                  right: `${menuPosition.right}px`
+                                }}
+                              >
                                 <div className="py-1">
                                   <button
                                     onClick={() => openRoleModal(member)}
@@ -340,30 +360,48 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   {canModify && (
                     <div className="relative">
                       <button
-                        onClick={() => setOpenMenuId(openMenuId === member.id ? null : member.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPosition({
+                            top: rect.bottom + window.scrollY + 8,
+                            right: window.innerWidth - rect.right - window.scrollX
+                          });
+                          setOpenMenuId(openMenuId === member.id ? null : member.id);
+                        }}
                         className="text-gray-400 hover:text-gray-600 p-1"
                       >
                         <MoreVertical className="w-5 h-5" />
                       </button>
                       
-                      {openMenuId === member.id && (
+                      {openMenuId === member.id && menuPosition && (
                         <>
                           <div 
-                            className="fixed inset-0 z-10" 
-                            onClick={() => setOpenMenuId(null)}
+                            className="fixed inset-0 z-40" 
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setMenuPosition(null);
+                            }}
                           />
-                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                          <div 
+                            className="fixed z-50 w-48 rounded-lg shadow-xl bg-white ring-1 ring-gray-200 overflow-hidden"
+                            style={{
+                              top: `${menuPosition.top}px`,
+                              right: `${menuPosition.right}px`
+                            }}
+                          >
                             <div className="py-1">
                               <button
                                 onClick={() => openRoleModal(member)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
                               >
                                 <Shield className="w-4 h-4 mr-2" />
                                 Change Role
                               </button>
+                              <div className="border-t border-gray-100"></div>
                               <button
                                 onClick={() => openRemoveModal(member)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Remove Member

@@ -34,9 +34,17 @@ export default function Header() {
             href="/profile"
             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-600 to-cyan-600 flex items-center justify-center text-white font-semibold text-sm">
-              {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-            </div>
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.full_name}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-600 to-cyan-600 flex items-center justify-center text-white font-semibold text-sm">
+                {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+              </div>
+            )}
             <span className="hidden sm:block text-sm font-medium text-gray-900">
               {user.full_name}
             </span>

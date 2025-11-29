@@ -30,6 +30,7 @@ interface AuthContextType {
   register: (data: RegisterRequest) => Promise<void>;
   verifyEmail: (email: string, otpCode: string) => Promise<void>;
   refreshToken: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -169,6 +170,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleRefreshUserData = async () => {
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      // Fetch updated user data
+      const userData = await getCurrentUser(accessToken);
+      setUser(userData);
+      storeUserData(userData);
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -178,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register: handleRegister,
     verifyEmail: handleVerifyEmail,
     refreshToken: handleRefreshToken,
+    refreshUserData: handleRefreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

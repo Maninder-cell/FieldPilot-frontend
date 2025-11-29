@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
@@ -27,6 +28,7 @@ interface ProfileFormProps {
 
 export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
   const router = useRouter();
+  const { refreshUserData } = useAuth();
   const [originalData, setOriginalData] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState<UserProfileFormData>({
     first_name: '',
@@ -307,6 +309,13 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       setSuccessMessage('Profile updated successfully!');
       setOriginalData(updatedProfile);
       
+      // Refresh user data in AuthContext to update navbar and other components
+      try {
+        await refreshUserData();
+      } catch (refreshError) {
+        console.error('Failed to refresh user data:', refreshError);
+      }
+      
       if (onSuccess) {
         setTimeout(() => {
           onSuccess();
@@ -413,6 +422,13 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
                       const result = await uploadAvatar(file, accessToken);
                       handleChange('avatar_url', result.avatar_url);
                       setSuccessMessage('Avatar uploaded successfully!');
+                      
+                      // Refresh user data in AuthContext to update navbar
+                      try {
+                        await refreshUserData();
+                      } catch (refreshError) {
+                        console.error('Failed to refresh user data:', refreshError);
+                      }
                     } catch (error: any) {
                       setApiError(error.message || 'Failed to upload avatar');
                     } finally {

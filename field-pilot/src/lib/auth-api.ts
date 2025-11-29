@@ -257,7 +257,7 @@ export async function updateProfile(
  * GET /api/v1/auth/profile/{userId}/
  */
 export async function getUserProfileById(userId: string, accessToken: string): Promise<UserProfile> {
-  const response = await fetchAuthAPI<AuthApiResponse<UserProfile>>(
+  const response = await fetchAuthAPI<ApiResponse<UserProfile>>(
     `/auth/users/${userId}/profile/`,
     {
       method: 'GET',
@@ -295,6 +295,6 @@ export async function uploadAvatar(file: File, accessToken: string): Promise<{ a
     } as ApiError;
   }
 
-  const data: AuthApiResponse<{ avatar_url: string }> = await response.json();
+  const data: ApiResponse<{ avatar_url: string }> = await response.json();
   return data.data;
 }

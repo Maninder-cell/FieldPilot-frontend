@@ -6,6 +6,7 @@ import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PasswordStrengthIndicator from '@/components/ui/PasswordStrengthIndicator';
+import { useScrollToError } from '@/hooks/useScrollToSection';
 import {
   validateEmail,
   validatePassword,
@@ -23,6 +24,7 @@ interface RegisterFormProps {
 
 export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   const { register } = useAuth();
+  const scrollToError = useScrollToError();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -94,14 +96,10 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   const validateForm = (): boolean => {
     const fields = ['email', 'password', 'password_confirm', 'first_name', 'last_name', 'phone'];
-    fields.forEach(validateField);
     
-    // Mark all fields as touched
-    const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
-    setTouched(allTouched);
-    
-    // Check if there are any errors
-    const hasErrors = fields.some(field => {
+    // Collect errors
+    const newErrors: Record<string, string> = {};
+    fields.forEach(field => {
       let error: string | null = null;
       
       switch (field) {
@@ -125,10 +123,23 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           break;
       }
       
-      return error !== null;
+      if (error) {
+        newErrors[field] = error;
+      }
     });
     
-    return !hasErrors;
+    setErrors(newErrors);
+    
+    // Mark all fields as touched
+    const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
+    setTouched(allTouched);
+    
+    // Scroll to first error if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      scrollToError(newErrors);
+    }
+    
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,6 +166,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
+        scrollToError(fieldErrors);
       }
       
       // Set general error message

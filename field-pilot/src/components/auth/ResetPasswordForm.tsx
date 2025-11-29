@@ -5,6 +5,7 @@ import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PasswordStrengthIndicator from '@/components/ui/PasswordStrengthIndicator';
+import { useScrollToError } from '@/hooks/useScrollToSection';
 import { resetPassword } from '@/lib/auth-api';
 import {
   validateNewPassword,
@@ -19,6 +20,7 @@ interface ResetPasswordFormProps {
 }
 
 export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps) {
+  const scrollToError = useScrollToError();
   const [formData, setFormData] = useState({
     email: '',
     reset_token: '',
@@ -88,12 +90,10 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
 
   const validateForm = (): boolean => {
     const fields = ['new_password', 'new_password_confirm'];
-    fields.forEach(validateField);
-
-    const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
-    setTouched(allTouched);
-
-    const hasErrors = fields.some(field => {
+    
+    // Collect errors
+    const newErrors: Record<string, string> = {};
+    fields.forEach(field => {
       let error: string | null = null;
 
       switch (field) {
@@ -105,10 +105,22 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
           break;
       }
 
-      return error !== null;
+      if (error) {
+        newErrors[field] = error;
+      }
     });
 
-    return !hasErrors;
+    setErrors(newErrors);
+
+    const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
+    setTouched(allTouched);
+
+    // Scroll to first error if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      scrollToError(newErrors);
+    }
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,6 +161,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
+        scrollToError(fieldErrors);
       }
 
       setApiError(getPasswordErrorMessage(apiErr));

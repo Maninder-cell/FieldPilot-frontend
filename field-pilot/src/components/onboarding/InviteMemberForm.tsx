@@ -5,6 +5,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToSection';
 import { ROLE_OPTIONS, MemberRole } from '@/types/onboarding';
 import { validateEmail, validateRequired } from '@/lib/validation';
 import { OnboardingApiError } from '@/types/onboarding';
@@ -17,6 +18,7 @@ interface InviteMemberFormProps {
 
 export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFormProps) {
   const { inviteTeamMember, isLoading: contextLoading } = useOnboarding();
+  const scrollToError = useScrollToError();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -76,7 +78,14 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
       role: true,
     });
 
-    return !Object.values(newErrors).some(error => error !== '');
+    const hasErrors = Object.values(newErrors).some(error => error !== '');
+    
+    // Scroll to first error if validation fails
+    if (hasErrors) {
+      scrollToError(newErrors);
+    }
+
+    return !hasErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,6 +128,7 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
           fieldErrors[field] = messages[0];
         });
         setErrors(prev => ({ ...prev, ...fieldErrors }));
+        scrollToError(fieldErrors);
       }
       
       setApiError(apiError.message || 'Failed to send invitation. Please try again.');

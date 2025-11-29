@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import FormInput from '@/components/ui/FormInput';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToSection';
 import { forgotPassword } from '@/lib/auth-api';
 import {
   validateEmail,
@@ -17,6 +18,7 @@ interface ForgotPasswordFormProps {
 }
 
 export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
+  const scrollToError = useScrollToError();
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -89,6 +91,7 @@ export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProp
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
+        scrollToError(fieldErrors);
       }
 
       setApiError(getErrorMessage(apiErr));

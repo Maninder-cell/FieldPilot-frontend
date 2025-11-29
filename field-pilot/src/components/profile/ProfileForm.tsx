@@ -11,6 +11,7 @@ import Toggle from '@/components/ui/Toggle';
 import ImageCropModal from '@/components/ui/ImageCropModal';
 import { getProfile, updateProfile } from '@/lib/auth-api';
 import { getAccessToken } from '@/lib/token-utils';
+import { useScrollToSection, useScrollToError } from '@/hooks/useScrollToSection';
 import {
   validateRequired,
   validatePhone,
@@ -30,6 +31,8 @@ interface ProfileFormProps {
 export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
   const router = useRouter();
   const { refreshUserData } = useAuth();
+  const scrollToError = useScrollToError();
+  useScrollToSection();
   const [originalData, setOriginalData] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState<UserProfileFormData>({
     first_name: '',
@@ -280,6 +283,11 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
     const allTouched = fields.reduce((acc, field) => ({ ...acc, [field]: true }), {});
     setTouched(allTouched);
     
+    // Scroll to first error if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      scrollToError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -330,6 +338,8 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       const fieldErrors = mapApiErrorsToFields(apiErr);
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors);
+        // Scroll to first error field
+        scrollToError(fieldErrors);
       }
       
       setApiError(getErrorMessage(apiErr));
@@ -407,7 +417,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       )}
 
       {/* Personal Information */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div id="personal-information" className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
         </div>
@@ -524,7 +534,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       </div>
 
       {/* Contact Information */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div id="contact-information" className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
         </div>
@@ -581,7 +591,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       </div>
 
       {/* Emergency Contact */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div id="emergency-contact" className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
         </div>
@@ -620,7 +630,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       </div>
 
       {/* Professional Information */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div id="professional-information" className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
         </div>
@@ -673,7 +683,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
       </div>
 
       {/* Preferences */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+      <div id="preferences" className="bg-white shadow-sm rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">Preferences</h3>
         </div>
@@ -698,7 +708,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
+          <div id="notifications" className="border-t border-gray-200 pt-4">
             <h4 className="text-sm font-medium text-gray-900 mb-4">Notification Preferences</h4>
             <div className="space-y-2">
               <Toggle

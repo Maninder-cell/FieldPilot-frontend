@@ -53,7 +53,7 @@ export default function SettingsPage() {
         {
           name: 'Notification Preferences',
           description: 'Manage email, SMS, and push notifications',
-          href: '/profile/edit',
+          href: '/profile/edit?section=notifications',
           badge: 'In Profile',
         },
       ],
@@ -79,7 +79,7 @@ export default function SettingsPage() {
         {
           name: 'Language & Region',
           description: 'Set your timezone and language preferences',
-          href: '/profile/edit',
+          href: '/profile/edit?section=preferences',
           badge: 'In Profile',
         },
       ],

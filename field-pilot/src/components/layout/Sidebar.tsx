@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,16 +24,25 @@ import TrialStatusBadge from '@/components/onboarding/TrialStatusBadge';
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { tenant, members } = useOnboarding();
+  const { tenant, members, loadMembers } = useOnboarding();
   const { subscription } = useBilling();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // Load members when component mounts to get user's role
+  useEffect(() => {
+    if (tenant && members.length === 0) {
+      loadMembers().catch(console.error);
+    }
+  }, [tenant, members.length, loadMembers]);
+
   if (!user) return null;
 
-  // Check if user is owner or admin from tenant membership
+  // Check if user is owner, admin, or manager from tenant membership
   const currentUserMembership = members.find(m => m.user.id === user?.id);
-  const isOwnerOrAdmin = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
+  const userRole = currentUserMembership?.role;
+  const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin';
+  const canManageTeam = userRole === 'owner' || userRole === 'admin' || userRole === 'manager';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -68,19 +77,30 @@ export default function Sidebar() {
     },
   ];
 
-  // Company management links (only for owner/admin)
-  const companyNavigation = isOwnerOrAdmin ? [
-    {
+  // Company management links
+  const companyNavigation: Array<{
+    name: string;
+    href: string;
+    icon: any;
+  }> = [];
+  
+  // Company Settings (only for owner/admin)
+  if (isOwnerOrAdmin) {
+    companyNavigation.push({
       name: 'Company Settings',
       href: '/company/settings',
       icon: Building,
-    },
-    {
+    });
+  }
+  
+  // Team Management (for owner/admin/manager)
+  if (canManageTeam) {
+    companyNavigation.push({
       name: 'Team Management',
       href: '/company/team',
       icon: Users,
-    },
-  ] : [];
+    });
+  }
 
   // Billing navigation (only for owner/admin)
   const billingNavigation = isOwnerOrAdmin ? [

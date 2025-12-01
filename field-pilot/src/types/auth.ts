@@ -47,6 +47,9 @@ export interface RegisterRequest {
 
 export interface RegisterResponse {
   user: User;
+  access: string;
+  refresh: string;
+  message: string;
 }
 
 export interface VerifyEmailRequest {

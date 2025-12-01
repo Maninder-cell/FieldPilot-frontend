@@ -154,8 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleRegister = async (data: RegisterRequest) => {
     try {
-      await registerUser(data);
-      // Don't log in automatically - user needs to verify email first
+      const response = await registerUser(data);
+      
+      // Store tokens and user data - user is now logged in
+      storeTokens(response.access, response.refresh);
+      storeUserData(response.user);
+      setUser(response.user);
     } catch (error) {
       throw error;
     }

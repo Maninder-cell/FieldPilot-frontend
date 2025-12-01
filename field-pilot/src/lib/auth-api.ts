@@ -72,12 +72,17 @@ async function fetchAuthAPI<T>(
  * POST /api/auth/register/
  */
 export async function registerUser(data: RegisterRequest): Promise<RegisterResponse> {
-  const response = await fetchAuthAPI<ApiResponse<{ user: User }>>('/auth/register/', {
+  const response = await fetchAuthAPI<ApiResponse<RegisterResponse>>('/auth/register/', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 
-  return { user: response.data.user };
+  return {
+    user: response.data.user,
+    access: response.data.access,
+    refresh: response.data.refresh,
+    message: response.data.message,
+  };
 }
 
 /**

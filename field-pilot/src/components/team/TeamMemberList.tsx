@@ -42,7 +42,8 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
     if (!hasLoaded) {
       handleLoadMembers();
     }
-  }, [hasLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLoadMembers = async () => {
     try {
@@ -65,6 +66,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
       setShowRoleModal(false);
       setSelectedMember(null);
       setNewRole('');
+      // Data is automatically refreshed by the context
       if (onMemberUpdate) onMemberUpdate();
     } catch (error: any) {
       console.error('Error updating role:', error);
@@ -82,6 +84,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
       await removeMember(selectedMember.id);
       setShowRemoveModal(false);
       setSelectedMember(null);
+      // Data is automatically refreshed by the context
       if (onMemberUpdate) onMemberUpdate();
     } catch (error: any) {
       console.error('Error removing member:', error);

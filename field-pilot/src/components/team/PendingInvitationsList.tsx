@@ -36,7 +36,8 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
     if (!hasLoaded) {
       handleLoadInvitations();
     }
-  }, [hasLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLoadInvitations = async () => {
     try {
@@ -58,6 +59,7 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
       await resendInvitation(selectedInvitation.id);
       setShowResendModal(false);
       setSelectedInvitation(null);
+      // Data is automatically refreshed by the context
       if (onInvitationUpdate) onInvitationUpdate();
     } catch (error: any) {
       console.error('Error resending invitation:', error);
@@ -75,6 +77,7 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
       await revokeInvitation(selectedInvitation.id);
       setShowRevokeModal(false);
       setSelectedInvitation(null);
+      // Data is automatically refreshed by the context
       if (onInvitationUpdate) onInvitationUpdate();
     } catch (error: any) {
       console.error('Error revoking invitation:', error);

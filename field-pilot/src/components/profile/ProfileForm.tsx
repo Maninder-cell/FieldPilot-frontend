@@ -9,6 +9,7 @@ import Alert from '@/components/ui/Alert';
 import TagInput from '@/components/ui/TagInput';
 import Toggle from '@/components/ui/Toggle';
 import ImageCropModal from '@/components/ui/ImageCropModal';
+import ProfileFormSkeleton from '@/components/profile/ProfileFormSkeleton';
 import { getProfile, updateProfile } from '@/lib/auth-api';
 import { getAccessToken } from '@/lib/token-utils';
 import { useScrollToSection, useScrollToError } from '@/hooks/useScrollToSection';
@@ -389,14 +390,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   return (
@@ -424,7 +418,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
         <div className="px-6 py-4 space-y-4">
           {/* Avatar Upload */}
           <div className="flex items-center space-x-6">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {formData.avatar_url ? (
                 <img
                   className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
@@ -789,7 +783,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
         <Button
           type="submit"
           variant="primary"
-          size="lg"
+          size="md"
           loading={isSubmitting}
           disabled={!hasChanges || isSubmitting}
         >
@@ -799,7 +793,7 @@ export default function ProfileForm({ onSuccess, onCancel }: ProfileFormProps) {
         <Button
           type="button"
           variant="outline"
-          size="lg"
+          size="md"
           onClick={handleCancel}
           disabled={isSubmitting}
         >

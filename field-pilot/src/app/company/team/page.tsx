@@ -13,7 +13,6 @@ function TeamManagementContent() {
   const { user } = useAuth();
   const { members } = useOnboarding();
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleInvite = () => {
     setShowInviteForm(true);
@@ -21,8 +20,7 @@ function TeamManagementContent() {
 
   const handleInviteSuccess = () => {
     setShowInviteForm(false);
-    // Trigger refresh of members and invitations
-    setRefreshKey(prev => prev + 1);
+    // Data will be refreshed automatically by the components
   };
 
   const handleInviteClose = () => {
@@ -30,8 +28,7 @@ function TeamManagementContent() {
   };
 
   const handleMemberUpdate = () => {
-    // Trigger refresh when member is updated/removed
-    setRefreshKey(prev => prev + 1);
+    // Data will be refreshed automatically by the components
   };
 
   // Find current user's member record to get their tenant-specific role
@@ -67,7 +64,6 @@ function TeamManagementContent() {
           {!showInviteForm && (
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
               <TeamMemberList 
-                key={`members-${refreshKey}`}
                 onInvite={handleInvite}
                 onMemberUpdate={handleMemberUpdate}
               />
@@ -78,7 +74,6 @@ function TeamManagementContent() {
           {!showInviteForm && canManageTeam && (
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
               <PendingInvitationsList 
-                key={`invitations-${refreshKey}`}
                 onInvitationUpdate={handleMemberUpdate}
               />
             </div>
@@ -91,7 +86,7 @@ function TeamManagementContent() {
 
 export default function TeamManagementPage() {
   return (
-    <ProtectedRoute requireOnboarding={true}>
+    <ProtectedRoute>
       <TeamManagementContent />
     </ProtectedRoute>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -11,31 +11,38 @@ import { CancelSubscriptionModal } from '@/components/billing/CancelSubscription
 import { UpgradeDowngradeModal } from '@/components/billing/UpgradeDowngradeModal';
 import { SubscriptionPlan } from '@/types/billing';
 
-export default function SubscriptionManagementPage() {
+function SubscriptionContent() {
   const searchParams = useSearchParams();
   const { subscription, plans, loadSubscription, loadPlans, reactivateSubscription, isLoading } = useBilling();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [hasProcessedUrlParams, setHasProcessedUrlParams] = useState(false);
 
   useEffect(() => {
     loadSubscription();
     loadPlans();
   }, [loadSubscription, loadPlans]);
 
+  // Reset flag when URL params change
+  useEffect(() => {
+    setHasProcessedUrlParams(false);
+  }, [searchParams]);
+
   // Handle URL query parameters for automatic upgrade modal
   useEffect(() => {
     const upgradePlanSlug = searchParams.get('upgrade');
     
-    if (upgradePlanSlug && subscription && plans.length > 0 && !selectedPlan) {
+    if (upgradePlanSlug && subscription && plans.length > 0 && !hasProcessedUrlParams) {
       const planToUpgrade = plans.find(p => p.slug === upgradePlanSlug);
       if (planToUpgrade && planToUpgrade.slug !== subscription.plan.slug) {
         setSelectedPlan(planToUpgrade);
         setShowUpgradeModal(true);
+        setHasProcessedUrlParams(true);
       }
     }
-  }, [searchParams, subscription, plans, selectedPlan]);
+  }, [searchParams, subscription, plans, hasProcessedUrlParams]);
 
   const handlePlanSelect = (plan: SubscriptionPlan, billingCycle: 'monthly' | 'yearly') => {
     if (subscription && plan.slug !== subscription.plan.slug) {
@@ -156,5 +163,23 @@ export default function SubscriptionManagementPage() {
         </div>
       </DashboardLayout>
     </ProtectedRoute>
+  );
+}
+
+export default function SubscriptionManagementPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <DashboardLayout>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          </div>
+        </DashboardLayout>
+      </ProtectedRoute>
+    }>
+      <SubscriptionContent />
+    </Suspense>
   );
 }

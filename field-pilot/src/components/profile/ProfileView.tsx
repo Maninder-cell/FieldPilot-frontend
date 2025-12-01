@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Pencil } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
+import ProfileViewSkeleton from '@/components/profile/ProfileViewSkeleton';
 import { getProfile } from '@/lib/auth-api';
 import { getAccessToken } from '@/lib/token-utils';
 import { UserProfile } from '@/types/auth';
@@ -53,14 +55,7 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <ProfileViewSkeleton />;
   }
 
   if (error) {
@@ -98,6 +93,7 @@ export default function ProfileView({ onEdit }: ProfileViewProps) {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Profile Information</h2>
         <Button onClick={handleEdit} variant="primary">
+          <Pencil className="w-4 h-4 mr-2" />
           Edit Profile
         </Button>
       </div>

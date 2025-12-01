@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
+import ChangePasswordSkeleton from '@/components/profile/ChangePasswordSkeleton';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -22,18 +23,7 @@ export default function ChangePasswordPage() {
     // router.push('/profile');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isLoading) {
     return null;
   }
 
@@ -51,6 +41,9 @@ export default function ChangePasswordPage() {
 
           {/* Change Password with Sidebar Layout */}
           <ProfileSettingsLayout>
+            {isLoading ? (
+              <ChangePasswordSkeleton />
+            ) : (
             <div className="space-y-6">
               {/* Form Card */}
               <div className="bg-white shadow-sm rounded-lg border border-gray-200">
@@ -91,6 +84,7 @@ export default function ChangePasswordPage() {
                 </div>
               </div>
             </div>
+            )}
           </ProfileSettingsLayout>
         </div>
       </div>

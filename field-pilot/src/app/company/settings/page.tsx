@@ -8,6 +8,8 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CompanyInfoView from '@/components/onboarding/CompanyInfoView';
 import CompanyInfoEditForm from '@/components/onboarding/CompanyInfoEditForm';
+import CompanyInfoSkeleton from '@/components/onboarding/CompanyInfoSkeleton';
+import CompanyInfoEditFormSkeleton from '@/components/onboarding/CompanyInfoEditFormSkeleton';
 
 function CompanySettingsContent() {
   const router = useRouter();
@@ -31,13 +33,16 @@ function CompanySettingsContent() {
     if (authLoading || onboardingLoading) return;
     if (!user) return;
     
+    // Only check permissions after members are loaded
+    if (members.length === 0) return;
+    
     // Check if user has permission (owner or admin) from tenant membership
     if (userRole && userRole !== 'owner' && userRole !== 'admin') {
       // Redirect to dashboard if not authorized
       router.push('/dashboard');
       return;
     }
-  }, [user, userRole, authLoading, onboardingLoading, router]);
+  }, [user, userRole, authLoading, onboardingLoading, members.length, router]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -51,17 +56,22 @@ function CompanySettingsContent() {
     setIsEditing(false);
   };
 
-  // Show loading state while checking permissions
-  if (authLoading || onboardingLoading || !userRole) {
+  // Show loading state while checking permissions or loading members
+  if (authLoading || onboardingLoading || members.length === 0 || !userRole) {
     return (
       <DashboardLayout>
         <div className="py-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
-                <p className="text-gray-600">Loading...</p>
-              </div>
+            {/* Page Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Company Settings</h1>
+              <p className="mt-2 text-gray-600">
+                Manage your company information and preferences
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
+              <CompanyInfoSkeleton />
             </div>
           </div>
         </div>
@@ -71,6 +81,7 @@ function CompanySettingsContent() {
 
   // Show permission denied if not owner/admin (check tenant membership role, not user.role)
   if (userRole !== 'owner' && userRole !== 'admin') {
+    // Don't render anything, the redirect will happen in useEffect
     return null;
   }
 
@@ -78,6 +89,14 @@ function CompanySettingsContent() {
     <DashboardLayout>
       <div className="py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Company Settings</h1>
+            <p className="mt-2 text-gray-600">
+              Manage your company information and preferences
+            </p>
+          </div>
+
           <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
             {isEditing ? (
               <CompanyInfoEditForm
@@ -96,7 +115,7 @@ function CompanySettingsContent() {
 
 export default function CompanySettingsPage() {
   return (
-    <ProtectedRoute requireOnboarding={true}>
+    <ProtectedRoute>
       <CompanySettingsContent />
     </ProtectedRoute>
   );

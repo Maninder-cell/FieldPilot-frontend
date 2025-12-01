@@ -24,7 +24,7 @@ export default function ProtectedRoute({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait for both auth and onboarding to load
+    // Wait for auth to load
     if (authLoading) {
       return;
     }
@@ -37,8 +37,13 @@ export default function ProtectedRoute({
       return;
     }
 
-    // Check onboarding status if required (only for non-dashboard routes)
-    if (requireOnboarding && isAuthenticated && !onboardingLoading) {
+    // Only check onboarding status if explicitly required
+    if (requireOnboarding === true && isAuthenticated) {
+      // Wait for onboarding data to load before making decisions
+      if (onboardingLoading) {
+        return;
+      }
+
       // No tenant means user needs to create a company
       if (!tenant) {
         router.push('/dashboard');
@@ -55,6 +60,18 @@ export default function ProtectedRoute({
 
   // Show loading state while checking authentication
   if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while checking onboarding (only if required)
+  if (requireOnboarding === true && isAuthenticated && onboardingLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

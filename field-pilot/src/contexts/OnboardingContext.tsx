@@ -71,6 +71,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [userInvitations, setUserInvitations] = useState<InvitationCheckResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  
+  // Cache flags to prevent redundant API calls
+  const [membersLoaded, setMembersLoaded] = useState(false);
+  const [invitationsLoaded, setInvitationsLoaded] = useState(false);
 
   // Load tenant data when user is authenticated
   useEffect(() => {
@@ -83,6 +87,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       setPendingInvitations([]);
       setUserInvitations([]);
       setCurrentStep(1);
+      setMembersLoaded(false);
+      setInvitationsLoaded(false);
     }
   }, [isAuthenticated, user]);
 
@@ -202,7 +208,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const handleLoadMembers = useCallback(async () => {
+  const handleLoadMembers = useCallback(async (force = false) => {
+    // Skip if already loaded and not forcing refresh
+    if (membersLoaded && !force) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
       const accessToken = getAccessToken();
@@ -210,26 +221,33 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
       const membersData = await getTenantMembersAPI(accessToken);
       setMembers(membersData);
+      setMembersLoaded(true);
     } catch (error) {
       console.error('Error loading members:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [membersLoaded]);
 
-  const handleLoadPendingInvitations = useCallback(async () => {
+  const handleLoadPendingInvitations = useCallback(async (force = false) => {
+    // Skip if already loaded and not forcing refresh
+    if (invitationsLoaded && !force) {
+      return;
+    }
+    
     try {
       const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
 
       const invitationsData = await getPendingInvitationsAPI(accessToken);
       setPendingInvitations(invitationsData);
+      setInvitationsLoaded(true);
     } catch (error) {
       console.error('Error loading pending invitations:', error);
       throw error;
     }
-  }, []);
+  }, [invitationsLoaded]);
 
   const handleInviteTeamMember = useCallback(async (data: InviteMemberRequest) => {
     try {
@@ -238,9 +256,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
       await inviteMemberAPI(data, accessToken);
 
-      // Refresh members and pending invitations after successful invite
-      await handleLoadMembers();
-      await handleLoadPendingInvitations();
+      // Force refresh members and pending invitations after successful invite
+      await handleLoadMembers(true);
+      await handleLoadPendingInvitations(true);
     } catch (error) {
       console.error('Error inviting team member:', error);
       throw error;
@@ -288,8 +306,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       await updateMemberRoleAPI(memberId, role, accessToken);
-      // Refresh members list after update
-      await handleLoadMembers();
+      // Force refresh members list after update
+      await handleLoadMembers(true);
     } catch (error) {
       console.error('Error updating member role:', error);
       throw error;
@@ -307,8 +325,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       await removeMemberAPI(memberId, accessToken);
-      // Refresh members list after removal
-      await handleLoadMembers();
+      // Force refresh members list after removal
+      await handleLoadMembers(true);
     } catch (error) {
       console.error('Error removing member:', error);
       throw error;
@@ -326,8 +344,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       await resendInvitationAPI(invitationId, accessToken);
-      // Refresh invitations list after resend
-      await handleLoadPendingInvitations();
+      // Force refresh invitations list after resend
+      await handleLoadPendingInvitations(true);
     } catch (error) {
       console.error('Error resending invitation:', error);
       throw error;
@@ -345,8 +363,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setIsLoading(true);
     try {
       await revokeInvitationAPI(invitationId, accessToken);
-      // Refresh invitations list after revoke
-      await handleLoadPendingInvitations();
+      // Force refresh invitations list after revoke
+      await handleLoadPendingInvitations(true);
     } catch (error) {
       console.error('Error revoking invitation:', error);
       throw error;

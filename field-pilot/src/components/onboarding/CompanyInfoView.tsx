@@ -5,6 +5,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/ui/Button';
 import TrialStatusBadge from './TrialStatusBadge';
+import CompanyInfoSkeleton from './CompanyInfoSkeleton';
 import { Building, Mail, Phone, Globe, MapPin, Users, Edit, ExternalLink } from 'lucide-react';
 
 interface CompanyInfoViewProps {
@@ -20,11 +21,7 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
   const canEdit = currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin';
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>
-    );
+    return <CompanyInfoSkeleton />;
   }
 
   if (!tenant) {
@@ -39,27 +36,27 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{tenant.name}</h2>
-          <p className="text-gray-600 mt-1">Company Information</p>
+          <p className="text-gray-600 mt-1">View and manage your company information</p>
         </div>
         {canEdit && onEdit && (
           <Button
             type="button"
-            variant="outline"
+            variant="primary"
             size="md"
             onClick={onEdit}
           >
             <Edit className="w-4 h-4 mr-2" />
-            Edit
+            Edit Company
           </Button>
         )}
       </div>
 
       {/* Trial Status */}
       {tenant.is_trial_active && (
-        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4">
           <TrialStatusBadge
             trialEndsAt={tenant.trial_ends_at}
             isTrialActive={tenant.is_trial_active}
@@ -69,10 +66,13 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
       )}
 
       {/* Company Details */}
-      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
+      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200 overflow-hidden">
         {/* Basic Information */}
-        <div className="p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+        <div className="p-6 space-y-4 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Building className="w-5 h-5 mr-2 text-emerald-600" />
+            Basic Information
+          </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start">
@@ -135,8 +135,11 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
 
         {/* Address Information */}
         {(tenant.address || tenant.city || tenant.state || tenant.zip_code || tenant.country) && (
-          <div className="p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Address</h3>
+          <div className="p-6 space-y-4 bg-white">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <MapPin className="w-5 h-5 mr-2 text-emerald-600" />
+              Address
+            </h3>
             
             <div className="flex items-start">
               <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
@@ -152,8 +155,11 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
         )}
 
         {/* Workspace Information */}
-        <div className="p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Workspace</h3>
+        <div className="p-6 space-y-4 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Globe className="w-5 h-5 mr-2 text-emerald-600" />
+            Workspace
+          </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -200,14 +206,14 @@ export default function CompanyInfoView({ onEdit }: CompanyInfoViewProps) {
         </div>
 
         {/* Metadata */}
-        <div className="p-6 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Created</span>
-            <span className="text-gray-900">{new Date(tenant.created_at).toLocaleDateString()}</span>
+        <div className="p-6 space-y-3 bg-white">
+          <div className="flex justify-between items-center text-sm py-2 border-b border-gray-100">
+            <span className="text-gray-600 font-medium">Created</span>
+            <span className="text-gray-900">{new Date(tenant.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Last Updated</span>
-            <span className="text-gray-900">{new Date(tenant.updated_at).toLocaleDateString()}</span>
+          <div className="flex justify-between items-center text-sm py-2">
+            <span className="text-gray-600 font-medium">Last Updated</span>
+            <span className="text-gray-900">{new Date(tenant.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
         </div>
       </div>

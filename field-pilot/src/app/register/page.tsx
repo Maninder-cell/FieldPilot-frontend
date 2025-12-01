@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import RegisterForm from '@/components/auth/RegisterForm';
 import Header from '@/components/landing/Header';
 import Footer from '@/components/landing/Footer';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
@@ -142,5 +142,18 @@ export default function RegisterPage() {
       </div>
       <Footer sections={footerSections} socialLinks={socialLinks} />
     </>
+  );
+}
+
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-br from-emerald-50 via-white to-cyan-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

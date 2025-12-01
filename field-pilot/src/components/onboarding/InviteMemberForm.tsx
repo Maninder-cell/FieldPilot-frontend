@@ -60,6 +60,24 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
       case 'role':
         error = validateRequired(value, 'Role') || '';
         break;
+      case 'first_name':
+        if (value && value.trim().length > 0) {
+          if (value.trim().length < 2) {
+            error = 'First name must be at least 2 characters';
+          } else if (!/^[a-zA-Z\s'-]+$/.test(value)) {
+            error = 'First name can only contain letters, spaces, hyphens, and apostrophes';
+          }
+        }
+        break;
+      case 'last_name':
+        if (value && value.trim().length > 0) {
+          if (value.trim().length < 2) {
+            error = 'Last name must be at least 2 characters';
+          } else if (!/^[a-zA-Z\s'-]+$/.test(value)) {
+            error = 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+          }
+        }
+        break;
     }
 
     setErrors(prev => ({ ...prev, [field]: error }));
@@ -71,11 +89,31 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
 
     newErrors.email = validateRequired(formData.email, 'Email') || validateEmail(formData.email) || '';
     newErrors.role = validateRequired(formData.role, 'Role') || '';
+    
+    // Validate first name if provided
+    if (formData.first_name && formData.first_name.trim().length > 0) {
+      if (formData.first_name.trim().length < 2) {
+        newErrors.first_name = 'First name must be at least 2 characters';
+      } else if (!/^[a-zA-Z\s'-]+$/.test(formData.first_name)) {
+        newErrors.first_name = 'First name can only contain letters, spaces, hyphens, and apostrophes';
+      }
+    }
+    
+    // Validate last name if provided
+    if (formData.last_name && formData.last_name.trim().length > 0) {
+      if (formData.last_name.trim().length < 2) {
+        newErrors.last_name = 'Last name must be at least 2 characters';
+      } else if (!/^[a-zA-Z\s'-]+$/.test(formData.last_name)) {
+        newErrors.last_name = 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+      }
+    }
 
     setErrors(newErrors);
     setTouched({
       email: true,
       role: true,
+      first_name: true,
+      last_name: true,
     });
 
     const hasErrors = Object.values(newErrors).some(error => error !== '');
@@ -213,6 +251,8 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
             type="text"
             value={formData.first_name}
             onChange={(value) => handleChange('first_name', value)}
+            onBlur={() => handleBlur('first_name')}
+            error={touched.first_name ? errors.first_name : ''}
             placeholder="John"
           />
 
@@ -222,12 +262,14 @@ export default function InviteMemberForm({ onSuccess, onClose }: InviteMemberFor
             type="text"
             value={formData.last_name}
             onChange={(value) => handleChange('last_name', value)}
+            onBlur={() => handleBlur('last_name')}
+            error={touched.last_name ? errors.last_name : ''}
             placeholder="Doe"
           />
         </div>
 
-        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-          <p className="text-sm text-teal-800">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <p className="text-sm text-emerald-800">
             <strong>Note:</strong> If the user already has an account, they'll be added immediately. 
             Otherwise, they'll receive an invitation email to join.
           </p>

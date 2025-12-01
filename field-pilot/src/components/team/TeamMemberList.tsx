@@ -560,7 +560,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
       {showProfileModal && viewingMember && (
         <div className="fixed inset-0 z-[100] overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => {
+            <div className="fixed inset-0 transition-opacity bg-black/50 backdrop-blur-sm" onClick={() => {
               setShowProfileModal(false);
               setViewingMember(null);
             }}></div>
@@ -569,25 +569,25 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
 
             <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full z-[101]">
               {/* Header */}
-              <div className="bg-gradient-to-r from-teal-500 to-blue-500 px-6 py-4">
+              <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {viewingMember.user.avatar_url ? (
                       <img
-                        className="h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg"
+                        className="h-20 w-20 rounded-full border-4 border-emerald-100 object-cover shadow-lg"
                         src={viewingMember.user.avatar_url}
                         alt={viewingMember.user.full_name}
                       />
                     ) : (
-                      <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center border-4 border-white shadow-lg">
-                        <span className="text-teal-600 font-bold text-2xl">
+                      <div className="h-20 w-20 rounded-full bg-emerald-100 flex items-center justify-center border-4 border-emerald-200 shadow-lg">
+                        <span className="text-emerald-600 font-bold text-2xl">
                           {viewingMember.user.first_name[0]}{viewingMember.user.last_name[0]}
                         </span>
                       </div>
                     )}
                     <div className="ml-4">
-                      <h3 className="text-2xl font-bold text-white">{viewingMember.user.full_name}</h3>
-                      <p className="text-teal-100 flex items-center">
+                      <h3 className="text-2xl font-bold text-gray-900">{viewingMember.user.full_name}</h3>
+                      <p className="text-emerald-700 flex items-center">
                         <Mail className="w-4 h-4 mr-1" />
                         {viewingMember.user.email}
                       </p>
@@ -598,7 +598,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                       setShowProfileModal(false);
                       setViewingMember(null);
                     }}
-                    className="text-white hover:text-gray-200 transition-colors"
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     <XCircle className="w-6 h-6" />
                   </button>
@@ -611,7 +611,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   {/* Personal Information */}
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <UserIcon className="w-5 h-5 mr-2 text-teal-600" />
+                      <UserIcon className="w-5 h-5 mr-2 text-emerald-600" />
                       Personal Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
@@ -637,7 +637,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   {/* Professional Information */}
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <Briefcase className="w-5 h-5 mr-2 text-teal-600" />
+                      <Briefcase className="w-5 h-5 mr-2 text-emerald-600" />
                       Professional Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
@@ -679,7 +679,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   {/* Account Status */}
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <Shield className="w-5 h-5 mr-2 text-teal-600" />
+                      <Shield className="w-5 h-5 mr-2 text-emerald-600" />
                       Account Status
                     </h4>
                     <div className="bg-gray-50 p-4 rounded-lg">
@@ -690,7 +690,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                           {viewingMember.is_active ? '✓ Active Member' : '✗ Inactive Member'}
                         </span>
                         <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                          viewingMember.user.is_verified ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                          viewingMember.user.is_verified ? 'bg-emerald-100 text-emerald-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {viewingMember.user.is_verified ? '✓ Email Verified' : '⚠ Email Not Verified'}
                         </span>
@@ -727,7 +727,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                     setShowProfileModal(false);
                     setViewingMember(null);
                   }}
-                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
+                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
                 >
                   Close
                 </button>

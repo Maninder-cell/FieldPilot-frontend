@@ -350,8 +350,8 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
         ))}
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <p className="text-sm text-gray-700">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+        <p className="text-sm text-emerald-800">
           <strong>Note:</strong> Invitations expire after 7 days. You can resend expired invitations to extend the expiration date.
         </p>
       </div>

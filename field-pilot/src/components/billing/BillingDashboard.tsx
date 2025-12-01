@@ -7,6 +7,7 @@ import { SubscriptionOverview } from './SubscriptionOverview';
 import { UsageMetrics } from './UsageMetrics';
 import { InvoiceList } from './InvoiceList';
 import { PaymentHistory } from './PaymentHistory';
+import { BillingDashboardSkeleton } from './BillingDashboardSkeleton';
 
 export function BillingDashboard() {
   const { billingOverview, loadBillingOverview, isLoading, error } = useBilling();
@@ -40,13 +41,7 @@ export function BillingDashboard() {
   }
 
   if (isLoading && !billingOverview) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-        </div>
-      </div>
-    );
+    return <BillingDashboardSkeleton />;
   }
 
   // Show current invoice if available

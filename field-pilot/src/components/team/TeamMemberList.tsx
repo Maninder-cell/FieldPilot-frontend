@@ -7,6 +7,7 @@ import { TenantMember } from '@/types/onboarding';
 import Button from '@/components/ui/Button';
 import RoleBadge from '../onboarding/RoleBadge';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { TeamMemberListSkeleton } from './TeamMemberListSkeleton';
 import { UserPlus, Mail, Briefcase, Calendar, User as UserIcon, MoreVertical, Shield, Trash2, Eye, XCircle } from 'lucide-react';
 
 interface TeamMemberListProps {
@@ -113,14 +114,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
   };
 
   if (isLoadingMembers && !hasLoaded) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
-          <p className="text-gray-600">Loading team members...</p>
-        </div>
-      </div>
-    );
+    return <TeamMemberListSkeleton />;
   }
 
   if (members.length === 0 && hasLoaded) {
@@ -502,17 +496,24 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                     <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
                       Select New Role
                     </label>
-                    <select
-                      id="role"
-                      value={newRole}
-                      onChange={(e) => setNewRole(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors text-gray-900 bg-white"
-                    >
-                      <option value="employee">Employee - Standard team member</option>
-                      <option value="manager">Manager - Can manage team members</option>
-                      <option value="admin">Admin - Full administrative access</option>
-                      {isOwner && <option value="owner">Owner - Complete control</option>}
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="role"
+                        value={newRole}
+                        onChange={(e) => setNewRole(e.target.value)}
+                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-gray-900 bg-white"
+                      >
+                        <option value="employee">Employee - Standard team member</option>
+                        <option value="manager">Manager - Can manage team members</option>
+                        <option value="admin">Admin - Full administrative access</option>
+                        {isOwner && <option value="owner">Owner - Complete control</option>}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

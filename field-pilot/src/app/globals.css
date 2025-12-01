@@ -144,3 +144,47 @@ input[type='range'].slider-cyan::-moz-range-thumb:hover {
   transform: scale(1.2);
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.6);
 }
+
+/* Remove default blue focus outline and use emerald theme */
+*:focus {
+  outline: none;
+}
+
+/* Custom focus styles for inputs, selects, and textareas */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
+
+/* Remove blue border from inputs and selects */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Custom select dropdown styling */
+select {
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Remove autofill blue background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

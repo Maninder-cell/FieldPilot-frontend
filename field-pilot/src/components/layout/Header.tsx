@@ -15,10 +15,11 @@ export default function Header() {
       <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Logo - Fixed to left */}
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-linear-to-br from-emerald-600 to-cyan-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">FR</span>
-          </div>
-          <span className="font-bold text-gray-900 text-lg">FieldRino</span>
+          <img 
+            src="/logo/fieldrino.png" 
+            alt="FieldRino" 
+            className="h-10 w-auto"
+          />
         </Link>
 
         {/* Right Section */}

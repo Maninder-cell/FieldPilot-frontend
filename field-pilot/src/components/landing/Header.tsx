@@ -62,12 +62,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 hover:opacity-80 transition-opacity">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="FieldRino Logo">
-              <rect width="40" height="40" rx="8" fill="#059669" />
-              <path d="M12 14h16M12 20h16M12 26h10" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span className="hidden sm:inline text-gray-900">FieldRino</span>
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img 
+              src="/logo/fieldrino.png" 
+              alt="FieldRino" 
+              className="h-12 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}

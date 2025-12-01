@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import RoleBadge from '../onboarding/RoleBadge';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { PendingInvitationsListSkeleton } from './PendingInvitationsListSkeleton';
 import { Mail, Clock, User, MoreVertical, RefreshCw, XCircle } from 'lucide-react';
 
 interface PendingInvitationsListProps {
@@ -110,14 +111,7 @@ export default function PendingInvitationsList({ onInvitationUpdate }: PendingIn
   };
 
   if (isLoadingInvitations && !hasLoaded) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
-          <p className="text-sm text-gray-600">Loading invitations...</p>
-        </div>
-      </div>
-    );
+    return <PendingInvitationsListSkeleton />;
   }
 
   if (pendingInvitations.length === 0) {

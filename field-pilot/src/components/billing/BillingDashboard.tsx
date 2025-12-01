@@ -44,11 +44,9 @@ export function BillingDashboard() {
     return <BillingDashboardSkeleton />;
   }
 
-  // Show current invoice if available
-  const recentInvoices = billingOverview?.current_invoice 
-    ? [billingOverview.current_invoice] 
-    : [];
-  const recentPayments = billingOverview?.recent_payments?.slice(0, 5) || [];
+  // Show recent invoices and payments
+  const recentInvoices = billingOverview?.recent_invoices || [];
+  const recentPayments = billingOverview?.recent_payments || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

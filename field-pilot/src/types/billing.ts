@@ -107,7 +107,7 @@ export interface UsageMetric {
 // Billing Overview Types
 export interface BillingOverview {
   subscription: Subscription | null;
-  current_invoice: Invoice | null;
+  recent_invoices: Invoice[];
   recent_payments: Payment[];
   usage_summary: UsageSummary;
 }

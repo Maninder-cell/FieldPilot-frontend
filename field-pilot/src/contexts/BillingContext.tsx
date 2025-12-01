@@ -22,6 +22,7 @@ import {
   getPayments,
   createSetupIntent,
   addPaymentMethod,
+  getPaymentMethods,
 } from '@/lib/billing-api';
 import { getAccessToken } from '@/lib/token-utils';
 
@@ -50,6 +51,7 @@ interface BillingContextType {
   // Payment Methods
   setupPaymentMethod: () => Promise<SetupIntentResponse>;
   savePaymentMethod: (paymentMethodId: string, setAsDefault: boolean) => Promise<void>;
+  checkPaymentMethods: () => Promise<boolean>;
   
   // Billing Data
   loadBillingOverview: () => Promise<void>;
@@ -272,6 +274,19 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const checkPaymentMethods = useCallback(async (): Promise<boolean> => {
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) return false;
+
+      const paymentMethods = await getPaymentMethods(accessToken);
+      return paymentMethods && paymentMethods.length > 0;
+    } catch (err) {
+      console.error('Failed to check payment methods:', err);
+      return false;
+    }
+  }, []);
+
   // Billing Data
   const loadBillingOverview = useCallback(async () => {
     try {
@@ -356,6 +371,7 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
     setBillingCycle,
     setupPaymentMethod,
     savePaymentMethod,
+    checkPaymentMethods,
     loadBillingOverview,
     loadInvoices,
     loadPayments,

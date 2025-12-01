@@ -20,6 +20,7 @@ function SubscriptionContent() {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isReactivating, setIsReactivating] = useState(false);
   const [hasProcessedUrlParams, setHasProcessedUrlParams] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadSubscription();
@@ -34,11 +35,16 @@ function SubscriptionContent() {
   // Handle URL query parameters for automatic upgrade modal
   useEffect(() => {
     const upgradePlanSlug = searchParams.get('upgrade');
+    const cycleParam = searchParams.get('cycle') as 'monthly' | 'yearly' | null;
     
     if (upgradePlanSlug && subscription && plans.length > 0 && !hasProcessedUrlParams) {
       const planToUpgrade = plans.find(p => p.slug === upgradePlanSlug);
       if (planToUpgrade && planToUpgrade.slug !== subscription.plan.slug) {
         setSelectedPlan(planToUpgrade);
+        // If cycle is specified in URL and different from current, pre-check the toggle
+        if (cycleParam && cycleParam !== subscription.billing_cycle) {
+          // This will be handled by the modal's initial state
+        }
         setShowUpgradeModal(true);
         setHasProcessedUrlParams(true);
       }
@@ -54,11 +60,13 @@ function SubscriptionContent() {
 
   const handleReactivate = async () => {
     setIsReactivating(true);
+    setError(null);
     try {
       await reactivateSubscription();
       await loadSubscription();
     } catch (error) {
       console.error('Failed to reactivate subscription:', error);
+      setError(error instanceof Error ? error.message : 'Failed to reactivate subscription');
     } finally {
       setIsReactivating(false);
     }
@@ -128,6 +136,18 @@ function SubscriptionContent() {
             onCancel={() => setShowCancelModal(true)}
           />
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-red-600 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        )}
 
         {/* Reactivate Button */}
         {subscription?.cancel_at_period_end && (

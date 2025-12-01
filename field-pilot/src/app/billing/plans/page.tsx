@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -10,29 +10,71 @@ import { PlanComparison } from '@/components/billing/PlanComparison';
 import { PaymentMethodForm } from '@/components/billing/PaymentMethodForm';
 import { SubscriptionPlan } from '@/types/billing';
 
+
 export default function PlansPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { subscription, createNewSubscription } = useBilling();
+  const { subscription, createNewSubscription, upgradeDowngrade, checkPaymentMethods } = useBilling();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasPaymentMethods, setHasPaymentMethods] = useState(false);
+  const [checkingPaymentMethods, setCheckingPaymentMethods] = useState(false);
 
-  const handlePlanSelect = (plan: SubscriptionPlan, billingCycle: 'monthly' | 'yearly') => {
+  // Check if user has existing payment methods (runs when component mounts)
+  useEffect(() => {
+    const checkExistingPaymentMethods = async () => {
+      // Only check if user doesn't have an active subscription
+      // (subscription is null for canceled subscriptions)
+      if (subscription && subscription.is_active) return;
+      
+      setCheckingPaymentMethods(true);
+      try {
+        const hasPayments = await checkPaymentMethods();
+        setHasPaymentMethods(hasPayments);
+      } catch (error) {
+        // If error (like 404), user has no payment methods
+        setHasPaymentMethods(false);
+      } finally {
+        setCheckingPaymentMethods(false);
+      }
+    };
+
+    checkExistingPaymentMethods();
+  }, [subscription, checkPaymentMethods]);
+
+  const handlePlanSelect = async (plan: SubscriptionPlan, billingCycle: 'monthly' | 'yearly') => {
     if (!isAuthenticated) {
       // Redirect to login with return URL
       router.push(`/login?redirect=/billing/plans`);
       return;
     }
 
-    if (subscription) {
-      // Already has subscription, redirect to subscription management page with plan selection
+    // If user has active subscription, redirect to upgrade page
+    if (subscription && subscription.is_active) {
       router.push(`/billing/subscription?upgrade=${plan.slug}&cycle=${billingCycle}`);
       return;
     }
 
+    // If user has no active subscription but has payment methods (resubscription case)
+    if (!subscription && hasPaymentMethods && !checkingPaymentMethods) {
+      setIsCreating(true);
+      setError(null);
+      
+      try {
+        // Use update_subscription endpoint which handles resubscription with existing payment method
+        await upgradeDowngrade(plan.slug, billingCycle);
+        router.push('/billing/dashboard');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to reactivate subscription');
+        setIsCreating(false);
+      }
+      return;
+    }
+
+    // Otherwise show payment form for new subscription
     setSelectedPlan(plan);
     setSelectedBillingCycle(billingCycle);
     setShowPaymentForm(true);
@@ -91,8 +133,37 @@ export default function PlansPage() {
               </p>
             </div>
 
+            {/* Loading State for Payment Methods Check */}
+            {checkingPaymentMethods && !subscription && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-900 font-medium">Checking your account...</span>
+                </div>
+              </div>
+            )}
+
+            {/* Saved Payment Method Notice */}
+            {!subscription && hasPaymentMethods && !checkingPaymentMethods && (
+              <div className="mb-8 max-w-3xl mx-auto">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-green-900">Payment method on file</p>
+                      <p className="text-sm text-green-700 mt-1">
+                        We found your saved payment method. Select a plan to reactivate your subscription instantly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Plan Comparison */}
-            {!showPaymentForm && (
+            {!showPaymentForm && !checkingPaymentMethods && (
               <PlanComparison
                 onPlanSelect={handlePlanSelect}
                 showCurrentPlan={true}

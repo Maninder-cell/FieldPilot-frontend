@@ -22,10 +22,12 @@ export function UpgradeDowngradeModal({
   currentBillingCycle,
   onSuccess,
 }: UpgradeDowngradeModalProps) {
-  const { upgradeDowngrade, selectedBillingCycle } = useBilling();
+  const { upgradeDowngrade } = useBilling();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [changeBillingCycle, setChangeBillingCycle] = useState(false);
+  // Default to user's current billing cycle, allow toggling to the opposite
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>(currentBillingCycle);
 
   const isUpgrade = parseFloat(newPlan.price_monthly) > parseFloat(currentPlan.price_monthly);
   const actionText = isUpgrade ? 'Upgrade' : 'Downgrade';
@@ -39,6 +41,15 @@ export function UpgradeDowngradeModal({
     : newPlan.price_yearly;
 
   const finalBillingCycle = changeBillingCycle ? selectedBillingCycle : currentBillingCycle;
+  
+  // Toggle billing cycle when checkbox changes
+  const handleBillingCycleToggle = (checked: boolean) => {
+    setChangeBillingCycle(checked);
+    if (checked) {
+      // Toggle to opposite of current cycle
+      setSelectedBillingCycle(currentBillingCycle === 'monthly' ? 'yearly' : 'monthly');
+    }
+  };
 
   const handleConfirm = async () => {
     setIsProcessing(true);
@@ -135,15 +146,17 @@ export function UpgradeDowngradeModal({
                 type="checkbox"
                 id="change-cycle"
                 checked={changeBillingCycle}
-                onChange={(e) => setChangeBillingCycle(e.target.checked)}
+                onChange={(e) => handleBillingCycleToggle(e.target.checked)}
                 className="mt-0.5 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
               />
               <div className="ml-3">
                 <div className="text-sm font-semibold text-gray-900">
-                  Change billing cycle to {selectedBillingCycle}
+                  Change billing cycle to {currentBillingCycle === 'monthly' ? 'yearly' : 'monthly'}
                 </div>
                 <div className="text-xs text-gray-600 mt-1">
-                  {selectedBillingCycle === 'yearly' ? 'Save 17% with annual billing' : 'Switch to monthly billing'}
+                  {currentBillingCycle === 'monthly' 
+                    ? 'Save 17% with annual billing' 
+                    : 'Switch to monthly billing'}
                 </div>
               </div>
             </label>

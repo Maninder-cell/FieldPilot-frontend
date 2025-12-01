@@ -69,7 +69,10 @@ export function PlanComparison({ onPlanSelect, showCurrentPlan = true }: PlanCom
       {/* Plans Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
         {plans.map((plan, index) => {
-          const isCurrentPlan = showCurrentPlan && subscription?.plan.slug === plan.slug;
+          // Check if this is the current plan AND the billing cycle matches
+          const isCurrentPlan = showCurrentPlan && 
+            subscription?.plan.slug === plan.slug && 
+            subscription?.billing_cycle === selectedBillingCycle;
           // Don't show recommended badge on current plan
           const isRecommended = !isCurrentPlan && plan.slug === recommendedPlanSlug;
           const isProcessing = selectedPlanSlug === plan.slug && isLoading;

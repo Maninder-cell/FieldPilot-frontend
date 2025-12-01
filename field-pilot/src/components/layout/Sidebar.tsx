@@ -64,17 +64,7 @@ export default function Sidebar() {
       name: 'Profile',
       href: '/profile',
       icon: User,
-    },
-    {
-      name: 'Settings',
-      href: '/settings',
-      icon: Settings,
-    },
-    {
-      name: 'Change Password',
-      href: '/settings/change-password',
-      icon: Lock,
-    },
+    }
   ];
 
   // Company management links

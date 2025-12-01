@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import { Lock, Bell, Shield, Globe } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -52,9 +53,9 @@ export default function SettingsPage() {
       items: [
         {
           name: 'Notification Preferences',
-          description: 'Manage email, SMS, and push notifications',
-          href: '/profile/edit?section=notifications',
-          badge: 'In Profile',
+          description: 'Coming soon',
+          href: '#',
+          disabled: true,
         },
       ],
     },
@@ -78,9 +79,9 @@ export default function SettingsPage() {
       items: [
         {
           name: 'Language & Region',
-          description: 'Set your timezone and language preferences',
-          href: '/profile/edit?section=preferences',
-          badge: 'In Profile',
+          description: 'Coming soon',
+          href: '#',
+          disabled: true,
         },
       ],
     },
@@ -89,7 +90,7 @@ export default function SettingsPage() {
   return (
     <DashboardLayout>
       <div className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -98,85 +99,87 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* Settings Categories */}
-          <div className="space-y-6">
-            {settingsCategories.map((category) => {
-              const Icon = category.icon;
-              
-              return (
-                <div
-                  key={category.title}
-                  className="bg-white shadow-sm rounded-lg border border-gray-200"
-                >
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-emerald-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {category.title}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          {category.description}
-                        </p>
+          {/* Settings with Sidebar Layout */}
+          <ProfileSettingsLayout>
+            <div className="space-y-6">
+              {settingsCategories.map((category) => {
+                const Icon = category.icon;
+                
+                return (
+                  <div
+                    key={category.title}
+                    className="bg-white shadow-sm rounded-lg border border-gray-200"
+                  >
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                          <Icon className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {category.title}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {category.description}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="divide-y divide-gray-200">
-                    {category.items.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`
-                          block px-6 py-4 transition-colors
-                          ${(item as any).disabled
-                            ? 'cursor-not-allowed opacity-50'
-                            : 'hover:bg-gray-50'
-                          }
-                        `}
-                        onClick={(e) => (item as any).disabled && e.preventDefault()}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-base font-medium text-gray-900">
-                                {item.name}
-                              </h4>
-                              {(item as any).badge && (
-                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
-                                  {(item as any).badge}
-                                </span>
-                              )}
+                    
+                    <div className="divide-y divide-gray-200">
+                      {category.items.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={`
+                            block px-6 py-4 transition-colors
+                            ${(item as any).disabled
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'hover:bg-gray-50'
+                            }
+                          `}
+                          onClick={(e) => (item as any).disabled && e.preventDefault()}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-medium text-gray-900">
+                                  {item.name}
+                                </h4>
+                                {(item as any).badge && (
+                                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                                    {(item as any).badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {item.description}
+                              </p>
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {item.description}
-                            </p>
+                            {!(item as any).disabled && (
+                              <svg
+                                className="w-5 h-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            )}
                           </div>
-                          {!(item as any).disabled && (
-                            <svg
-                              className="w-5 h-5 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </ProfileSettingsLayout>
         </div>
       </div>
     </DashboardLayout>

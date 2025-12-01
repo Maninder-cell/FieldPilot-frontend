@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ProfileForm from '@/components/profile/ProfileForm';
 
 export default function ProfileEditPage() {
@@ -42,7 +43,7 @@ export default function ProfileEditPage() {
   return (
     <DashboardLayout>
       <div className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
@@ -51,8 +52,10 @@ export default function ProfileEditPage() {
             </p>
           </div>
 
-          {/* Profile Form Component */}
-          <ProfileForm onSuccess={handleSuccess} onCancel={handleCancel} />
+          {/* Profile Edit with Sidebar Layout */}
+          <ProfileSettingsLayout>
+            <ProfileForm onSuccess={handleSuccess} onCancel={handleCancel} />
+          </ProfileSettingsLayout>
         </div>
       </div>
     </DashboardLayout>

@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ProfileView from '@/components/profile/ProfileView';
 
 export default function ProfilePage() {
@@ -34,7 +35,7 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
@@ -43,8 +44,10 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          {/* Profile View Component */}
-          <ProfileView />
+          {/* Profile with Sidebar Layout */}
+          <ProfileSettingsLayout>
+            <ProfileView />
+          </ProfileSettingsLayout>
         </div>
       </div>
     </DashboardLayout>

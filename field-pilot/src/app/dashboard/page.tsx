@@ -212,8 +212,54 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* No Subscription Alert */}
+        {!subscription && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-red-900">
+                  No Active Subscription
+                </h3>
+                <p className="text-sm text-red-800 mt-1">
+                  You don't have an active subscription. Subscribe to a plan to access all features.
+                </p>
+                <Link
+                  href="/billing/plans"
+                  className="inline-block mt-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+                >
+                  View Plans
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription Canceled Alert */}
+        {subscription?.cancel_at_period_end && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <AlertCircle className="w-5 h-5 text-yellow-600 mr-3 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-900">
+                  Subscription Ending
+                </h3>
+                <p className="text-sm text-yellow-800 mt-1">
+                  Your subscription will end on {new Date(subscription.current_period_end).toLocaleDateString()}. Reactivate to continue using all features.
+                </p>
+                <Link
+                  href="/billing/subscription"
+                  className="inline-block mt-2 text-sm font-medium text-yellow-700 hover:text-yellow-800 underline"
+                >
+                  Reactivate Subscription →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Billing Alert - Trial Ending Soon */}
-        {subscription?.is_trial && subscription?.days_until_renewal <= 7 && (
+        {subscription?.is_trial && !subscription?.cancel_at_period_end && subscription?.days_until_renewal <= 7 && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5" />
@@ -278,8 +324,8 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* Billing Widget */}
-        {subscription && (
+        {/* Billing Widget - Only show if subscription exists and is not canceled */}
+        {subscription && !subscription.cancel_at_period_end && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900">Subscription & Usage</h3>

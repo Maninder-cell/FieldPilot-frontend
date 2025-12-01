@@ -33,7 +33,7 @@ export function SubscriptionOverview({
             href="/billing/plans"
             className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
           >
-            View Plans
+            Buy a Plan
           </Link>
         </div>
       </div>
@@ -159,7 +159,7 @@ export function SubscriptionOverview({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3">
-        {onUpgrade && (
+        {onUpgrade && !subscription.cancel_at_period_end && (
           <button
             onClick={onUpgrade}
             className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"

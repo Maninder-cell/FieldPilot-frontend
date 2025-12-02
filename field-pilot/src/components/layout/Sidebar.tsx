@@ -10,13 +10,13 @@ import { useBilling } from '@/contexts/BillingContext';
 import {
   LayoutDashboard,
   User,
-  Settings,
   LogOut,
-  Lock,
   Building,
+  Building2,
   Users,
   CreditCard,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 import TrialStatusBadge from '@/components/onboarding/TrialStatusBadge';
@@ -72,7 +72,18 @@ export default function Sidebar() {
     name: string;
     href: string;
     icon: any;
+    isExternal?: boolean;
   }> = [];
+  
+  // Organization Portal (always visible)
+  if (tenant) {
+    companyNavigation.push({
+      name: 'Organization Portal',
+      href: `http://${tenant.slug}.localhost:3000/dashboard`,
+      icon: Building2,
+      isExternal: true,
+    });
+  }
   
   // Company Settings (only for owner/admin)
   if (isOwnerOrAdmin) {
@@ -169,7 +180,7 @@ export default function Sidebar() {
                       <Link
                         href={item.href}
                         className={`
-                          flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                          flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group
                           ${active
                             ? 'bg-teal-50 text-teal-700'
                             : 'text-gray-700 hover:bg-gray-50'
@@ -178,6 +189,9 @@ export default function Sidebar() {
                       >
                         <Icon className="w-5 h-5 shrink-0" />
                         <span className="text-sm font-medium">{item.name}</span>
+                        {item.isExternal && (
+                          <ExternalLink className="w-3.5 h-3.5 ml-auto text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
                       </Link>
                     </li>
                   );

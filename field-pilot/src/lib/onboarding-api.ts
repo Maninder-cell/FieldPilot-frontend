@@ -6,6 +6,7 @@ import {
   UpdateCompanyRequest,
   CompleteStepRequest,
   TenantMember,
+  UserTenantMembership,
   InviteMemberRequest,
   Invitation,
   InvitationCheckResponse,
@@ -92,6 +93,24 @@ export async function createCompany(
 export async function getCurrentTenant(accessToken: string): Promise<Tenant | null> {
   const response = await fetchOnboardingAPI<OnboardingApiResponse<Tenant | null>>(
     '/onboarding/current/',
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Get all tenant memberships for the current user
+ * GET /api/v1/onboarding/profile/memberships/
+ */
+export async function getUserTenantMemberships(accessToken: string): Promise<UserTenantMembership[]> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<UserTenantMembership[]>>(
+    '/onboarding/profile/memberships/',
     {
       method: 'GET',
       headers: {
@@ -562,6 +581,7 @@ export async function getTechnicianWageRateHistory(
 export const onboardingApi = {
   createCompany,
   getCurrentTenant,
+  getUserTenantMemberships,
   updateTenant,
   completeOnboardingStep,
   getTenantMembers,

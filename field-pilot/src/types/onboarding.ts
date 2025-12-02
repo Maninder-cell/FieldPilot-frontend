@@ -171,6 +171,21 @@ export interface TenantMember {
   joined_at: string;
 }
 
+export interface UserTenantMembership {
+  id: string;
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  role: string;
+  employee_id: string;
+  department: string | null;
+  job_title: string | null;
+  phone: string | null;
+  joined_at: string;
+}
+
 export interface InviteMemberRequest {
   email: string;
   role: MemberRole;

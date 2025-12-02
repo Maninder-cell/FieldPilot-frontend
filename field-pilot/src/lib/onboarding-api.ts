@@ -537,6 +537,27 @@ export async function deleteTechnicianWageRate(
   );
 }
 
+/**
+ * Get wage rate history for a specific technician
+ * GET /api/v1/onboarding/technicians/{technician_id}/wage-rates/history/
+ */
+export async function getTechnicianWageRateHistory(
+  technicianId: string,
+  accessToken: string
+): Promise<import('@/types/onboarding').TechnicianWageRate[]> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<import('@/types/onboarding').TechnicianWageRate[]>>(
+    `/onboarding/technicians/${technicianId}/wage-rates/history/`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
 // Export a single object with all API methods for easier imports
 export const onboardingApi = {
   createCompany,
@@ -561,4 +582,5 @@ export const onboardingApi = {
   createTechnicianWageRate,
   updateTechnicianWageRate,
   deleteTechnicianWageRate,
+  getTechnicianWageRateHistory,
 };

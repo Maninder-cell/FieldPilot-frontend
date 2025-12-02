@@ -2,20 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAccessToken } from '@/lib/token-utils';
-import { getTenantMembers } from '@/lib/onboarding-api';
+import { getTenantMembers, getTenantSettings } from '@/lib/onboarding-api';
 import { TenantMember, TechnicianWageRate } from '@/types/onboarding';
-import { DollarSign, Calendar, User, Plus, Edit2, History, Loader2, AlertCircle } from 'lucide-react';
+import { User, Edit2, History, Loader2, AlertCircle, X } from 'lucide-react';
 
 interface TechnicianWageRatesListProps {
-  onCreateRate?: () => void;
-  onEditRate?: (rate: TechnicianWageRate) => void;
+  onEditRate?: (technician: TenantMember, currentRate?: TechnicianWageRate) => void;
 }
 
-export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: TechnicianWageRatesListProps) {
+export default function TechnicianWageRatesList({ onEditRate }: TechnicianWageRatesListProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [technicians, setTechnicians] = useState<TenantMember[]>([]);
   const [rates, setRates] = useState<TechnicianWageRate[]>([]);
+  const [defaultRates, setDefaultRates] = useState({ normal: '50.00', overtime: '75.00', currency: 'USD' });
+  const [showHistory, setShowHistory] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<TechnicianWageRate[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -33,6 +36,14 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
       const techMembers = members.filter(m => m.role === 'technician');
       setTechnicians(techMembers);
 
+      // Load default rates
+      const settings = await getTenantSettings(token);
+      setDefaultRates({
+        normal: settings.default_normal_hourly_rate,
+        overtime: settings.default_overtime_hourly_rate,
+        currency: settings.currency,
+      });
+
       // Load wage rates
       const { getTechnicianWageRates } = await import('@/lib/onboarding-api');
       const wageRates = await getTechnicianWageRates(token);
@@ -45,8 +56,25 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
     }
   };
 
-  const formatCurrency = (amount: string, currency: string = 'USD') => {
-    const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency;
+  const loadHistory = async (technicianId: string) => {
+    try {
+      setLoadingHistory(true);
+      const token = getAccessToken();
+      if (!token) throw new Error('Not authenticated');
+
+      const { getTechnicianWageRateHistory } = await import('@/lib/onboarding-api');
+      const history = await getTechnicianWageRateHistory(technicianId, token);
+      setHistoryData(history);
+      setShowHistory(technicianId);
+    } catch (err: any) {
+      console.error('Failed to load history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const formatCurrency = (amount: string) => {
+    const symbol = defaultRates.currency === 'USD' ? '$' : defaultRates.currency === 'EUR' ? '€' : defaultRates.currency === 'GBP' ? '£' : defaultRates.currency;
     return `${symbol}${parseFloat(amount).toFixed(2)}`;
   };
 
@@ -95,20 +123,11 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Technician Wage Rates</h3>
-          <p className="mt-1 text-sm text-gray-600">
-            Set individual wage rates for each technician
-          </p>
-        </div>
-        <button
-          onClick={onCreateRate}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Rate
-        </button>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900">Technician Wage Rates</h3>
+        <p className="mt-1 text-sm text-gray-600">
+          Manage individual wage rates for each technician
+        </p>
       </div>
 
       {/* Info Box */}
@@ -121,10 +140,10 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
             <h3 className="text-sm font-medium text-blue-800">How it works</h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Set individual rates for each technician</li>
-                <li>Track rate history with effective dates</li>
-                <li>Automatically use correct rates in reports</li>
-                <li>Schedule future rate changes</li>
+                <li>Click Edit to set or update a technician's wage rate</li>
+                <li>View history to see all past rate changes</li>
+                <li>Technicians without custom rates use company defaults</li>
+                <li>Rates automatically apply based on effective dates</li>
               </ul>
             </div>
           </div>
@@ -140,7 +159,10 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
                 Technician
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Current Rate
+                Normal Rate
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Overtime Rate
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Effective From
@@ -153,6 +175,7 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
           <tbody className="bg-white divide-y divide-gray-200">
             {technicians.map((tech) => {
               const techRate = rates.find(r => r.technician === tech.user.id && r.is_active);
+              const hasHistory = rates.filter(r => r.technician === tech.user.id).length > 1;
               
               return (
                 <tr key={tech.id} className="hover:bg-gray-50">
@@ -177,38 +200,59 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {techRate ? (
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatCurrency(techRate.normal_hourly_rate)} / hr
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          OT: {formatCurrency(techRate.overtime_hourly_rate)} / hr
-                        </div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatCurrency(techRate.normal_hourly_rate)} / hr
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500 italic">
-                        Using company default
-                      </span>
+                      <div>
+                        <div className="text-sm text-gray-500">
+                          {formatCurrency(defaultRates.normal)} / hr
+                        </div>
+                        <div className="text-xs text-gray-400 italic">
+                          (default)
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {techRate ? (
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatCurrency(techRate.overtime_hourly_rate)} / hr
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-sm text-gray-500">
+                          {formatCurrency(defaultRates.overtime)} / hr
+                        </div>
+                        <div className="text-xs text-gray-400 italic">
+                          (default)
+                        </div>
+                      </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {techRate ? formatDate(techRate.effective_from) : '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                     <button
-                      onClick={() => techRate && onEditRate?.(techRate)}
-                      disabled={!techRate}
-                      className="text-emerald-600 hover:text-emerald-900 disabled:text-gray-400 disabled:cursor-not-allowed mr-4"
+                      onClick={() => onEditRate?.(tech, techRate)}
+                      className="text-emerald-600 hover:text-emerald-900 inline-flex items-center"
+                      title="Edit wage rate"
                     >
-                      <Edit2 className="w-4 h-4 inline" />
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      Edit
                     </button>
-                    <button
-                      disabled
-                      className="text-gray-400 cursor-not-allowed"
-                      title="Coming soon"
-                    >
-                      <History className="w-4 h-4 inline" />
-                    </button>
+                    {hasHistory && (
+                      <button
+                        onClick={() => loadHistory(tech.user.id)}
+                        disabled={loadingHistory}
+                        className="text-blue-600 hover:text-blue-900 disabled:text-gray-400 inline-flex items-center"
+                        title="View rate history"
+                      >
+                        <History className="w-4 h-4 mr-1" />
+                        History
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -216,6 +260,87 @@ export default function TechnicianWageRatesList({ onCreateRate, onEditRate }: Te
           </tbody>
         </table>
       </div>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Wage Rate History</h3>
+              <button
+                onClick={() => setShowHistory(null)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {historyData.map((rate, index) => (
+                    <div
+                      key={rate.id}
+                      className={`border rounded-lg p-4 ${rate.is_active ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {rate.is_active && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                                Current
+                              </span>
+                            )}
+                            <span className="text-sm text-gray-500">
+                              {formatDate(rate.effective_from)}
+                              {rate.effective_to && ` - ${formatDate(rate.effective_to)}`}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 mb-2">
+                            <div>
+                              <div className="text-xs text-gray-500">Normal Rate</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {formatCurrency(rate.normal_hourly_rate)} / hr
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500">Overtime Rate</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {formatCurrency(rate.overtime_hourly_rate)} / hr
+                              </div>
+                            </div>
+                          </div>
+                          {rate.notes && (
+                            <div className="text-sm text-gray-600 mt-2">
+                              <span className="font-medium">Notes:</span> {rate.notes}
+                            </div>
+                          )}
+                          {rate.created_by_name && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Created by {rate.created_by_name} on {formatDate(rate.created_at)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => setShowHistory(null)}
+                className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

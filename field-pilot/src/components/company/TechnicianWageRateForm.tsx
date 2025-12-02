@@ -2,32 +2,31 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAccessToken } from '@/lib/token-utils';
-import { getTenantMembers, getTenantSettings } from '@/lib/onboarding-api';
-import { TenantMember, CreateTechnicianWageRateRequest, TechnicianWageRate } from '@/types/onboarding';
+import { getTenantSettings } from '@/lib/onboarding-api';
+import { CreateTechnicianWageRateRequest, TechnicianWageRate } from '@/types/onboarding';
 import { DollarSign, Calendar, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 
 interface TechnicianWageRateFormProps {
-  rate?: TechnicianWageRate;
+  technician: import('@/types/onboarding').TenantMember;
+  currentRate?: TechnicianWageRate;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: TechnicianWageRateFormProps) {
+export default function TechnicianWageRateForm({ technician, currentRate, onSuccess, onCancel }: TechnicianWageRateFormProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   
-  const [technicians, setTechnicians] = useState<TenantMember[]>([]);
   const [defaultRates, setDefaultRates] = useState({ normal: '50.00', overtime: '75.00' });
   
   const [formData, setFormData] = useState({
-    technician: rate?.technician || '',
-    normal_hourly_rate: rate?.normal_hourly_rate || '',
-    overtime_hourly_rate: rate?.overtime_hourly_rate || '',
-    effective_from: rate?.effective_from || new Date().toISOString().split('T')[0],
-    effective_to: rate?.effective_to || '',
-    notes: rate?.notes || '',
+    normal_hourly_rate: currentRate?.normal_hourly_rate || '',
+    overtime_hourly_rate: currentRate?.overtime_hourly_rate || '',
+    effective_from: currentRate?.effective_from || new Date().toISOString().split('T')[0],
+    effective_to: currentRate?.effective_to || '',
+    notes: currentRate?.notes || '',
   });
 
   useEffect(() => {
@@ -41,11 +40,6 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
       const token = getAccessToken();
       if (!token) throw new Error('Not authenticated');
 
-      // Load technicians
-      const members = await getTenantMembers(token);
-      const techMembers = members.filter(m => m.role === 'technician');
-      setTechnicians(techMembers);
-
       // Load default rates
       const settings = await getTenantSettings(token);
       setDefaultRates({
@@ -54,7 +48,7 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
       });
 
       // Pre-fill with defaults if creating new
-      if (!rate) {
+      if (!currentRate) {
         setFormData(prev => ({
           ...prev,
           normal_hourly_rate: settings.default_normal_hourly_rate,
@@ -80,7 +74,7 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
       if (!token) throw new Error('Not authenticated');
 
       const data: CreateTechnicianWageRateRequest = {
-        technician: formData.technician,
+        technician: technician.user.id,
         normal_hourly_rate: parseFloat(formData.normal_hourly_rate),
         overtime_hourly_rate: parseFloat(formData.overtime_hourly_rate),
         effective_from: formData.effective_from,
@@ -88,10 +82,10 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
         notes: formData.notes || undefined,
       };
       
-      if (rate) {
+      if (currentRate) {
         // Update existing rate
-        const { createTechnicianWageRate, updateTechnicianWageRate } = await import('@/lib/onboarding-api');
-        await updateTechnicianWageRate(rate.id, data, token);
+        const { updateTechnicianWageRate } = await import('@/lib/onboarding-api');
+        await updateTechnicianWageRate(currentRate.id, data, token);
       } else {
         // Create new rate
         const { createTechnicianWageRate } = await import('@/lib/onboarding-api');
@@ -129,10 +123,10 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {rate ? 'Edit' : 'Add'} Technician Wage Rate
+            {currentRate ? 'Edit' : 'Set'} Wage Rate for {technician.user.full_name}
           </h3>
           <p className="mt-1 text-sm text-gray-600">
-            Set individual wage rates for a technician
+            {technician.user.email}
           </p>
         </div>
         {onCancel && (
@@ -175,32 +169,7 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
 
 
 
-      {/* Technician Selection */}
-      <div>
-        <label htmlFor="technician" className="block text-sm font-medium text-gray-700">
-          Technician *
-        </label>
-        <select
-          id="technician"
-          value={formData.technician}
-          onChange={(e) => handleChange('technician', e.target.value)}
-          disabled={!!rate}
-          className="mt-1 block w-full rounded-md border-gray-300 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-          required
-        >
-          <option value="">Select a technician</option>
-          {technicians.map((tech) => (
-            <option key={tech.id} value={tech.user.id}>
-              {tech.user.full_name} ({tech.user.email})
-            </option>
-          ))}
-        </select>
-        {rate && (
-          <p className="mt-1 text-xs text-gray-500">
-            Cannot change technician for existing rate
-          </p>
-        )}
-      </div>
+
 
       {/* Wage Rates */}
       <div className="bg-gray-50 rounded-lg p-6 space-y-4">
@@ -329,6 +298,24 @@ export default function TechnicianWageRateForm({ rate, onSuccess, onCancel }: Te
           Add notes about this rate change
         </p>
       </div>
+
+      {/* Info about history tracking */}
+      {currentRate && (
+        <div className="rounded-md bg-blue-50 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-blue-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">Rate History Tracking</h3>
+              <p className="mt-1 text-sm text-blue-700">
+                Saving this will create a new rate record and preserve the previous rate in history. 
+                The old rate will be automatically marked as inactive with an end date.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-3">

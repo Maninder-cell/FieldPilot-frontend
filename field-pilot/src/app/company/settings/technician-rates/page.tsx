@@ -17,7 +17,9 @@ function TechnicianRatesContent() {
   const { user, isLoading: authLoading } = useAuth();
   const { members, loadMembers, isLoading: onboardingLoading } = useOnboarding();
   const [showForm, setShowForm] = useState(false);
-  const [editingRate, setEditingRate] = useState<TechnicianWageRate | undefined>();
+  const [editingTechnician, setEditingTechnician] = useState<import('@/types/onboarding').TenantMember | null>(null);
+  const [currentRate, setCurrentRate] = useState<TechnicianWageRate | undefined>();
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Get user's role from tenant membership
   const currentUserMembership = members.find(m => m.user.id === user?.id);
@@ -45,25 +47,24 @@ function TechnicianRatesContent() {
     }
   }, [user, userRole, authLoading, onboardingLoading, members.length, router]);
 
-  const handleCreateRate = () => {
-    setEditingRate(undefined);
-    setShowForm(true);
-  };
-
-  const handleEditRate = (rate: TechnicianWageRate) => {
-    setEditingRate(rate);
+  const handleEditRate = (technician: import('@/types/onboarding').TenantMember, rate?: TechnicianWageRate) => {
+    setEditingTechnician(technician);
+    setCurrentRate(rate);
     setShowForm(true);
   };
 
   const handleFormSuccess = () => {
     setShowForm(false);
-    setEditingRate(undefined);
-    // Reload list
+    setEditingTechnician(null);
+    setCurrentRate(undefined);
+    // Trigger refresh of the list
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleFormCancel = () => {
     setShowForm(false);
-    setEditingRate(undefined);
+    setEditingTechnician(null);
+    setCurrentRate(undefined);
   };
 
   // Show loading state while checking permissions
@@ -116,15 +117,16 @@ function TechnicianRatesContent() {
 
           {/* Content */}
           <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-            {showForm ? (
+            {showForm && editingTechnician ? (
               <TechnicianWageRateForm
-                rate={editingRate}
+                technician={editingTechnician}
+                currentRate={currentRate}
                 onSuccess={handleFormSuccess}
                 onCancel={handleFormCancel}
               />
             ) : (
               <TechnicianWageRatesList
-                onCreateRate={handleCreateRate}
+                key={refreshKey}
                 onEditRate={handleEditRate}
               />
             )}

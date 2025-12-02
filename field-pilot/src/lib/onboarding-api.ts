@@ -131,14 +131,14 @@ export async function updateTenant(
 
 /**
  * Complete an onboarding step
- * POST /api/v1/onboarding/onboarding/step/
+ * POST /api/v1/onboarding/step/
  */
 export async function completeOnboardingStep(
   data: CompleteStepRequest,
   accessToken: string
 ): Promise<Tenant> {
   const response = await fetchOnboardingAPI<OnboardingApiResponse<Tenant>>(
-    '/onboarding/onboarding/step/',
+    '/onboarding/step/',
     {
       method: 'POST',
       body: JSON.stringify(data),

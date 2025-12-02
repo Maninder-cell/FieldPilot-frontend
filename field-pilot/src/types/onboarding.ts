@@ -166,14 +166,14 @@ export interface TenantMember {
     created_at: string;
     last_login_at: string | null;
   };
-  role: 'owner' | 'admin' | 'manager' | 'employee';
+  role: MemberRole;
   is_active: boolean;
   joined_at: string;
 }
 
 export interface InviteMemberRequest {
   email: string;
-  role: 'owner' | 'admin' | 'manager' | 'employee';
+  role: MemberRole;
   first_name?: string;
   last_name?: string;
 }
@@ -223,6 +223,10 @@ export const COMPANY_SIZE_OPTIONS = [
   { value: '500+', label: '500+ employees' },
 ] as const;
 
+// All available member roles (must match backend ROLE_CHOICES)
+export type MemberRole = 'owner' | 'admin' | 'manager' | 'employee' | 'technician' | 'customer';
+
+// Role options for dropdowns and forms
 export const ROLE_OPTIONS = [
   {
     value: 'owner' as const,
@@ -244,9 +248,17 @@ export const ROLE_OPTIONS = [
     label: 'Employee',
     description: 'Basic access to assigned features',
   },
+  {
+    value: 'technician' as const,
+    label: 'Technician',
+    description: 'Field technician with access to tasks and time tracking',
+  },
+  {
+    value: 'customer' as const,
+    label: 'Customer',
+    description: 'External customer with limited access to their data',
+  },
 ] as const;
-
-export type MemberRole = 'owner' | 'admin' | 'manager' | 'employee';
 
 // Role permissions helper
 export const ROLE_PERMISSIONS = {
@@ -254,4 +266,34 @@ export const ROLE_PERMISSIONS = {
   admin: ['manage_members', 'manage_settings', 'view_all'],
   manager: ['manage_team', 'manage_projects', 'view_assigned'],
   employee: ['view_assigned'],
+  technician: ['view_tasks', 'log_time', 'update_status'],
+  customer: ['view_own_data'],
 } as const;
+
+// Helper function to get role label
+export const getRoleLabel = (role: MemberRole): string => {
+  const option = ROLE_OPTIONS.find(opt => opt.value === role);
+  return option?.label || role;
+};
+
+// Helper function to get role description
+export const getRoleDescription = (role: MemberRole): string => {
+  const option = ROLE_OPTIONS.find(opt => opt.value === role);
+  return option?.description || '';
+};
+
+// Helper function to check if role has permission
+export const hasPermission = (role: MemberRole, permission: string): boolean => {
+  const permissions = ROLE_PERMISSIONS[role];
+  return permissions.includes('all' as any) || permissions.includes(permission as any);
+};
+
+// Helper function to check if role is admin level (owner or admin)
+export const isAdminRole = (role: MemberRole): boolean => {
+  return role === 'owner' || role === 'admin';
+};
+
+// Helper function to check if role is manager level or above
+export const isManagerRole = (role: MemberRole): boolean => {
+  return role === 'owner' || role === 'admin' || role === 'manager';
+};

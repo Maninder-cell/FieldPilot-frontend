@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { isAdminRole } from '@/types/onboarding';
+import { TechnicianWageRate, isAdminRole } from '@/types/onboarding';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import WageSettingsForm from '@/components/company/WageSettingsForm';
+import TechnicianWageRatesList from '@/components/company/TechnicianWageRatesList';
+import TechnicianWageRateForm from '@/components/company/TechnicianWageRateForm';
 import { ArrowLeft } from 'lucide-react';
 
-function WageSettingsContent() {
+function TechnicianRatesContent() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { members, loadMembers, isLoading: onboardingLoading } = useOnboarding();
+  const [showForm, setShowForm] = useState(false);
+  const [editingRate, setEditingRate] = useState<TechnicianWageRate | undefined>();
   
   // Get user's role from tenant membership
   const currentUserMembership = members.find(m => m.user.id === user?.id);
@@ -42,19 +45,38 @@ function WageSettingsContent() {
     }
   }, [user, userRole, authLoading, onboardingLoading, members.length, router]);
 
+  const handleCreateRate = () => {
+    setEditingRate(undefined);
+    setShowForm(true);
+  };
+
+  const handleEditRate = (rate: TechnicianWageRate) => {
+    setEditingRate(rate);
+    setShowForm(true);
+  };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingRate(undefined);
+    // Reload list
+  };
+
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setEditingRate(undefined);
+  };
+
   // Show loading state while checking permissions
   if (authLoading || onboardingLoading || members.length === 0 || !userRole) {
     return (
       <DashboardLayout>
         <div className="py-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="animate-pulse">
               <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
               <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                   <div className="h-10 bg-gray-200 rounded"></div>
                 </div>
@@ -74,27 +96,38 @@ function WageSettingsContent() {
   return (
     <DashboardLayout>
       <div className="py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <Link
-            href="/company/settings"
+            href="/company/settings/wage"
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Company Settings
+            Back to Wage Settings
           </Link>
 
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Wage & Working Hours</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Technician Wage Rates</h1>
             <p className="mt-2 text-gray-600">
-              Configure default working hours and wage rates for your company
+              Manage individual wage rates for each technician
             </p>
           </div>
 
-          {/* Settings Form */}
+          {/* Content */}
           <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-            <WageSettingsForm />
+            {showForm ? (
+              <TechnicianWageRateForm
+                rate={editingRate}
+                onSuccess={handleFormSuccess}
+                onCancel={handleFormCancel}
+              />
+            ) : (
+              <TechnicianWageRatesList
+                onCreateRate={handleCreateRate}
+                onEditRate={handleEditRate}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -102,10 +135,10 @@ function WageSettingsContent() {
   );
 }
 
-export default function WageSettingsPage() {
+export default function TechnicianRatesPage() {
   return (
     <ProtectedRoute>
-      <WageSettingsContent />
+      <TechnicianRatesContent />
     </ProtectedRoute>
   );
 }

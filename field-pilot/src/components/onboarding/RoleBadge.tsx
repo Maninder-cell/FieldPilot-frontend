@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Crown, Shield, Users, User } from 'lucide-react';
+import { Crown, Shield, Users, User, Wrench, UserCircle } from 'lucide-react';
 import { MemberRole } from '@/types/onboarding';
 
 interface RoleBadgeProps {
@@ -9,7 +9,13 @@ interface RoleBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const ROLE_CONFIG = {
+const ROLE_CONFIG: Record<MemberRole, {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  bgColor: string;
+  textColor: string;
+  borderColor: string;
+}> = {
   owner: {
     label: 'Owner',
     icon: Crown,
@@ -37,6 +43,20 @@ const ROLE_CONFIG = {
     bgColor: 'bg-gray-100',
     textColor: 'text-gray-700',
     borderColor: 'border-gray-200',
+  },
+  technician: {
+    label: 'Technician',
+    icon: Wrench,
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200',
+  },
+  customer: {
+    label: 'Customer',
+    icon: UserCircle,
+    bgColor: 'bg-orange-100',
+    textColor: 'text-orange-700',
+    borderColor: 'border-orange-200',
   },
 };
 

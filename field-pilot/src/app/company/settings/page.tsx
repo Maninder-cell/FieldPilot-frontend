@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -97,7 +98,8 @@ function CompanySettingsContent() {
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
+          {/* Company Information */}
+          <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 mb-6">
             {isEditing ? (
               <CompanyInfoEditForm
                 onSuccess={handleSaveSuccess}
@@ -106,6 +108,36 @@ function CompanySettingsContent() {
             ) : (
               <CompanyInfoView onEdit={handleEdit} />
             )}
+          </div>
+
+          {/* Additional Settings Sections */}
+          <div className="space-y-4">
+            <Link
+              href="/company/settings/wage"
+              className="block bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Wage & Working Hours</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Configure default working hours and wage rates for your company
+                  </p>
+                </div>
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </Link>
           </div>
         </div>
       </div>

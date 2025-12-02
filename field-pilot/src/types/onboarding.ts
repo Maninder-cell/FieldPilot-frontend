@@ -38,6 +38,78 @@ export interface Tenant {
   };
 }
 
+// Tenant Settings Types
+export interface TenantSettings {
+  logo_url: string;
+  primary_color: string;
+  secondary_color: string;
+  features_enabled: Record<string, any>;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  push_notifications: boolean;
+  timezone: string;
+  language: string;
+  date_format: string;
+  business_hours: Record<string, any>;
+  custom_fields: Record<string, any>;
+  integrations: Record<string, any>;
+  // Wage and Working Hours Settings (Phase 1)
+  normal_working_hours_per_day: string;
+  default_normal_hourly_rate: string;
+  default_overtime_hourly_rate: string;
+  overtime_multiplier: string;
+  currency: string;
+}
+
+export interface UpdateTenantSettingsRequest {
+  logo_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  features_enabled?: Record<string, any>;
+  email_notifications?: boolean;
+  sms_notifications?: boolean;
+  push_notifications?: boolean;
+  timezone?: string;
+  language?: string;
+  date_format?: string;
+  business_hours?: Record<string, any>;
+  custom_fields?: Record<string, any>;
+  integrations?: Record<string, any>;
+  // Wage and Working Hours Settings
+  normal_working_hours_per_day?: number;
+  default_normal_hourly_rate?: number;
+  default_overtime_hourly_rate?: number;
+  overtime_multiplier?: number;
+  currency?: string;
+}
+
+// Technician Wage Rate Types (Phase 2)
+export interface TechnicianWageRate {
+  id: string;
+  technician: string;
+  technician_name: string;
+  technician_email: string;
+  normal_hourly_rate: string;
+  overtime_hourly_rate: string;
+  effective_from: string;
+  effective_to: string | null;
+  is_active: boolean;
+  notes: string;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTechnicianWageRateRequest {
+  technician: string;
+  normal_hourly_rate: number;
+  overtime_hourly_rate: number;
+  effective_from: string;
+  effective_to?: string;
+  notes?: string;
+}
+
 export interface CreateCompanyRequest {
   name: string;
   company_email: string;

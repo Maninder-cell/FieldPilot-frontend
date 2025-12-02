@@ -386,6 +386,94 @@ export async function revokeInvitation(
   );
 }
 
+// ============================================================================
+// Tenant Settings
+// ============================================================================
+
+/**
+ * Get tenant settings
+ * GET /api/v1/onboarding/settings/
+ */
+export async function getTenantSettings(accessToken: string): Promise<import('@/types/onboarding').TenantSettings> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<import('@/types/onboarding').TenantSettings>>(
+    '/onboarding/settings/',
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Update tenant settings
+ * PUT /api/v1/onboarding/settings/
+ */
+export async function updateTenantSettings(
+  data: import('@/types/onboarding').UpdateTenantSettingsRequest,
+  accessToken: string
+): Promise<import('@/types/onboarding').TenantSettings> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<import('@/types/onboarding').TenantSettings>>(
+    '/onboarding/settings/',
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+// ============================================================================
+// Technician Wage Rates (Phase 2)
+// ============================================================================
+
+/**
+ * Get all technician wage rates
+ * GET /api/v1/technicians/wage-rates/ (Future endpoint)
+ */
+export async function getTechnicianWageRates(accessToken: string): Promise<import('@/types/onboarding').TechnicianWageRate[]> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<import('@/types/onboarding').TechnicianWageRate[]>>(
+    '/technicians/wage-rates/',
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
+/**
+ * Create a new technician wage rate
+ * POST /api/v1/technicians/wage-rates/ (Future endpoint)
+ */
+export async function createTechnicianWageRate(
+  data: import('@/types/onboarding').CreateTechnicianWageRateRequest,
+  accessToken: string
+): Promise<import('@/types/onboarding').TechnicianWageRate> {
+  const response = await fetchOnboardingAPI<OnboardingApiResponse<import('@/types/onboarding').TechnicianWageRate>>(
+    '/technicians/wage-rates/',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  
+  return response.data;
+}
+
 // Export a single object with all API methods for easier imports
 export const onboardingApi = {
   createCompany,
@@ -403,4 +491,8 @@ export const onboardingApi = {
   removeMember,
   resendInvitation,
   revokeInvitation,
+  getTenantSettings,
+  updateTenantSettings,
+  getTechnicianWageRates,
+  createTechnicianWageRate,
 };

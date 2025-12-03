@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 import Header from '../layout/Header';
 import Footer from '../layout/Footer';
 import OrganizationSidebar from './OrganizationSidebar';
@@ -15,6 +16,7 @@ export default function OrganizationLayout({ children }: OrganizationLayoutProps
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
+      <Toaster position="top-right" />
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-4 z-50">
         <button

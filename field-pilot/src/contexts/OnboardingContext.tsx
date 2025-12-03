@@ -110,6 +110,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
       const tenantData = await getCurrentTenant(accessToken);
       setTenant(tenantData); // Will be null if no company exists
+      
+      // Store tenant slug with user data for API routing
+      if (tenantData && user) {
+        const { storeUserData } = await import('@/lib/token-utils');
+        storeUserData({ ...user, tenant_slug: tenantData.slug });
+      }
     } catch (error) {
       console.error('Error loading tenant data:', error);
       // Set tenant to null on error to trigger company creation flow
@@ -128,6 +134,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       const newTenant = await createCompanyAPI(data, accessToken);
       setTenant(newTenant);
       setCurrentStep(newTenant.onboarding_step);
+      
+      // Store tenant slug with user data for API routing
+      if (user) {
+        const { storeUserData } = await import('@/lib/token-utils');
+        storeUserData({ ...user, tenant_slug: newTenant.slug });
+      }
     } catch (error) {
       console.error('Error creating company:', error);
       throw error;

@@ -17,6 +17,7 @@ export interface User {
   two_factor_enabled?: boolean;
   created_at: string;
   last_login_at?: string | null;
+  tenant_slug?: string; // Tenant slug for API routing
 }
 
 export interface LoginRequest {

@@ -51,4 +51,6 @@ export interface BuildingFilters {
   status?: string;
   type?: string;
   facility?: string;
+  page?: number;
+  page_size?: number;
 }

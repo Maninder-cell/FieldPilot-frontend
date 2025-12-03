@@ -23,6 +23,9 @@ export default function FacilitiesPage() {
   const [facilityToDelete, setFacilityToDelete] = useState<Facility | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,15 +51,16 @@ export default function FacilitiesPage() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  const loadFacilities = async (search?: string) => {
+  const loadFacilities = async (search?: string, page: number = currentPage, size: number = pageSize) => {
     try {
       setIsLoading(true);
-      const response = await getFacilities({ search });
+      const response = await getFacilities({ search, page, page_size: size });
       setFacilities(response.data);
+      setTotalCount(response.count || 0);
     } catch (error: any) {
-      // Silently handle error - don't show toast for list loading failures
       console.error('Failed to load facilities:', error);
       setFacilities([]);
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -290,6 +294,99 @@ export default function FacilitiesPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && facilities.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount}</span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Items per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      const newPageSize = Number(e.target.value);
+                      setPageSize(newPageSize);
+                      setCurrentPage(1);
+                      loadFacilities(searchQuery, 1, newPageSize);
+                    }}
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+
+                {totalCount > pageSize && (
+                  <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      const newPage = currentPage - 1;
+                      setCurrentPage(newPage);
+                      loadFacilities(searchQuery, newPage);
+                    }}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ‹
+                  </button>
+
+                  {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1)
+                    .filter(page => {
+                      const totalPages = Math.ceil(totalCount / pageSize);
+                      if (totalPages <= 7) return true;
+                      if (page === 1 || page === totalPages) return true;
+                      if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                      if (page === currentPage - 2 || page === currentPage + 2) return page;
+                      return false;
+                    })
+                    .map((page, index, array) => {
+                      const prevPage = array[index - 1];
+                      const showEllipsis = prevPage && page - prevPage > 1;
+                      
+                      return (
+                        <div key={page} className="flex items-center">
+                          {showEllipsis && (
+                            <span className="px-2 text-gray-400">...</span>
+                          )}
+                          <button
+                            onClick={() => {
+                              setCurrentPage(page);
+                              loadFacilities(searchQuery, page);
+                            }}
+                            className={`min-w-[32px] px-3 py-1 rounded text-sm font-medium ${
+                              currentPage === page
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => {
+                        const newPage = currentPage + 1;
+                        setCurrentPage(newPage);
+                        loadFacilities(searchQuery, newPage);
+                      }}
+                      disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                      className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ›
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

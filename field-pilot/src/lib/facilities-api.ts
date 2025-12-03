@@ -73,6 +73,8 @@ export async function getFacilities(filters?: FacilityFilters): Promise<Paginate
   if (filters?.status) params.append('status', filters.status);
   if (filters?.type) params.append('type', filters.type);
   if (filters?.customer) params.append('customer', filters.customer);
+  if (filters?.page) params.append('page', filters.page.toString());
+  if (filters?.page_size) params.append('page_size', filters.page_size.toString());
   
   const queryString = params.toString();
   const endpoint = `/facilities/${queryString ? `?${queryString}` : ''}`;

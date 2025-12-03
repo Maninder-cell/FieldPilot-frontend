@@ -200,7 +200,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                 <tr key={member.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
+                      <div className="shrink-0 h-10 w-10">
                         {member.user.avatar_url ? (
                           <img
                             className="h-10 w-10 rounded-full"
@@ -340,7 +340,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
             <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center flex-1">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     {member.user.avatar_url ? (
                       <img
                         className="h-12 w-12 rounded-full"
@@ -467,7 +467,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
 
       {/* Change Role Modal - Custom Implementation */}
       {showRoleModal && selectedMember && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto">
+        <div className="fixed inset-0 z-100 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => {
               setShowRoleModal(false);
@@ -477,11 +477,11 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
 
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full z-[101]">
+            <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full z-101">
               {/* Header with gradient */}
-              <div className="bg-gradient-to-r from-teal-500 to-blue-500 px-6 py-4">
+              <div className="bg-linear-to-r from-teal-500 to-blue-500 px-6 py-4">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-white bg-opacity-20">
+                  <div className="shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-white bg-opacity-20">
                     <Shield className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="ml-4 text-xl font-semibold text-white">Change Member Role</h3>
@@ -527,7 +527,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                   type="button"
                   onClick={handleUpdateRole}
                   disabled={actionLoading}
-                  className="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-base font-medium text-white hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-linear-to-r from-teal-600 to-teal-700 text-base font-medium text-white hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {actionLoading ? (
                     <>
@@ -561,7 +561,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
 
       {/* View Profile Modal */}
       {showProfileModal && viewingMember && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto">
+        <div className="fixed inset-0 z-100 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity bg-black/50 backdrop-blur-sm" onClick={() => {
               setShowProfileModal(false);
@@ -570,7 +570,7 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
 
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full z-[101]">
+            <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full z-101">
               {/* Header */}
               <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-4">
                 <div className="flex items-center justify-between">

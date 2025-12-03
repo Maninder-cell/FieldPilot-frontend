@@ -276,14 +276,14 @@ export const ROLE_OPTIONS = [
 ] as const;
 
 // Role permissions helper
-export const ROLE_PERMISSIONS = {
+export const ROLE_PERMISSIONS: Record<MemberRole, string[]> = {
   owner: ['all'],
   admin: ['manage_members', 'manage_settings', 'view_all'],
   manager: ['manage_team', 'manage_projects', 'view_assigned'],
   employee: ['view_assigned'],
   technician: ['view_tasks', 'log_time', 'update_status'],
   customer: ['view_own_data'],
-} as const;
+};
 
 // Helper function to get role label
 export const getRoleLabel = (role: MemberRole): string => {
@@ -300,7 +300,7 @@ export const getRoleDescription = (role: MemberRole): string => {
 // Helper function to check if role has permission
 export const hasPermission = (role: MemberRole, permission: string): boolean => {
   const permissions = ROLE_PERMISSIONS[role];
-  return permissions.includes('all' as any) || permissions.includes(permission as any);
+  return permissions.includes('all') || permissions.includes(permission);
 };
 
 // Helper function to check if role is admin level (owner or admin)

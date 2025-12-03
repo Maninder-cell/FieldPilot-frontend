@@ -12,6 +12,7 @@ import { getFacilities } from '@/lib/facilities-api';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
 import { toast } from 'react-hot-toast';
+import Pagination from '@/components/common/Pagination';
 
 export default function BuildingsPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -26,6 +27,9 @@ export default function BuildingsPage() {
   const [buildingToDelete, setBuildingToDelete] = useState<Building | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -52,14 +56,16 @@ export default function BuildingsPage() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  const loadBuildings = async (search?: string) => {
+  const loadBuildings = async (search?: string, page: number = currentPage, size: number = pageSize) => {
     try {
       setIsLoading(true);
-      const response = await getBuildings({ search });
+      const response = await getBuildings({ search, page, page_size: size });
       setBuildings(response.data);
+      setTotalCount(response.count || 0);
     } catch (error: any) {
       console.error('Failed to load buildings:', error);
       setBuildings([]);
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -289,6 +295,23 @@ export default function BuildingsPage() {
                 </tbody>
               </table>
             </div>
+          )}
+
+          {!isLoading && buildings.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                loadBuildings(searchQuery, page);
+              }}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+                loadBuildings(searchQuery, 1, size);
+              }}
+            />
           )}
         </div>
       </div>

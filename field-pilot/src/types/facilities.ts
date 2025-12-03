@@ -59,4 +59,6 @@ export interface FacilityFilters {
   status?: string;
   type?: string;
   customer?: string;
+  page?: number;
+  page_size?: number;
 }

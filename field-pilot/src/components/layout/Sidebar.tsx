@@ -79,9 +79,9 @@ export default function Sidebar() {
   if (tenant) {
     companyNavigation.push({
       name: 'Organization Portal',
-      href: `http://${tenant.slug}.localhost:3000/dashboard`,
+      href: '/organization/dashboard',
       icon: Building2,
-      isExternal: true,
+      isExternal: false,
     });
   }
   

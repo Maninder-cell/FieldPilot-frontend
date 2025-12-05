@@ -1,4 +1,5 @@
 import { Customer } from './facilities';
+import { Building } from './buildings';
 
 export type EquipmentType = 'hvac' | 'electrical' | 'plumbing' | 'machinery' | 'it' | 'safety' | 'other';
 export type OperationalStatus = 'operational' | 'maintenance' | 'broken' | 'retired';
@@ -6,6 +7,7 @@ export type Condition = 'excellent' | 'good' | 'fair' | 'poor';
 
 export interface Equipment {
   id: string;
+  building: Building | string; // Can be nested Building object or just ID string
   building_id: string;
   facility_name: string;
   equipment_number: string;

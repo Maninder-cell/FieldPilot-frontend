@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { createEquipment, updateEquipment } from '@/lib/equipment-api';
-import { getBuildings } from '@/lib/buildings-api';
+import { getBuildings, getBuilding } from '@/lib/buildings-api';
 import { Equipment, CreateEquipmentData, EquipmentType, OperationalStatus, Condition } from '@/types/equipment';
 import { toast } from 'react-hot-toast';
 import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import LazySelect from '@/components/common/LazySelect';
 
 interface EquipmentModalProps {
   equipment: Equipment | null;
@@ -15,9 +16,7 @@ interface EquipmentModalProps {
 }
 
 export default function EquipmentModal({ equipment, onClose }: EquipmentModalProps) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [buildings, setBuildings] = useState<any[]>([]);
   const [formData, setFormData] = useState<CreateEquipmentData>({
     building_id: '',
     name: '',
@@ -39,10 +38,17 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
   });
 
   useEffect(() => {
-    console.log('EquipmentModal - equipment:', !!equipment, 'buildings:', buildings.length);
+    console.log('EquipmentModal - equipment:', !!equipment);
     if (equipment) {
+      // Extract building_id - it can be an object or string
+      const buildingId = typeof equipment.building === 'string' 
+        ? equipment.building 
+        : equipment.building?.id || '';
+      
+      console.log('EquipmentModal - building_id:', buildingId);
+      
       setFormData({
-        building_id: equipment.building_id,
+        building_id: buildingId,
         name: equipment.name,
         equipment_type: equipment.equipment_type,
         manufacturer: equipment.manufacturer,
@@ -61,22 +67,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
         custom_fields: equipment.custom_fields || {},
       });
     }
-  }, [equipment, buildings]);
-
-  useEffect(() => {
-    const fetchBuildings = async () => {
-      try {
-        // Request all buildings with a large page size for the dropdown
-        const response = await getBuildings({ page_size: 1000 });
-        console.log('Loaded buildings:', response.data?.length || 0);
-        setBuildings(response.data || []);
-      } catch (error) {
-        console.error('Failed to fetch buildings:', error);
-        setBuildings([]);
-      }
-    };
-    fetchBuildings();
-  }, []);
+  }, [equipment]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,37 +143,20 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Building Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Building *
-              </label>
-              <select
-                name="building_id"
-                value={formData.building_id}
-                onChange={handleChange}
-                required
-                disabled={!!equipment || buildings.length === 0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
-              >
-                {buildings.length === 0 ? (
-                  <option value="">Loading buildings...</option>
-                ) : (
-                  <>
-                    <option value="">Select a building</option>
-                    {buildings.map((building) => (
-                      <option key={building.id} value={building.id}>
-                        {building.name} ({building.code})
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
-              {buildings.length === 0 && !equipment && (
-                <p className="mt-1 text-xs text-amber-600">
-                  Please create a building first before adding equipment.
-                </p>
-              )}
-            </div>
+            <LazySelect
+              label="Building"
+              value={formData.building_id}
+              onChange={(value) => setFormData(prev => ({ ...prev, building_id: value }))}
+              fetchItems={getBuildings}
+              fetchItemById={async (id) => {
+                const response = await getBuilding(id);
+                return { data: { id: response.data.id, name: response.data.name, code: response.data.code } };
+              }}
+              placeholder="Select a building"
+              required
+              disabled={false}
+              pageSize={5}
+            />
 
             {/* Basic Information */}
             <div className="space-y-4">

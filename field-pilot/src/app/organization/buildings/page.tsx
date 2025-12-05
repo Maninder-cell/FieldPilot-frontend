@@ -8,9 +8,7 @@ import BuildingModal from '@/components/organization/BuildingModal';
 import DeleteBuildingModal from '@/components/organization/DeleteBuildingModal';
 import { Building2, Plus, Search, Edit, Trash2, Home, Wrench } from 'lucide-react';
 import { getBuildings, getBuilding, createBuilding, updateBuilding, deleteBuilding } from '@/lib/buildings-api';
-import { getFacilities } from '@/lib/facilities-api';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
-import { Facility } from '@/types/facilities';
 import { toast } from 'react-hot-toast';
 import Pagination from '@/components/common/Pagination';
 
@@ -18,7 +16,6 @@ export default function BuildingsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +39,6 @@ export default function BuildingsPage() {
   useEffect(() => {
     if (user) {
       loadBuildings();
-      loadFacilities();
     }
   }, [user]);
 
@@ -69,18 +65,6 @@ export default function BuildingsPage() {
       setTotalCount(0);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const loadFacilities = async () => {
-    try {
-      // Request all facilities with a large page size for the dropdown
-      const response = await getFacilities({ page_size: 1000 });
-      console.log('Loaded facilities:', response.data);
-      setFacilities(response.data);
-    } catch (error: any) {
-      console.error('Failed to load facilities:', error);
-      setFacilities([]);
     }
   };
 
@@ -346,7 +330,6 @@ export default function BuildingsPage() {
         }}
         onSubmit={handleSubmit}
         building={selectedBuilding}
-        facilities={facilities}
         isLoading={isSubmitting}
       />
 

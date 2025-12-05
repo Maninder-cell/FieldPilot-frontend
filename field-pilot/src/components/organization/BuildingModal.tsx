@@ -5,13 +5,14 @@ import { X } from 'lucide-react';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
 import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import LazySelect from '@/components/common/LazySelect';
+import { getFacilities, getFacility } from '@/lib/facilities-api';
 
 interface BuildingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateBuildingRequest) => Promise<void>;
   building?: Building | null;
-  facilities: Facility[];
   isLoading?: boolean;
 }
 
@@ -20,7 +21,6 @@ export default function BuildingModal({
   onClose,
   onSubmit,
   building,
-  facilities,
   isLoading = false,
 }: BuildingModalProps) {
   const [formData, setFormData] = useState<CreateBuildingRequest>({
@@ -42,10 +42,17 @@ export default function BuildingModal({
   });
 
   useEffect(() => {
-    console.log('BuildingModal - facilities:', facilities.length, 'building:', !!building);
+    console.log('BuildingModal - building:', !!building);
     if (building) {
+      // Extract facility_id - it can be an object or string
+      const facilityId = typeof building.facility === 'string' 
+        ? building.facility 
+        : building.facility?.id || '';
+      
+      console.log('BuildingModal - facility_id:', facilityId);
+      
       setFormData({
-        facility_id: building.facility,
+        facility_id: facilityId,
         name: building.name,
         building_type: building.building_type,
         description: building.description || '',
@@ -63,7 +70,7 @@ export default function BuildingModal({
       });
     } else {
       setFormData({
-        facility_id: facilities[0]?.id || '',
+        facility_id: '',
         name: '',
         building_type: 'other',
         description: '',
@@ -80,7 +87,7 @@ export default function BuildingModal({
         custom_fields: {},
       });
     }
-  }, [building, facilities, isOpen]);
+  }, [building, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,37 +135,20 @@ export default function BuildingModal({
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Facility Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Facility *
-              </label>
-              <select
-                name="facility_id"
-                value={formData.facility_id}
-                onChange={handleChange}
-                required
-                disabled={!!building || facilities.length === 0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
-              >
-                {facilities.length === 0 ? (
-                  <option value="">Loading facilities...</option>
-                ) : (
-                  <>
-                    <option value="">Select a facility</option>
-                    {facilities.map((facility) => (
-                      <option key={facility.id} value={facility.id}>
-                        {facility.name} ({facility.code})
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
-              {facilities.length === 0 && !building && (
-                <p className="mt-1 text-xs text-amber-600">
-                  Please create a facility first before adding buildings.
-                </p>
-              )}
-            </div>
+            <LazySelect
+              label="Facility"
+              value={formData.facility_id}
+              onChange={(value) => setFormData(prev => ({ ...prev, facility_id: value }))}
+              fetchItems={getFacilities}
+              fetchItemById={async (id) => {
+                const response = await getFacility(id);
+                return { data: { id: response.data.id, name: response.data.name, code: response.data.code } };
+              }}
+              placeholder="Select a facility"
+              required
+              disabled={false}
+              pageSize={5}
+            />
 
             {/* Basic Information */}
             <div className="space-y-4">

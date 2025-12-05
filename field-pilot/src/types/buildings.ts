@@ -1,10 +1,10 @@
 // TypeScript interfaces for Buildings
 
-import { Customer } from './facilities';
+import { Customer, Facility } from './facilities';
 
 export interface Building {
   id: string;
-  facility: string; // Facility ID
+  facility: Facility | string; // Can be nested Facility object or just ID string
   facility_name?: string;
   name: string;
   code: string;
@@ -47,7 +47,7 @@ export interface CreateBuildingRequest {
   custom_fields?: Record<string, any>;
 }
 
-export interface UpdateBuildingRequest extends Omit<CreateBuildingRequest, 'facility_id'> {}
+export interface UpdateBuildingRequest extends CreateBuildingRequest {}
 
 export interface BuildingFilters {
   search?: string;

@@ -62,9 +62,23 @@ export default function LocationsPage() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (location: Location) => {
-    setSelectedLocation(location);
-    setIsModalOpen(true);
+  const handleEdit = async (location: Location) => {
+    try {
+      const { toast } = await import('react-hot-toast');
+      toast.loading('Loading location details...', { id: 'fetch-location' });
+      
+      // Fetch complete location data from detail endpoint
+      const { getLocationById } = await import('@/lib/locations-api');
+      const response = await getLocationById(location.id);
+      setSelectedLocation(response.data);
+      setIsModalOpen(true);
+      
+      toast.dismiss('fetch-location');
+    } catch (error: any) {
+      console.error('Failed to load location details:', error);
+      const { toast } = await import('react-hot-toast');
+      toast.error('Failed to load location details', { id: 'fetch-location' });
+    }
   };
 
   const handleDelete = (location: Location) => {

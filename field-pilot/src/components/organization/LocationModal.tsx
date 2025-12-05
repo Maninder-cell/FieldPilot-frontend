@@ -8,6 +8,7 @@ import { getBuildings } from '@/lib/buildings-api';
 import { getEquipment } from '@/lib/equipment-api';
 import { Location, CreateLocationData } from '@/types/locations';
 import { toast } from 'react-hot-toast';
+import CustomFieldsInput from '@/components/common/CustomFieldsInput';
 
 interface LocationModalProps {
   location: Location | null;
@@ -22,23 +23,30 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
     entity_id: '',
     name: '',
     description: '',
+    latitude: undefined,
+    longitude: undefined,
     address: '',
     floor: '',
     room: '',
     zone: '',
+    additional_info: {},
   });
 
   useEffect(() => {
+    console.log('LocationModal - location:', !!location, 'entities:', entities.length);
     if (location) {
       setFormData({
         entity_type: location.entity_type,
         entity_id: location.entity_id,
         name: location.name,
         description: location.description,
+        latitude: location.latitude || undefined,
+        longitude: location.longitude || undefined,
         address: location.address,
         floor: location.floor,
         room: location.room,
         zone: location.zone,
+        additional_info: location.additional_info || {},
       });
     }
     loadEntities(formData.entity_type);
@@ -48,15 +56,17 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
     try {
       let response;
       if (entityType === 'facility') {
-        response = await getFacilities();
+        response = await getFacilities({ page_size: 1000 });
       } else if (entityType === 'building') {
-        response = await getBuildings();
+        response = await getBuildings({ page_size: 1000 });
       } else if (entityType === 'equipment') {
-        response = await getEquipment();
+        response = await getEquipment({ page_size: 1000 });
       }
+      console.log(`Loaded ${entityType}:`, response?.data?.length || 0);
       setEntities(response?.data || []);
     } catch (error) {
       console.error('Failed to load entities:', error);
+      setEntities([]);
     }
   };
 
@@ -69,12 +79,25 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
     e.preventDefault();
     try {
       setLoading(true);
+      
+      // Clean up the data - convert empty strings to undefined
+      const cleanedData = {
+        ...formData,
+        latitude: formData.latitude || undefined,
+        longitude: formData.longitude || undefined,
+        description: formData.description || undefined,
+        address: formData.address || undefined,
+        floor: formData.floor || undefined,
+        room: formData.room || undefined,
+        zone: formData.zone || undefined,
+      };
+      
       if (location) {
-        const { entity_type, entity_id, ...updateData } = formData;
+        const { entity_type, entity_id, ...updateData } = cleanedData;
         await updateLocation(location.id, updateData);
         toast.success('Location updated successfully');
       } else {
-        await createLocation(formData);
+        await createLocation(cleanedData);
         toast.success('Location created successfully');
       }
       onClose();
@@ -129,16 +152,27 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
                     value={formData.entity_id}
                     onChange={(e) => setFormData({ ...formData, entity_id: e.target.value })}
                     required
-                    disabled={!!location}
+                    disabled={!!location || entities.length === 0}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
                   >
-                    <option value="">Select...</option>
-                    {entities.map((entity) => (
-                      <option key={entity.id} value={entity.id}>
-                        {entity.name}
-                      </option>
-                    ))}
+                    {entities.length === 0 ? (
+                      <option value="">Loading {formData.entity_type}s...</option>
+                    ) : (
+                      <>
+                        <option value="">Select {formData.entity_type}...</option>
+                        {entities.map((entity) => (
+                          <option key={entity.id} value={entity.id}>
+                            {entity.name} {entity.code ? `(${entity.code})` : ''}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
+                  {entities.length === 0 && !location && (
+                    <p className="mt-1 text-xs text-amber-600">
+                      Please create a {formData.entity_type} first before adding a location.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -220,6 +254,55 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Coordinates */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Coordinates (Optional)</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.latitude || ''}
+                    onChange={(e) => setFormData({ ...formData, latitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    step="0.000001"
+                    min="-90"
+                    max="90"
+                    placeholder="-90 to 90"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.longitude || ''}
+                    onChange={(e) => setFormData({ ...formData, longitude: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    step="0.000001"
+                    min="-180"
+                    max="180"
+                    placeholder="-180 to 180"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Additional Information</h3>
+              <CustomFieldsInput
+                value={formData.additional_info || {}}
+                onChange={(value) => setFormData({ ...formData, additional_info: value })}
+                disabled={loading}
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">

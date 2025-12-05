@@ -1,3 +1,5 @@
+import { Customer } from './facilities';
+
 export type EquipmentType = 'hvac' | 'electrical' | 'plumbing' | 'machinery' | 'it' | 'safety' | 'other';
 export type OperationalStatus = 'operational' | 'maintenance' | 'broken' | 'retired';
 export type Condition = 'excellent' | 'good' | 'fair' | 'poor';
@@ -20,6 +22,7 @@ export interface Equipment {
   operational_status: OperationalStatus;
   condition: Condition;
   specifications: Record<string, any>;
+  customer?: Customer | null;
   customer_id: string | null;
   notes: string;
   custom_fields: Record<string, any>;

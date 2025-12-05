@@ -7,6 +7,7 @@ import { createEquipment, updateEquipment } from '@/lib/equipment-api';
 import { getBuildings } from '@/lib/buildings-api';
 import { Equipment, CreateEquipmentData, EquipmentType, OperationalStatus, Condition } from '@/types/equipment';
 import { toast } from 'react-hot-toast';
+import CustomFieldsInput from '@/components/common/CustomFieldsInput';
 
 interface EquipmentModalProps {
   equipment: Equipment | null;
@@ -25,12 +26,20 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
     model: '',
     serial_number: '',
     description: '',
+    purchase_date: undefined,
+    purchase_price: undefined,
+    warranty_expiration: undefined,
+    installation_date: undefined,
     operational_status: 'operational',
     condition: 'good',
+    specifications: {},
+    customer_id: undefined,
     notes: '',
+    custom_fields: {},
   });
 
   useEffect(() => {
+    console.log('EquipmentModal - equipment:', !!equipment, 'buildings:', buildings.length);
     if (equipment) {
       setFormData({
         building_id: equipment.building_id,
@@ -46,18 +55,24 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
         installation_date: equipment.installation_date || undefined,
         operational_status: equipment.operational_status,
         condition: equipment.condition,
+        specifications: equipment.specifications || {},
+        customer_id: equipment.customer_id || undefined,
         notes: equipment.notes,
+        custom_fields: equipment.custom_fields || {},
       });
     }
-  }, [equipment]);
+  }, [equipment, buildings]);
 
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
-        const response = await getBuildings();
+        // Request all buildings with a large page size for the dropdown
+        const response = await getBuildings({ page_size: 1000 });
+        console.log('Loaded buildings:', response.data?.length || 0);
         setBuildings(response.data || []);
       } catch (error) {
         console.error('Failed to fetch buildings:', error);
+        setBuildings([]);
       }
     };
     fetchBuildings();
@@ -146,16 +161,27 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                 value={formData.building_id}
                 onChange={handleChange}
                 required
-                disabled={!!equipment}
+                disabled={!!equipment || buildings.length === 0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
               >
-                <option value="">Select a building</option>
-                {buildings.map((building) => (
-                  <option key={building.id} value={building.id}>
-                    {building.name}
-                  </option>
-                ))}
+                {buildings.length === 0 ? (
+                  <option value="">Loading buildings...</option>
+                ) : (
+                  <>
+                    <option value="">Select a building</option>
+                    {buildings.map((building) => (
+                      <option key={building.id} value={building.id}>
+                        {building.name} ({building.code})
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
+              {buildings.length === 0 && !equipment && (
+                <p className="mt-1 text-xs text-amber-600">
+                  Please create a building first before adding equipment.
+                </p>
+              )}
             </div>
 
             {/* Basic Information */}
@@ -291,7 +317,93 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   </select>
                 </div>
 
-                <div className="sm:col-span-2">
+              </div>
+            </div>
+
+            {/* Purchase Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Purchase Information</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Purchase Date
+                  </label>
+                  <input
+                    type="date"
+                    name="purchase_date"
+                    value={formData.purchase_date || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Purchase Price
+                  </label>
+                  <input
+                    type="number"
+                    name="purchase_price"
+                    value={formData.purchase_price || ''}
+                    onChange={handleChange}
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Installation Date
+                  </label>
+                  <input
+                    type="date"
+                    name="installation_date"
+                    value={formData.installation_date || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Warranty Expiration
+                  </label>
+                  <input
+                    type="date"
+                    name="warranty_expiration"
+                    value={formData.warranty_expiration || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Additional Information</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="customer_id"
+                    value={formData.customer_id || ''}
+                    onChange={handleChange}
+                    placeholder="Enter customer UUID"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional: Link this equipment to a customer
+                  </p>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
                   </label>
@@ -304,6 +416,26 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Specifications */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Technical Specifications</h3>
+              <CustomFieldsInput
+                value={formData.specifications || {}}
+                onChange={(value) => setFormData(prev => ({ ...prev, specifications: value }))}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Custom Fields */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Custom Fields</h3>
+              <CustomFieldsInput
+                value={formData.custom_fields || {}}
+                onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
+                disabled={loading}
+              />
             </div>
 
             {/* Actions */}

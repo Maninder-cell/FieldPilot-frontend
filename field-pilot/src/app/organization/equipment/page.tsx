@@ -79,9 +79,21 @@ export default function EquipmentPage() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (item: Equipment) => {
-    setSelectedEquipment(item);
-    setIsModalOpen(true);
+  const handleEdit = async (item: Equipment) => {
+    try {
+      toast.loading('Loading equipment details...', { id: 'fetch-equipment' });
+      
+      // Fetch complete equipment data from detail endpoint
+      const { getEquipmentById } = await import('@/lib/equipment-api');
+      const response = await getEquipmentById(item.id);
+      setSelectedEquipment(response.data);
+      setIsModalOpen(true);
+      
+      toast.dismiss('fetch-equipment');
+    } catch (error: any) {
+      console.error('Failed to load equipment details:', error);
+      toast.error('Failed to load equipment details', { id: 'fetch-equipment' });
+    }
   };
 
   const handleDelete = (item: Equipment) => {

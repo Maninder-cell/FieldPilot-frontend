@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
+import CustomFieldsInput from '@/components/common/CustomFieldsInput';
 
 interface BuildingModalProps {
   isOpen: boolean;
@@ -35,10 +36,13 @@ export default function BuildingModal({
     contact_email: '',
     contact_phone: '',
     operational_status: 'operational',
+    customer_id: null,
     notes: '',
+    custom_fields: {},
   });
 
   useEffect(() => {
+    console.log('BuildingModal - facilities:', facilities.length, 'building:', !!building);
     if (building) {
       setFormData({
         facility_id: building.facility,
@@ -53,7 +57,9 @@ export default function BuildingModal({
         contact_email: building.contact_email || '',
         contact_phone: building.contact_phone || '',
         operational_status: building.operational_status,
+        customer_id: building.customer?.id || null,
         notes: building.notes || '',
+        custom_fields: building.custom_fields || {},
       });
     } else {
       setFormData({
@@ -69,7 +75,9 @@ export default function BuildingModal({
         contact_email: '',
         contact_phone: '',
         operational_status: 'operational',
+        customer_id: null,
         notes: '',
+        custom_fields: {},
       });
     }
   }, [building, facilities, isOpen]);
@@ -129,16 +137,27 @@ export default function BuildingModal({
                 value={formData.facility_id}
                 onChange={handleChange}
                 required
-                disabled={!!building}
+                disabled={!!building || facilities.length === 0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
               >
-                <option value="">Select a facility</option>
-                {facilities.map((facility) => (
-                  <option key={facility.id} value={facility.id}>
-                    {facility.name} ({facility.code})
-                  </option>
-                ))}
+                {facilities.length === 0 ? (
+                  <option value="">Loading facilities...</option>
+                ) : (
+                  <>
+                    <option value="">Select a facility</option>
+                    {facilities.map((facility) => (
+                      <option key={facility.id} value={facility.id}>
+                        {facility.name} ({facility.code})
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
+              {facilities.length === 0 && !building && (
+                <p className="mt-1 text-xs text-amber-600">
+                  Please create a facility first before adding buildings.
+                </p>
+              )}
             </div>
 
             {/* Basic Information */}
@@ -317,6 +336,23 @@ export default function BuildingModal({
 
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="customer_id"
+                    value={formData.customer_id || ''}
+                    onChange={handleChange}
+                    placeholder="Enter customer UUID"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional: Link this building to a customer
+                  </p>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
                   </label>
                   <textarea
@@ -328,6 +364,16 @@ export default function BuildingModal({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Custom Fields */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Custom Fields</h3>
+              <CustomFieldsInput
+                value={formData.custom_fields || {}}
+                onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
+                disabled={isLoading}
+              />
             </div>
 
             {/* Actions */}

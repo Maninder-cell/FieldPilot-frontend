@@ -1,5 +1,7 @@
 // TypeScript interfaces for Buildings
 
+import { Customer } from './facilities';
+
 export interface Building {
   id: string;
   facility: string; // Facility ID
@@ -16,6 +18,7 @@ export interface Building {
   contact_email: string;
   contact_phone: string;
   operational_status: 'operational' | 'under_construction' | 'maintenance' | 'closed';
+  customer?: Customer | null;
   customer_name?: string;
   notes: string;
   custom_fields: Record<string, any>;

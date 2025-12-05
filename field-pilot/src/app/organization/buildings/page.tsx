@@ -7,7 +7,7 @@ import OrganizationLayout from '@/components/organization/OrganizationLayout';
 import BuildingModal from '@/components/organization/BuildingModal';
 import DeleteBuildingModal from '@/components/organization/DeleteBuildingModal';
 import { Building2, Plus, Search, Edit, Trash2, Home, Wrench } from 'lucide-react';
-import { getBuildings, createBuilding, updateBuilding, deleteBuilding } from '@/lib/buildings-api';
+import { getBuildings, getBuilding, createBuilding, updateBuilding, deleteBuilding } from '@/lib/buildings-api';
 import { getFacilities } from '@/lib/facilities-api';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
@@ -27,6 +27,7 @@ export default function BuildingsPage() {
   const [buildingToDelete, setBuildingToDelete] = useState<Building | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
@@ -73,10 +74,13 @@ export default function BuildingsPage() {
 
   const loadFacilities = async () => {
     try {
-      const response = await getFacilities();
+      // Request all facilities with a large page size for the dropdown
+      const response = await getFacilities({ page_size: 1000 });
+      console.log('Loaded facilities:', response.data);
       setFacilities(response.data);
     } catch (error: any) {
       console.error('Failed to load facilities:', error);
+      setFacilities([]);
     }
   };
 
@@ -90,9 +94,23 @@ export default function BuildingsPage() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (building: Building) => {
-    setSelectedBuilding(building);
-    setIsModalOpen(true);
+  const handleEdit = async (building: Building) => {
+    try {
+      setIsFetchingDetails(true);
+      toast.loading('Loading building details...', { id: 'fetch-building' });
+      
+      // Fetch complete building data from detail endpoint
+      const response = await getBuilding(building.id);
+      setSelectedBuilding(response.data);
+      setIsModalOpen(true);
+      
+      toast.dismiss('fetch-building');
+    } catch (error: any) {
+      console.error('Failed to load building details:', error);
+      toast.error('Failed to load building details', { id: 'fetch-building' });
+    } finally {
+      setIsFetchingDetails(false);
+    }
   };
 
   const handleSubmit = async (data: CreateBuildingRequest) => {
@@ -279,13 +297,17 @@ export default function BuildingsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(building)}
-                          className="text-emerald-600 hover:text-emerald-900 mr-4"
+                          disabled={isFetchingDetails}
+                          className="text-emerald-600 hover:text-emerald-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Edit building"
                         >
                           <Edit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(building)}
-                          className="text-red-600 hover:text-red-900"
+                          disabled={isFetchingDetails}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete building"
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>

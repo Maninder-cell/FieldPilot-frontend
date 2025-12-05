@@ -1,5 +1,13 @@
 // TypeScript interfaces for Facilities
 
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  company_name?: string;
+  status: string;
+}
+
 export interface Facility {
   id: string;
   name: string;
@@ -19,6 +27,7 @@ export interface Facility {
   operational_status: 'operational' | 'under_construction' | 'maintenance' | 'closed';
   square_footage: number | null;
   year_built: number | null;
+  customer?: Customer | null;
   customer_name?: string;
   notes: string;
   custom_fields: Record<string, any>;

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
+import CustomFieldsInput from '@/components/common/CustomFieldsInput';
 
 interface FacilityModalProps {
   isOpen: boolean;
@@ -28,13 +29,17 @@ export default function FacilityModal({
     state: '',
     zip_code: '',
     country: 'USA',
+    latitude: null,
+    longitude: null,
     contact_name: '',
     contact_email: '',
     contact_phone: '',
     operational_status: 'operational',
     square_footage: null,
     year_built: null,
+    customer_id: null,
     notes: '',
+    custom_fields: {},
   });
 
   useEffect(() => {
@@ -48,13 +53,17 @@ export default function FacilityModal({
         state: facility.state || '',
         zip_code: facility.zip_code || '',
         country: facility.country || 'USA',
+        latitude: facility.latitude,
+        longitude: facility.longitude,
         contact_name: facility.contact_name || '',
         contact_email: facility.contact_email || '',
         contact_phone: facility.contact_phone || '',
         operational_status: facility.operational_status,
         square_footage: facility.square_footage,
         year_built: facility.year_built,
+        customer_id: facility.customer?.id || null,
         notes: facility.notes || '',
+        custom_fields: facility.custom_fields || {},
       });
     } else {
       setFormData({
@@ -66,13 +75,17 @@ export default function FacilityModal({
         state: '',
         zip_code: '',
         country: 'USA',
+        latitude: null,
+        longitude: null,
         contact_name: '',
         contact_email: '',
         contact_phone: '',
         operational_status: 'operational',
         square_footage: null,
         year_built: null,
+        customer_id: null,
         notes: '',
+        custom_fields: {},
       });
     }
   }, [facility, isOpen]);
@@ -183,6 +196,23 @@ export default function FacilityModal({
 
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="customer_id"
+                    value={formData.customer_id || ''}
+                    onChange={handleChange}
+                    placeholder="Enter customer UUID"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Optional: Link this facility to a customer
+                  </p>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
                   </label>
                   <textarea
@@ -262,6 +292,40 @@ export default function FacilityModal({
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    name="latitude"
+                    value={formData.latitude || ''}
+                    onChange={handleChange}
+                    step="0.000001"
+                    min="-90"
+                    max="90"
+                    placeholder="-90 to 90"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    name="longitude"
+                    value={formData.longitude || ''}
+                    onChange={handleChange}
+                    step="0.000001"
+                    min="-180"
+                    max="180"
+                    placeholder="-180 to 180"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -355,6 +419,17 @@ export default function FacilityModal({
                     onChange={handleChange}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Fields
+                  </label>
+                  <CustomFieldsInput
+                    value={formData.custom_fields || {}}
+                    onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
+                    disabled={isLoading}
                   />
                 </div>
               </div>

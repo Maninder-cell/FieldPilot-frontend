@@ -7,7 +7,7 @@ import OrganizationLayout from '@/components/organization/OrganizationLayout';
 import FacilityModal from '@/components/organization/FacilityModal';
 import DeleteFacilityModal from '@/components/organization/DeleteFacilityModal';
 import { Home, Plus, Search, Edit, Trash2, Building, Wrench } from 'lucide-react';
-import { getFacilities, createFacility, updateFacility, deleteFacility } from '@/lib/facilities-api';
+import { getFacilities, getFacility, createFacility, updateFacility, deleteFacility } from '@/lib/facilities-api';
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
 import { toast } from 'react-hot-toast';
 
@@ -23,6 +23,7 @@ export default function FacilitiesPage() {
   const [facilityToDelete, setFacilityToDelete] = useState<Facility | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
@@ -76,9 +77,23 @@ export default function FacilitiesPage() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (facility: Facility) => {
-    setSelectedFacility(facility);
-    setIsModalOpen(true);
+  const handleEdit = async (facility: Facility) => {
+    try {
+      setIsFetchingDetails(true);
+      toast.loading('Loading facility details...', { id: 'fetch-facility' });
+      
+      // Fetch complete facility data from detail endpoint
+      const response = await getFacility(facility.id);
+      setSelectedFacility(response.data);
+      setIsModalOpen(true);
+      
+      toast.dismiss('fetch-facility');
+    } catch (error: any) {
+      console.error('Failed to load facility details:', error);
+      toast.error('Failed to load facility details', { id: 'fetch-facility' });
+    } finally {
+      setIsFetchingDetails(false);
+    }
   };
 
   const handleSubmit = async (data: CreateFacilityRequest) => {
@@ -279,13 +294,17 @@ export default function FacilitiesPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(facility)}
-                          className="text-emerald-600 hover:text-emerald-900 mr-4"
+                          disabled={isFetchingDetails}
+                          className="text-emerald-600 hover:text-emerald-900 mr-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Edit facility"
                         >
                           <Edit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(facility)}
-                          className="text-red-600 hover:text-red-900"
+                          disabled={isFetchingDetails}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete facility"
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>

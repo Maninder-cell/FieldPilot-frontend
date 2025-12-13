@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Disable webpack caching to prevent module resolution issues
+    config.cache = false;
+
+    return config;
+  },
 };
 
 export default nextConfig;
+
+

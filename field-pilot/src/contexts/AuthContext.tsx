@@ -40,6 +40,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  // Define handleRefreshToken first so it can be used in useEffects
+  const handleRefreshToken = useCallback(async () => {
+    try {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await refreshAccessToken(refreshToken);
+      storeTokens(response.access, response.refresh || refreshToken);
+
+      // Fetch updated user data
+      const userData = await getCurrentUser(response.access);
+      setUser(userData);
+      storeUserData(userData);
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      // Don't call handleLogout here to avoid circular dependency
+      clearAuthData();
+      setUser(null);
+      router.push('/login');
+    }
+  }, [router]);
+
   // Initialize auth state from localStorage
   useEffect(() => {
     const initializeAuth = async () => {
@@ -65,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Set up automatic token refresh
@@ -82,27 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(checkTokenExpiry, 60000);
 
     return () => clearInterval(interval);
-  }, [user]);
-
-  const handleRefreshToken = async () => {
-    try {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const response = await refreshAccessToken(refreshToken);
-      storeTokens(response.access, response.refresh || refreshToken);
-
-      // Fetch updated user data
-      const userData = await getCurrentUser(response.access);
-      setUser(userData);
-      storeUserData(userData);
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      await handleLogout();
-    }
-  };
+  }, [user, handleRefreshToken]);
 
   const handleLogin = async (email: string, password: string, rememberMe?: boolean) => {
     try {
@@ -155,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleRegister = async (data: RegisterRequest) => {
     try {
       const response = await registerUser(data);
-      
+
       // Store tokens and user data - user is now logged in
       storeTokens(response.access, response.refresh);
       storeUserData(response.user);

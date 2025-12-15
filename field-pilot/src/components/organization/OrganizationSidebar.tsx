@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { 
-  LayoutDashboard, 
-  Home, 
-  Building2, 
-  Wrench, 
-  MapPin, 
+import {
+  LayoutDashboard,
+  Home,
+  Building2,
+  Wrench,
+  MapPin,
+  Users,
   LogOut,
   ArrowLeft
 } from 'lucide-react';
@@ -30,6 +31,7 @@ export default function OrganizationSidebar() {
     { name: 'Buildings', href: '/organization/buildings', icon: Building2 },
     { name: 'Equipment', href: '/organization/equipment', icon: Wrench },
     { name: 'Locations', href: '/organization/locations', icon: MapPin },
+    { name: 'Teams', href: '/organization/teams', icon: Users },
   ];
 
   const handleLogout = async () => {
@@ -76,10 +78,9 @@ export default function OrganizationSidebar() {
                     href={item.href}
                     className={`
                       flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      ${
-                        isActive
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'text-gray-700 hover:bg-gray-100'
+                      ${isActive
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'text-gray-700 hover:bg-gray-100'
                       }
                     `}
                   >
@@ -101,7 +102,7 @@ export default function OrganizationSidebar() {
             <ArrowLeft className="w-5 h-5" />
             Back to Main Portal
           </button>
-          
+
           <button
             onClick={() => setIsLogoutModalOpen(true)}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"

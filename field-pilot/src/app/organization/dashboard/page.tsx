@@ -1,22 +1,72 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import OrganizationLayout from '@/components/organization/OrganizationLayout';
+import FacilityModal from '@/components/organization/FacilityModal';
+import BuildingModal from '@/components/organization/BuildingModal';
+import EquipmentModal from '@/components/organization/EquipmentModal';
+import LocationModal from '@/components/organization/LocationModal';
 import { Building2, Wrench, MapPin, Home } from 'lucide-react';
+import { CreateFacilityRequest } from '@/types/facilities';
+import { CreateBuildingRequest } from '@/types/buildings';
 
 export default function OrganizationDashboard() {
   const { user, isLoading } = useAuth();
   const { tenant } = useOnboarding();
   const router = useRouter();
 
+  // Modal states
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
+  const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
+  const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
+
+  // Handler functions for modal submissions
+  const handleFacilitySubmit = async (data: CreateFacilityRequest) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Implement API call to create facility
+      console.log('Creating facility:', data);
+      // After successful creation, close modal and refresh data
+      setIsFacilityModalOpen(false);
+    } catch (error) {
+      console.error('Error creating facility:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBuildingSubmit = async (data: CreateBuildingRequest) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Implement API call to create building
+      console.log('Creating building:', data);
+      setIsBuildingModalOpen(false);
+    } catch (error) {
+      console.error('Error creating building:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Equipment and Location modals handle their own API calls
+  const handleEquipmentClose = () => {
+    setIsEquipmentModalOpen(false);
+  };
+
+  const handleLocationClose = () => {
+    setIsLocationModalOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -96,25 +146,63 @@ export default function OrganizationDashboard() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => setIsFacilityModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
               <Home className="h-5 w-5" />
               Add Facility
             </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => setIsBuildingModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
               <Building2 className="h-5 w-5" />
               Add Building
             </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => setIsEquipmentModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
               <Wrench className="h-5 w-5" />
               Add Equipment
             </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors">
+            <button
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+            >
               <MapPin className="h-5 w-5" />
               Add Location
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <FacilityModal
+        isOpen={isFacilityModalOpen}
+        onClose={() => setIsFacilityModalOpen(false)}
+        onSubmit={handleFacilitySubmit}
+        isLoading={isSubmitting}
+      />
+      <BuildingModal
+        isOpen={isBuildingModalOpen}
+        onClose={() => setIsBuildingModalOpen(false)}
+        onSubmit={handleBuildingSubmit}
+        isLoading={isSubmitting}
+      />
+      {isEquipmentModalOpen && (
+        <EquipmentModal
+          equipment={null}
+          onClose={handleEquipmentClose}
+        />
+      )}
+      {isLocationModalOpen && (
+        <LocationModal
+          location={null}
+          onClose={handleLocationClose}
+        />
+      )}
     </OrganizationLayout>
   );
 }

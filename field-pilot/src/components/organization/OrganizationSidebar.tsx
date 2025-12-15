@@ -12,6 +12,7 @@ import {
   Wrench,
   MapPin,
   Users,
+  ClipboardList,
   LogOut,
   ArrowLeft
 } from 'lucide-react';
@@ -31,6 +32,7 @@ export default function OrganizationSidebar() {
     { name: 'Buildings', href: '/organization/buildings', icon: Building2 },
     { name: 'Equipment', href: '/organization/equipment', icon: Wrench },
     { name: 'Locations', href: '/organization/locations', icon: MapPin },
+    { name: 'Tasks', href: '/organization/tasks', icon: ClipboardList },
     { name: 'Teams', href: '/organization/teams', icon: Users },
   ];
 

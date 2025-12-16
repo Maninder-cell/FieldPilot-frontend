@@ -249,7 +249,7 @@ export default function FacilityModal({
                     </label>
                     <CustomSelect
                       options={operationalStatusOptions}
-                      value={formData.operational_status}
+                      value={formData.operational_status || null}
                       onChange={(value) => setFormData(prev => ({ ...prev, operational_status: value as any }))}
                       placeholder="Select status"
                       disabled={isLoading}

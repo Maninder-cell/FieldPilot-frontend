@@ -58,7 +58,7 @@ interface OnboardingContextType {
 
   // Invitation Management
   checkUserInvitations: () => Promise<void>;
-  acceptInvite: (invitationId: string) => Promise<void>;
+  acceptInvite: (token: string) => Promise<void>;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -71,7 +71,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [userInvitations, setUserInvitations] = useState<InvitationCheckResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   // Cache flags to prevent redundant API calls
   const [membersLoaded, setMembersLoaded] = useState(false);
   const [invitationsLoaded, setInvitationsLoaded] = useState(false);
@@ -110,7 +110,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
       const tenantData = await getCurrentTenant(accessToken);
       setTenant(tenantData); // Will be null if no company exists
-      
+
       // Store tenant slug with user data for API routing
       if (tenantData && user) {
         const { storeUserData } = await import('@/lib/token-utils');
@@ -134,7 +134,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       const newTenant = await createCompanyAPI(data, accessToken);
       setTenant(newTenant);
       setCurrentStep(newTenant.onboarding_step);
-      
+
       // Store tenant slug with user data for API routing
       if (user) {
         const { storeUserData } = await import('@/lib/token-utils');
@@ -225,7 +225,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     if (membersLoaded && !force) {
       return;
     }
-    
+
     try {
       setIsLoading(true);
       const accessToken = getAccessToken();
@@ -247,7 +247,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     if (invitationsLoaded && !force) {
       return;
     }
-    
+
     try {
       const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
@@ -290,13 +290,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
-  const handleAcceptInvite = async (invitationId: string) => {
+  const handleAcceptInvite = async (token: string) => {
     try {
       setIsLoading(true);
       const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
 
-      await acceptInvitationAPI(invitationId, accessToken);
+      await acceptInvitationAPI(token, accessToken);
 
       // Refresh tenant data and user invitations after accepting
       await handleRefreshTenant();

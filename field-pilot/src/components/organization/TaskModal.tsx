@@ -104,11 +104,11 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={onClose}
         />
-        
+
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-5 flex items-center justify-between">
@@ -211,6 +211,138 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                       disabled={loading}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Assignment Section */}
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 pb-3 border-b-2 border-purple-100">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Settings className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Assignment</h3>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <p className="text-sm text-purple-800">
+                    <span className="font-semibold">Required:</span> Assign at least one technician or team to this task
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Assign Technicians
+                  </label>
+                  <LazySelect
+                    label=""
+                    value={(formData.assignee_ids?.length ?? 0) > 0 ? formData.assignee_ids![0] : ''}
+                    onChange={(value) => {
+                      if (value && !(formData.assignee_ids ?? []).includes(value)) {
+                        setFormData(prev => ({
+                          ...prev,
+                          assignee_ids: [...(prev.assignee_ids ?? []), value]
+                        }));
+                      }
+                    }}
+                    fetchItems={async (params) => {
+                      const { getTechnicians } = await import('@/lib/teams-api');
+                      return getTechnicians(params);
+                    }}
+                    fetchItemById={async (id) => {
+                      const { getTechnicians } = await import('@/lib/teams-api');
+                      const response = await getTechnicians({ page_size: 100 });
+                      const technician = response.data?.find((t: any) => t.id === id);
+                      return { data: technician };
+                    }}
+                    placeholder="Select technicians to assign"
+                    required={false}
+                    disabled={loading}
+                    pageSize={10}
+                  />
+
+                  {/* Selected Technicians */}
+                  {(formData.assignee_ids?.length ?? 0) > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(formData.assignee_ids ?? []).map((id) => (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium"
+                        >
+                          Technician
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                assignee_ids: (prev.assignee_ids ?? []).filter(aid => aid !== id)
+                              }));
+                            }}
+                            className="hover:bg-purple-200 rounded-full p-0.5"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Assign Teams
+                  </label>
+                  <LazySelect
+                    label=""
+                    value={(formData.team_ids?.length ?? 0) > 0 ? formData.team_ids![0] : ''}
+                    onChange={(value) => {
+                      if (value && !(formData.team_ids ?? []).includes(value)) {
+                        setFormData(prev => ({
+                          ...prev,
+                          team_ids: [...(prev.team_ids ?? []), value]
+                        }));
+                      }
+                    }}
+                    fetchItems={async (params) => {
+                      const { getTeams } = await import('@/lib/teams-api');
+                      const response = await getTeams(params);
+                      return { data: (response.results as any)?.data ?? [], count: response.count ?? 0 };
+                    }}
+                    fetchItemById={async (id) => {
+                      const { getTeam } = await import('@/lib/teams-api');
+                      const response = await getTeam(id);
+                      return { data: response.data };
+                    }}
+                    placeholder="Select teams to assign"
+                    required={false}
+                    disabled={loading}
+                    pageSize={10}
+                  />
+
+                  {/* Selected Teams */}
+                  {(formData.team_ids?.length ?? 0) > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(formData.team_ids ?? []).map((id) => (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                        >
+                          Team
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                team_ids: (prev.team_ids ?? []).filter(tid => tid !== id)
+                              }));
+                            }}
+                            className="hover:bg-blue-200 rounded-full p-0.5"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -158,3 +158,31 @@ export async function removeTeamMember(
         method: 'DELETE',
     });
 }
+
+/**
+ * Get list of technicians available for task assignment
+ */
+export async function getTechnicians(filters?: {
+    search?: string;
+    page?: number;
+    page_size?: number;
+}): Promise<any> {
+    const params = new URLSearchParams();
+
+    if (filters?.search) {
+        params.append('search', filters.search);
+    }
+
+    if (filters?.page) {
+        params.append('page', filters.page.toString());
+    }
+
+    if (filters?.page_size) {
+        params.append('page_size', filters.page_size.toString());
+    }
+
+    const queryString = params.toString();
+    const endpoint = `/tasks/teams/technicians/${queryString ? `?${queryString}` : ''}`;
+
+    return fetchAPI<any>(endpoint);
+}

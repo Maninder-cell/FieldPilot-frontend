@@ -51,7 +51,7 @@ async function fetchOnboardingAPI<T>(
     if ((error as OnboardingApiError).status) {
       throw error;
     }
-    
+
     // Handle network errors
     throw {
       status: 0,
@@ -82,7 +82,7 @@ export async function createCompany(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -100,7 +100,7 @@ export async function getCurrentTenant(accessToken: string): Promise<Tenant | nu
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -118,7 +118,7 @@ export async function getUserTenantMemberships(accessToken: string): Promise<Use
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -140,7 +140,7 @@ export async function updateTenant(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -166,7 +166,7 @@ export async function completeOnboardingStep(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -188,7 +188,7 @@ export async function getTenantMembers(accessToken: string): Promise<TenantMembe
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -230,7 +230,7 @@ export async function getPendingInvitations(accessToken: string): Promise<Invita
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -248,7 +248,7 @@ export async function checkInvitations(accessToken: string): Promise<InvitationC
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -279,7 +279,7 @@ export async function getInvitationByToken(
       method: 'GET',
     }
   );
-  
+
   return response.data;
 }
 
@@ -300,20 +300,20 @@ export async function acceptInvitationByToken(
       },
     }
   );
-  
+
   return response.data;
 }
 
 /**
- * Accept a pending invitation to join a tenant (deprecated - use acceptInvitationByToken)
- * POST /api/v1/onboarding/invitations/{invitation_id}/accept/
+ * Accept a pending invitation to join a tenant
+ * POST /api/v1/onboarding/invitations/accept/{token}/
  */
 export async function acceptInvitation(
-  invitationId: string,
+  token: string,
   accessToken: string
 ): Promise<{ tenant_name: string; role: string }> {
   const response = await fetchOnboardingAPI<OnboardingApiResponse<{ tenant_name: string; role: string }>>(
-    `/onboarding/invitations/${invitationId}/accept/`,
+    `/onboarding/invitations/accept/${token}/`,
     {
       method: 'POST',
       headers: {
@@ -321,7 +321,7 @@ export async function acceptInvitation(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -344,7 +344,7 @@ export async function updateMemberRole(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -423,7 +423,7 @@ export async function getTenantSettings(accessToken: string): Promise<import('@/
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -445,7 +445,7 @@ export async function updateTenantSettings(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -467,7 +467,7 @@ export async function getTechnicianWageRates(accessToken: string): Promise<impor
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -489,7 +489,7 @@ export async function createTechnicianWageRate(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -510,7 +510,7 @@ export async function getTechnicianWageRate(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -533,7 +533,7 @@ export async function updateTechnicianWageRate(
       },
     }
   );
-  
+
   return response.data;
 }
 
@@ -573,7 +573,7 @@ export async function getTechnicianWageRateHistory(
       },
     }
   );
-  
+
   return response.data;
 }
 

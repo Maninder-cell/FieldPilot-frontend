@@ -207,6 +207,7 @@ export interface Invitation {
 
 export interface InvitationCheckResponse {
   id: string;
+  token: string;  // Token needed for accepting invitation
   tenant_name: string;
   role: string;
   invited_by: string;

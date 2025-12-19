@@ -16,7 +16,7 @@ function DashboardContent() {
   const { tenant, isLoading, checkUserInvitations, userInvitations, acceptInvite, members, loadMembers } = useOnboarding();
   const { subscription, billingOverview, loadBillingOverview } = useBilling();
   const [showInvitationPrompt, setShowInvitationPrompt] = React.useState(false);
-  
+
   // Get user's role from tenant membership (not from user.role which is the base role)
   const currentUserMembership = members.find(m => m.user.id === user?.id);
   const userRole = currentUserMembership?.role || null;
@@ -130,7 +130,7 @@ function DashboardContent() {
                         variant="primary"
                         onClick={async () => {
                           try {
-                            await acceptInvite(invitation.id);
+                            await acceptInvite(invitation.token);
                             // Refresh to show dashboard with new tenant
                             window.location.reload();
                           } catch (error: any) {
@@ -171,7 +171,7 @@ function DashboardContent() {
   // 2. User is the owner AND onboarding is not completed
   // Users who joined via invitation should skip onboarding
   const shouldShowOnboarding = !tenant || (userRole === 'owner' && tenant && !tenant.onboarding_completed);
-  
+
   if (shouldShowOnboarding) {
     return (
       <DashboardLayout>
@@ -336,7 +336,7 @@ function DashboardContent() {
                 View Details →
               </Link>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Current Plan */}
               <div className="bg-blue-50 rounded-lg p-4">
@@ -364,9 +364,8 @@ function DashboardContent() {
                     </p>
                     <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${
-                          (billingOverview.usage_summary.users.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
-                        }`}
+                        className={`h-2 rounded-full ${(billingOverview.usage_summary.users.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
                         style={{ width: `${Math.min(billingOverview.usage_summary.users.percentage ?? 0, 100)}%` }}
                       />
                     </div>
@@ -382,9 +381,8 @@ function DashboardContent() {
                     </p>
                     <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${
-                          (billingOverview.usage_summary.storage.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
-                        }`}
+                        className={`h-2 rounded-full ${(billingOverview.usage_summary.storage.percentage ?? 0) >= 80 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
                         style={{ width: `${Math.min(billingOverview.usage_summary.storage.percentage ?? 0, 100)}%` }}
                       />
                     </div>
@@ -400,7 +398,7 @@ function DashboardContent() {
           <h3 className="text-xl font-semibold text-gray-900 mb-6">
             Your Profile
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center text-white font-semibold text-lg shrink-0">

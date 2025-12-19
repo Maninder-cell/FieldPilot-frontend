@@ -161,11 +161,13 @@ export async function removeTeamMember(
 
 /**
  * Get list of technicians available for task assignment
+ * Optionally exclude members of a specific team
  */
 export async function getTechnicians(filters?: {
     search?: string;
     page?: number;
     page_size?: number;
+    team_id?: string;
 }): Promise<any> {
     const params = new URLSearchParams();
 
@@ -179,6 +181,10 @@ export async function getTechnicians(filters?: {
 
     if (filters?.page_size) {
         params.append('page_size', filters.page_size.toString());
+    }
+
+    if (filters?.team_id) {
+        params.append('team_id', filters.team_id);
     }
 
     const queryString = params.toString();

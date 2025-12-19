@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import OrganizationLayout from '@/components/organization/OrganizationLayout';
 import TeamModal from '@/components/organization/TeamModal';
 import DeleteTeamModal from '@/components/organization/DeleteTeamModal';
-import { Users, Search, Edit, Trash2, UserPlus, Filter, X, CheckCircle2, XCircle } from 'lucide-react';
+import TeamMembersModal from '@/components/organization/TeamMembersModal';
+import { Users, Search, Edit, Trash2, UserPlus, Filter, X, CheckCircle2, XCircle, UserCog } from 'lucide-react';
 import { getTeams } from '@/lib/teams-api';
 import { Team } from '@/types/teams';
 import { toast } from 'react-hot-toast';
@@ -28,6 +29,7 @@ export default function TeamsPage() {
     // Modal states
     const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
     useEffect(() => {
@@ -126,9 +128,15 @@ export default function TeamsPage() {
         setIsDeleteModalOpen(true);
     };
 
+    const handleManageMembers = (team: Team) => {
+        setSelectedTeam(team);
+        setIsMembersModalOpen(true);
+    };
+
     const handleModalClose = () => {
         setIsTeamModalOpen(false);
         setIsDeleteModalOpen(false);
+        setIsMembersModalOpen(false);
         setSelectedTeam(null);
         loadTeams();
     };
@@ -193,11 +201,10 @@ export default function TeamsPage() {
                         <div className="flex items-center gap-2 sm:gap-3">
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${
-                                    showFilters || hasActiveFilters
-                                        ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
-                                        : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                                }`}
+                                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${showFilters || hasActiveFilters
+                                    ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
+                                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                                    }`}
                             >
                                 <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                                 <span className="hidden xs:inline">Filters</span>
@@ -241,11 +248,10 @@ export default function TeamsPage() {
                                             setStatusFilter(status);
                                             setCurrentPage(1);
                                         }}
-                                        className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                                            statusFilter === status
-                                                ? 'bg-emerald-600 text-white shadow-sm'
-                                                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                                        }`}
+                                        className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${statusFilter === status
+                                            ? 'bg-emerald-600 text-white shadow-sm'
+                                            : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                            }`}
                                     >
                                         {status === '' && 'All Status'}
                                         {status === 'active' && <><CheckCircle2 className="h-4 w-4" />Active</>}
@@ -325,28 +331,38 @@ export default function TeamsPage() {
                                                 </td>
                                                 <td className="px-4 lg:px-6 py-4">
                                                     <span
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                                            team.is_active
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-gray-100 text-gray-800'
-                                                        }`}
+                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${team.is_active
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-gray-100 text-gray-800'
+                                                            }`}
                                                     >
                                                         {team.is_active ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 lg:px-6 py-4 text-right">
-                                                    <button
-                                                        onClick={() => handleEditTeam(team)}
-                                                        className="text-emerald-600 hover:text-emerald-900 mr-3"
-                                                    >
-                                                        <Edit className="h-5 w-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteTeam(team)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
-                                                        <Trash2 className="h-5 w-5" />
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleManageMembers(team)}
+                                                            className="text-blue-600 hover:text-blue-900"
+                                                            title="Manage Members"
+                                                        >
+                                                            <UserCog className="h-5 w-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleEditTeam(team)}
+                                                            className="text-emerald-600 hover:text-emerald-900"
+                                                            title="Edit Team"
+                                                        >
+                                                            <Edit className="h-5 w-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteTeam(team)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                            title="Delete Team"
+                                                        >
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -370,11 +386,10 @@ export default function TeamsPage() {
                                                 </div>
                                             </div>
                                             <span
-                                                className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full h-fit ${
-                                                    team.is_active
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-gray-100 text-gray-800'
-                                                }`}
+                                                className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full h-fit ${team.is_active
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                    }`}
                                             >
                                                 {team.is_active ? 'Active' : 'Inactive'}
                                             </span>
@@ -388,6 +403,13 @@ export default function TeamsPage() {
                                             </div>
                                         </div>
                                         <div className="flex gap-2 pt-3 border-t">
+                                            <button
+                                                onClick={() => handleManageMembers(team)}
+                                                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100"
+                                            >
+                                                <UserCog className="h-4 w-4" />
+                                                Members
+                                            </button>
                                             <button
                                                 onClick={() => handleEditTeam(team)}
                                                 className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100"
@@ -419,7 +441,7 @@ export default function TeamsPage() {
                                 <span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{' '}
                                 <span className="font-medium">{totalCount}</span> results
                             </div>
-                            
+
                             <div className="flex items-center gap-2 order-1 sm:order-2">
                                 <button
                                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
@@ -435,7 +457,7 @@ export default function TeamsPage() {
                                 >
                                     Prev
                                 </button>
-                                
+
                                 <div className="hidden md:flex items-center gap-1">
                                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                         const pageNum = i + 1;
@@ -443,22 +465,21 @@ export default function TeamsPage() {
                                             <button
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
-                                                className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                                                    currentPage === pageNum
-                                                        ? 'bg-emerald-600 text-white border-emerald-600'
-                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                }`}
+                                                className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                                    ? 'bg-emerald-600 text-white border-emerald-600'
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                    }`}
                                             >
                                                 {pageNum}
                                             </button>
                                         );
                                     })}
                                 </div>
-                                
+
                                 <span className="md:hidden text-sm text-gray-700 px-2">
                                     Page {currentPage} of {totalPages}
                                 </span>
-                                
+
                                 <button
                                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                                     disabled={currentPage === totalPages}
@@ -481,6 +502,12 @@ export default function TeamsPage() {
                     team={selectedTeam}
                     onClose={() => setIsDeleteModalOpen(false)}
                     onSuccess={handleModalClose}
+                />
+            )}
+            {isMembersModalOpen && selectedTeam && (
+                <TeamMembersModal
+                    team={selectedTeam}
+                    onClose={handleModalClose}
                 />
             )}
         </OrganizationLayout>

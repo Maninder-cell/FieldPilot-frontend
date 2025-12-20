@@ -8,7 +8,7 @@ import { getTasks } from '@/lib/tasks-api';
 import { Task, TaskStatus, TaskPriority } from '@/types/tasks';
 import TaskModal from '@/components/organization/TaskModal';
 import DeleteTaskModal from '@/components/organization/DeleteTaskModal';
-import { ClipboardList, Plus, Search, Edit, Trash2, Filter, X, AlertCircle, CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react';
+import { ClipboardList, Plus, Search, Edit, Trash2, Filter, X, AlertCircle, CheckCircle2, Clock, XCircle, AlertTriangle, Eye, Users } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function TasksPage() {
@@ -93,17 +93,21 @@ export default function TasksPage() {
     setIsModalOpen(true);
   };
 
+  const handleView = (task: Task) => {
+    router.push(`/organization/tasks/${task.id}`);
+  };
+
   const handleEdit = async (item: Task) => {
     try {
       setIsFetchingDetails(true);
       toast.loading('Loading task details...', { id: 'fetch-task' });
-      
+
       // Fetch complete task data from detail endpoint
       const { getTask } = await import('@/lib/tasks-api');
       const response = await getTask(item.id);
       setSelectedTask(response.data);
       setIsModalOpen(true);
-      
+
       toast.dismiss('fetch-task');
     } catch (error: any) {
       console.error('Failed to load task details:', error);
@@ -215,11 +219,10 @@ export default function TasksPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${
-                  showFilters || hasActiveFilters
-                    ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
-                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                }`}
+                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${showFilters || hasActiveFilters
+                  ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
+                  : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
               >
                 <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden xs:inline">Filters</span>
@@ -263,11 +266,10 @@ export default function TasksPage() {
                       setStatusFilter(status as TaskStatus | '');
                       setCurrentPage(1);
                     }}
-                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      statusFilter === status
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    }`}
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${statusFilter === status
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                      }`}
                   >
                     {status === '' && 'All Status'}
                     {status === 'new' && <><AlertCircle className="h-4 w-4" />New</>}
@@ -290,11 +292,10 @@ export default function TasksPage() {
                       setPriorityFilter(priority as TaskPriority | '');
                       setCurrentPage(1);
                     }}
-                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      priorityFilter === priority
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                    }`}
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${priorityFilter === priority
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
+                      }`}
                   >
                     {priority === '' && 'All Priorities'}
                     {priority === 'low' && 'Low'}
@@ -356,17 +357,17 @@ export default function TasksPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {tasks.map((task) => (
-                      <tr key={task.id} className="hover:bg-gray-50">
+                      <tr key={task.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleView(task)}>
                         <td className="px-4 lg:px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">{task.title}</div>
                           <div className="text-sm text-gray-500">{task.task_number}</div>
                         </td>
                         <td className="px-4 lg:px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {typeof task.equipment === 'object' ? task.equipment.name : '-'}
+                            {task.equipment_name || task.equipment?.name || '-'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {typeof task.equipment === 'object' ? task.equipment.equipment_number : ''}
+                            {task.equipment_number || task.equipment?.equipment_number || ''}
                           </div>
                         </td>
                         <td className="px-4 lg:px-6 py-4">
@@ -381,19 +382,20 @@ export default function TasksPage() {
                         </td>
                         <td className="px-4 lg:px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {task.assignments && task.assignments.length > 0 ? (
-                              <div className="space-y-1">
-                                {task.assignments.slice(0, 2).map((assignment) => (
-                                  <div key={assignment.id}>
-                                    {assignment.assignee ? assignment.assignee.full_name : assignment.team?.name}
-                                  </div>
-                                ))}
-                                {task.assignments.length > 2 && (
-                                  <div className="text-gray-500">+{task.assignments.length - 2} more</div>
-                                )}
+                            {task.assignment_count && task.assignment_count > 0 ? (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg">
+                                <Users className="h-4 w-4" />
+                                <span className="font-medium">{task.assignment_count}</span>
+                                <span className="text-xs">assigned</span>
+                              </div>
+                            ) : task.assignments && task.assignments.length > 0 ? (
+                              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg">
+                                <Users className="h-4 w-4" />
+                                <span className="font-medium">{task.assignments.length}</span>
+                                <span className="text-xs">assigned</span>
                               </div>
                             ) : (
-                              <span className="text-gray-500">Unassigned</span>
+                              <span className="text-gray-500 text-xs">Unassigned</span>
                             )}
                           </div>
                         </td>
@@ -403,11 +405,14 @@ export default function TasksPage() {
                             <div className="text-sm text-gray-500">to {formatDate(task.scheduled_end)}</div>
                           )}
                         </td>
-                        <td className="px-4 lg:px-6 py-4 text-right">
-                          <button onClick={() => handleEdit(task)} disabled={isFetchingDetails} className="text-emerald-600 hover:text-emerald-900 mr-3 disabled:opacity-50">
+                        <td className="px-4 lg:px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => handleView(task)} className="text-blue-600 hover:text-blue-900 mr-3" title="View Details">
+                            <Eye className="h-5 w-5" />
+                          </button>
+                          <button onClick={() => handleEdit(task)} disabled={isFetchingDetails} className="text-emerald-600 hover:text-emerald-900 mr-3 disabled:opacity-50" title="Edit">
                             <Edit className="h-5 w-5" />
                           </button>
-                          <button onClick={() => handleDelete(task)} disabled={isFetchingDetails} className="text-red-600 hover:text-red-900 disabled:opacity-50">
+                          <button onClick={() => handleDelete(task)} disabled={isFetchingDetails} className="text-red-600 hover:text-red-900 disabled:opacity-50" title="Delete">
                             <Trash2 className="h-5 w-5" />
                           </button>
                         </td>
@@ -419,7 +424,7 @@ export default function TasksPage() {
 
               <div className="md:hidden divide-y divide-gray-200">
                 {tasks.map((task) => (
-                  <div key={task.id} className="p-4 hover:bg-gray-50">
+                  <div key={task.id} className="p-4 hover:bg-gray-50 cursor-pointer" onClick={() => handleView(task)}>
                     <div className="flex justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-900">{task.title}</h3>
@@ -437,15 +442,23 @@ export default function TasksPage() {
                     <div className="space-y-2 mb-3">
                       <div className="text-xs text-gray-600">
                         <span className="font-medium">Equipment:</span>{' '}
-                        {typeof task.equipment === 'object' ? task.equipment.name : '-'}
+                        {task.equipment_name || task.equipment?.name || '-'}
+                        {task.equipment_number && ` (${task.equipment_number})`}
                       </div>
-                      <div className="text-xs text-gray-600">
-                        <span className="font-medium">Assignees:</span>{' '}
-                        {task.assignments && task.assignments.length > 0 ? (
-                          task.assignments.slice(0, 2).map((a) => a.assignee?.full_name || a.team?.name).join(', ') +
-                          (task.assignments.length > 2 ? ` +${task.assignments.length - 2}` : '')
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600 font-medium">Assignees:</span>
+                        {task.assignment_count && task.assignment_count > 0 ? (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-medium">
+                            <Users className="h-3 w-3" />
+                            {task.assignment_count}
+                          </div>
+                        ) : task.assignments && task.assignments.length > 0 ? (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs font-medium">
+                            <Users className="h-3 w-3" />
+                            {task.assignments.length}
+                          </div>
                         ) : (
-                          'Unassigned'
+                          <span className="text-xs text-gray-500">Unassigned</span>
                         )}
                       </div>
                       {task.scheduled_start && (
@@ -455,7 +468,10 @@ export default function TasksPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2 pt-3 border-t">
+                    <div className="flex gap-2 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => handleView(task)} className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100">
+                        <Eye className="h-4 w-4" />View
+                      </button>
                       <button onClick={() => handleEdit(task)} disabled={isFetchingDetails} className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100">
                         <Edit className="h-4 w-4" />Edit
                       </button>
@@ -478,7 +494,7 @@ export default function TasksPage() {
                 <span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{' '}
                 <span className="font-medium">{totalCount}</span> results
               </div>
-              
+
               <div className="flex items-center gap-2 order-1 sm:order-2">
                 <button
                   onClick={() => {
@@ -500,7 +516,7 @@ export default function TasksPage() {
                 >
                   Prev
                 </button>
-                
+
                 <div className="hidden md:flex items-center gap-1">
                   {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }, (_, i) => {
                     const pageNum = i + 1;
@@ -511,22 +527,21 @@ export default function TasksPage() {
                           setCurrentPage(pageNum);
                           loadTasks(pageNum);
                         }}
-                        className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === pageNum
-                            ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
+                        className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          }`}
                       >
                         {pageNum}
                       </button>
                     );
                   })}
                 </div>
-                
+
                 <span className="md:hidden text-sm text-gray-700 px-2">
                   Page {currentPage} of {Math.ceil(totalCount / pageSize)}
                 </span>
-                
+
                 <button
                   onClick={() => {
                     setCurrentPage(currentPage + 1);

@@ -14,7 +14,8 @@ import {
   Users,
   ClipboardList,
   LogOut,
-  ArrowLeft
+  ArrowLeft,
+  FileBarChart
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 
@@ -34,6 +35,7 @@ export default function OrganizationSidebar() {
     { name: 'Locations', href: '/organization/locations', icon: MapPin },
     { name: 'Tasks', href: '/organization/tasks', icon: ClipboardList },
     { name: 'Teams', href: '/organization/teams', icon: Users },
+    { name: 'Reports', href: '/organization/reports/work-hours', icon: FileBarChart },
   ];
 
   const handleLogout = async () => {

@@ -17,6 +17,7 @@ export interface Equipment {
   model: string;
   serial_number: string;
   description: string;
+  location?: string; // Physical location within building
   purchase_date: string | null;
   purchase_price: string | null;
   warranty_expiration: string | null;
@@ -54,4 +55,4 @@ export interface CreateEquipmentData {
   custom_fields?: Record<string, any>;
 }
 
-export interface UpdateEquipmentData extends Partial<CreateEquipmentData> {}
+export interface UpdateEquipmentData extends Partial<CreateEquipmentData> { }

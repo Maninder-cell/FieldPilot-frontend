@@ -329,8 +329,8 @@ export async function getStorageStats(): Promise<ApiResponse<StorageStats>> {
 /**
  * Get storage breakdown by file type
  */
-export async function getStorageBreakdown(): Promise<ApiResponse<Record<string, { count: number; size: number }>>> {
-    return fetchAPI<ApiResponse<Record<string, { count: number; size: number }>>>('/files/storage/breakdown/');
+export async function getStorageBreakdown(): Promise<ApiResponse<Record<string, { count: number; total_size_bytes: number; total_size_mb: number }>>> {
+    return fetchAPI<ApiResponse<Record<string, { count: number; total_size_bytes: number; total_size_mb: number }>>>('/files/storage/breakdown/');
 }
 
 /**

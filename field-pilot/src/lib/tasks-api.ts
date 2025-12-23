@@ -136,12 +136,16 @@ export async function getTechnicians(): Promise<any> {
 }
 
 // Comment Management
-export async function getTaskComments(taskId: string): Promise<any> {
-  const response = await fetchAPI<any>(`/tasks/${taskId}/comments/`);
-  // Backend may return paginated: { count, next, previous, results: { success, data: [...] } }
-  // Or direct: { success, data: [...] }
+export async function getTaskComments(taskId: string, page: number = 1): Promise<any> {
+  const response = await fetchAPI<any>(`/tasks/${taskId}/comments/?page=${page}`);
+  // Backend returns paginated: { count, next, previous, results: { success, data: [...] } }
   if (response.results) {
-    return response.results;
+    return {
+      count: response.count,
+      next: response.next,
+      previous: response.previous,
+      data: response.results.data || response.results
+    };
   }
   return response;
 }

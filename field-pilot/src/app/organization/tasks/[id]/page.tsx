@@ -28,7 +28,8 @@ import { toast } from 'react-hot-toast';
 import TaskModal from '@/components/organization/TaskModal';
 import DeleteTaskModal from '@/components/organization/DeleteTaskModal';
 import ManageAssignmentsModal from '@/components/organization/ManageAssignmentsModal';
-import TaskComments from '@/components/organization/TaskComments';
+import TaskCommentsHistory from '@/components/organization/TaskCommentsHistory';
+import TaskCommentsAdd from '@/components/organization/TaskCommentsAdd';
 import TaskAttachments from '@/components/organization/TaskAttachments';
 import TaskTimeTracking from '@/components/organization/TaskTimeTracking';
 import TaskHistory from '@/components/organization/TaskHistory';
@@ -79,6 +80,11 @@ export default function TaskDetailPage() {
                 comments_count: (task.comments_count || 0) + delta
             });
         }
+    };
+
+    const handleCommentAdded = () => {
+        updateCommentsCount(1);
+        loadTask(); // Reload to refresh comments history
     };
 
     const updateAttachmentsCount = (delta: number) => {
@@ -320,6 +326,13 @@ export default function TaskDetailPage() {
                         </div>
 
 
+                        {/* Comments History Section - Left Side */}
+                        <TaskCommentsHistory
+                            taskId={task.id}
+                            onCommentDeleted={() => updateCommentsCount(-1)}
+                            onCommentUpdated={loadTask}
+                        />
+
                         {/* Materials Section */}
                         <TaskMaterials taskId={task.id} />
 
@@ -378,11 +391,11 @@ export default function TaskDetailPage() {
                             </div>
                         </div>
 
-                        {/* Comments Section */}
-                        <TaskComments
+                        {/* Add Comment Section - Right Side */}
+                        <TaskCommentsAdd
                             taskId={task.id}
                             currentCount={task.comments_count}
-                            onCommentChange={updateCommentsCount}
+                            onCommentAdded={handleCommentAdded}
                         />
 
                         {/* Created By */}

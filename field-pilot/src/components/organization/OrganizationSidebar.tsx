@@ -16,7 +16,8 @@ import {
   LogOut,
   ArrowLeft,
   FileBarChart,
-  Paperclip
+  Paperclip,
+  UserCheck
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 
@@ -36,6 +37,7 @@ export default function OrganizationSidebar() {
     { name: 'Locations', href: '/organization/locations', icon: MapPin },
     { name: 'Tasks', href: '/organization/tasks', icon: ClipboardList },
     { name: 'Teams', href: '/organization/teams', icon: Users },
+    { name: 'Customers', href: '/organization/customers', icon: UserCheck },
     { name: 'Attachments', href: '/organization/attachments', icon: Paperclip },
     { name: 'Reports', href: '/organization/reports/work-hours', icon: FileBarChart },
   ];

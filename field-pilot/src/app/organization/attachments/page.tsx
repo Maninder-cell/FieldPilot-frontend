@@ -952,7 +952,7 @@ export default function AttachmentsPage() {
                                         <div className="mt-3 flex flex-wrap gap-1">
                                             {file.task && (
                                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                                    Task attached
+                                                    {file.task_number ? `Task #${file.task_number}` : 'Task attached'}
                                                 </span>
                                             )}
                                             {file.is_public && (

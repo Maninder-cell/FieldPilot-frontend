@@ -14,7 +14,9 @@ export interface UserFile {
     is_public: boolean;
     is_image: boolean;
     task: string | null;
+    task_number?: string | null;
     service_request: string | null;
+    service_request_number?: string | null;
     uploaded_by: {
         id: string;
         full_name: string;

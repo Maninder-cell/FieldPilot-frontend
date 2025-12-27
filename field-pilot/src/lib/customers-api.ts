@@ -31,6 +31,15 @@ export interface Customer {
     created_by: string;
     created_at: string;
     updated_at: string;
+    invitation: {
+        id: string;
+        status: 'pending' | 'accepted' | 'expired' | 'revoked';
+        invited_at: string;
+        invited_by: string;
+        expires_at: string;
+        accepted_at: string | null;
+        is_valid: boolean;
+    } | null;
 }
 
 export interface CreateCustomerRequest {

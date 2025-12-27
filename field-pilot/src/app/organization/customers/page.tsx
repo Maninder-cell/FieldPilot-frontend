@@ -530,8 +530,16 @@ export default function CustomersPage() {
                                                                     e.stopPropagation();
                                                                     openInviteModal(customer);
                                                                 }}
-                                                                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                                                title="Send Invitation"
+                                                                disabled={customer.invitation?.status === 'pending'}
+                                                                className={`p-2 rounded-lg transition-colors ${customer.invitation?.status === 'pending'
+                                                                        ? 'text-gray-300 cursor-not-allowed'
+                                                                        : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
+                                                                    }`}
+                                                                title={
+                                                                    customer.invitation?.status === 'pending'
+                                                                        ? 'Invitation already sent'
+                                                                        : 'Send Invitation'
+                                                                }
                                                             >
                                                                 <Send className="h-4 w-4" />
                                                             </button>
@@ -593,6 +601,24 @@ export default function CustomersPage() {
                                                 <Edit className="h-4 w-4" />
                                                 Edit
                                             </button>
+                                            {!customer.has_user_account && (
+                                                <button
+                                                    onClick={() => openInviteModal(customer)}
+                                                    disabled={customer.invitation?.status === 'pending'}
+                                                    className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg ${customer.invitation?.status === 'pending'
+                                                            ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                                                            : 'text-purple-700 bg-purple-50 hover:bg-purple-100'
+                                                        }`}
+                                                    title={
+                                                        customer.invitation?.status === 'pending'
+                                                            ? 'Invitation already sent'
+                                                            : 'Send Invitation'
+                                                    }
+                                                >
+                                                    <Send className="h-4 w-4" />
+                                                    {customer.invitation?.status === 'pending' ? 'Invited' : 'Invite'}
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => openDeleteModal(customer)}
                                                 className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100"

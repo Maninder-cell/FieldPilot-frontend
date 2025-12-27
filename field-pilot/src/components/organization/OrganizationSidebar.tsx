@@ -39,7 +39,7 @@ export default function OrganizationSidebar() {
     { name: 'Teams', href: '/organization/teams', icon: Users },
     { name: 'Customers', href: '/organization/customers', icon: UserCheck },
     { name: 'Attachments', href: '/organization/attachments', icon: Paperclip },
-    { name: 'Reports', href: '/organization/reports/work-hours', icon: FileBarChart },
+    { name: 'Reports', href: '/organization/reports', icon: FileBarChart },
   ];
 
   const handleLogout = async () => {

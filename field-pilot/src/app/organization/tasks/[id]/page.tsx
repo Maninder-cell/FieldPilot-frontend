@@ -34,6 +34,7 @@ import TaskAttachments from '@/components/organization/TaskAttachments';
 import TaskTimeTracking from '@/components/organization/TaskTimeTracking';
 import TaskHistory from '@/components/organization/TaskHistory';
 import TaskMaterials from '@/components/organization/TaskMaterials';
+import WorkStatusSelector from '@/components/organization/WorkStatusSelector';
 
 export default function TaskDetailPage() {
     const { user, isLoading: authLoading } = useAuth();
@@ -305,6 +306,15 @@ export default function TaskDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
+                        {/* Work Status Selector - Only for assigned users */}
+                        {task.assignments && task.assignments.length > 0 && (
+                            <WorkStatusSelector
+                                taskId={task.id}
+                                currentStatus={task.assignments[0]?.work_status || 'open'}
+                                onStatusChange={loadTask}
+                            />
+                        )}
+
                         {/* Equipment Details - Moved to Sidebar */}
                         {task.equipment && (
                             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

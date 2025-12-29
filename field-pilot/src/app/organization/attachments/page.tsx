@@ -1146,7 +1146,7 @@ export default function AttachmentsPage() {
                                     </div>
                                     <div>
                                         <span className="text-gray-500">Uploaded by:</span>
-                                        <span className="ml-2 text-gray-900 font-medium">{selectedFile.uploaded_by?.full_name || 'Unknown'}</span>
+                                        <span className="ml-2 text-gray-900 font-medium">{selectedFile.uploaded_by_name || 'Unknown'}</span>
                                     </div>
                                     <div>
                                         <span className="text-gray-500">Date:</span>

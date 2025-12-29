@@ -22,6 +22,7 @@ export interface UserFile {
         full_name: string;
         email: string;
     };
+    uploaded_by_name: string;  // Direct field from API
     created_at: string;
     updated_at: string;
 }

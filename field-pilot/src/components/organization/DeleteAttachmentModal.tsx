@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import {
-    AlertTriangle,
-    FileText,
-    Image as ImageIcon,
-    File,
-    FileSpreadsheet,
-    FileCode,
-    FileArchive,
-    Video,
-    Music,
+  AlertTriangle,
+  FileText,
+  Image as ImageIcon,
+  File,
+  FileSpreadsheet,
+  FileCode,
+  FileArchive,
+  Video,
+  Music,
 } from 'lucide-react';
 import { deleteAttachment } from '@/lib/tasks-api';
 import { TaskAttachment } from '@/types/tasks';
@@ -39,8 +39,8 @@ export default function DeleteAttachmentModal({ attachment, onClose, onSuccess }
   };
 
   const getFileIcon = (attachment: TaskAttachment) => {
-    const fileType = attachment.file_type.toLowerCase();
-    const fileName = attachment.filename.toLowerCase();
+    const fileType = (attachment.file_type || '').toLowerCase();
+    const fileName = (attachment.filename || '').toLowerCase();
 
     // Images
     if (attachment.is_image || fileType.startsWith('image/')) {
@@ -188,7 +188,7 @@ export default function DeleteAttachmentModal({ attachment, onClose, onSuccess }
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full">
           <div className="p-6">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -206,7 +206,7 @@ export default function DeleteAttachmentModal({ attachment, onClose, onSuccess }
                 <p className="mt-2 text-sm text-gray-600">
                   This action cannot be undone.
                 </p>
-                
+
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-start gap-3">
                     <div className="shrink-0">{getFileIcon(attachment)}</div>
@@ -217,7 +217,7 @@ export default function DeleteAttachmentModal({ attachment, onClose, onSuccess }
                       <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                         <div>Size: {formatFileSize(attachment.file_size)}</div>
                         <div>Type: {attachment.file_type}</div>
-                        <div>Uploaded by: {attachment.uploaded_by_name}</div>
+                        <div>Uploaded by: {attachment.uploaded_by_name || 'Unknown'}</div>
                         <div>Date: {formatDate(attachment.created_at)}</div>
                       </div>
                     </div>

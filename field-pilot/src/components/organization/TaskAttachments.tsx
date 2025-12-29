@@ -141,7 +141,7 @@ export default function TaskAttachments({ taskId, currentCount = 0, onAttachment
             setIsUploading(true);
             await uploadAttachment(taskId, selectedFile);
             toast.success('File uploaded successfully');
-            
+
             // Reset state
             setSelectedFile(null);
             setPreviewUrl(null);
@@ -151,7 +151,7 @@ export default function TaskAttachments({ taskId, currentCount = 0, onAttachment
 
             // Reload attachments
             await loadAttachments();
-            
+
             // Notify parent of change
             if (onAttachmentChange) {
                 onAttachmentChange(1);
@@ -179,7 +179,7 @@ export default function TaskAttachments({ taskId, currentCount = 0, onAttachment
     const handleDeleteSuccess = () => {
         // Reload attachments
         loadAttachments();
-        
+
         // Notify parent of change
         if (onAttachmentChange) {
             onAttachmentChange(-1);
@@ -220,8 +220,8 @@ export default function TaskAttachments({ taskId, currentCount = 0, onAttachment
     };
 
     const getFileIcon = (attachment: TaskAttachment) => {
-        const fileType = attachment.file_type.toLowerCase();
-        const fileName = attachment.filename.toLowerCase();
+        const fileType = (attachment.file_type || '').toLowerCase();
+        const fileName = (attachment.filename || '').toLowerCase();
 
         // Images
         if (attachment.is_image || fileType.startsWith('image/')) {

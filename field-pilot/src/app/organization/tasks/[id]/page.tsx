@@ -28,8 +28,8 @@ import { toast } from 'react-hot-toast';
 import TaskModal from '@/components/organization/TaskModal';
 import DeleteTaskModal from '@/components/organization/DeleteTaskModal';
 import ManageAssignmentsModal from '@/components/organization/ManageAssignmentsModal';
+import TaskCommentsModal from '@/components/organization/TaskCommentsModal';
 import TaskCommentsHistory from '@/components/organization/TaskCommentsHistory';
-import TaskCommentsAdd from '@/components/organization/TaskCommentsAdd';
 import TaskAttachments from '@/components/organization/TaskAttachments';
 import TaskTimeTracking from '@/components/organization/TaskTimeTracking';
 import TaskHistory from '@/components/organization/TaskHistory';
@@ -46,6 +46,8 @@ export default function TaskDetailPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isManageAssignmentsOpen, setIsManageAssignmentsOpen] = useState(false);
+    const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+    const [commentsRefreshKey, setCommentsRefreshKey] = useState(0);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -73,6 +75,7 @@ export default function TaskDetailPage() {
         }
     };
 
+
     const updateCommentsCount = (delta: number) => {
         if (task) {
             setTask({
@@ -82,10 +85,6 @@ export default function TaskDetailPage() {
         }
     };
 
-    const handleCommentAdded = () => {
-        updateCommentsCount(1);
-        loadTask(); // Reload to refresh comments history
-    };
 
     const updateAttachmentsCount = (delta: number) => {
         if (task) {
@@ -189,6 +188,13 @@ export default function TaskDetailPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => setIsCommentsModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-emerald-300 rounded-lg text-sm font-medium text-emerald-700 bg-white hover:bg-emerald-50 transition-colors"
+                        >
+                            <MessageSquare className="h-4 w-4" />
+                            Comments ({task.comments_count || 0})
+                        </button>
+                        <button
                             onClick={handleEdit}
                             className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                         >
@@ -208,56 +214,6 @@ export default function TaskDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Description */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Description</h2>
-                            <p className="text-gray-700 whitespace-pre-wrap">{task.description || 'No description provided'}</p>
-                        </div>
-
-                        {/* Equipment Details */}
-                        {task.equipment && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Wrench className="h-5 w-5 text-emerald-600" />
-                                    Equipment Details
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Equipment Name</p>
-                                        <p className="text-sm font-medium text-gray-900">{task.equipment.name}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Equipment Number</p>
-                                        <p className="text-sm font-medium text-gray-900">{task.equipment.equipment_number}</p>
-                                    </div>
-                                    {task.equipment.building && typeof task.equipment.building === 'object' && (
-                                        <>
-                                            <div>
-                                                <p className="text-sm text-gray-500 mb-1">Building</p>
-                                                <p className="text-sm font-medium text-gray-900">{task.equipment.building.name}</p>
-                                            </div>
-                                            {task.equipment.building.facility && typeof task.equipment.building.facility === 'object' && (
-                                                <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Facility</p>
-                                                    <p className="text-sm font-medium text-gray-900">{task.equipment.building.facility.name}</p>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                    {task.equipment.location && (
-                                        <div className="sm:col-span-2">
-                                            <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                                                <MapPin className="h-4 w-4" />
-                                                Location
-                                            </p>
-                                            <p className="text-sm font-medium text-gray-900">{task.equipment.location}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-
                         {/* Assignments */}
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                             <div className="flex items-center justify-between mb-4">
@@ -325,12 +281,12 @@ export default function TaskDetailPage() {
                             )}
                         </div>
 
-
-                        {/* Comments History Section - Left Side */}
+                        {/* Comments History Section */}
                         <TaskCommentsHistory
+                            key={commentsRefreshKey}
                             taskId={task.id}
                             onCommentDeleted={() => updateCommentsCount(-1)}
-                            onCommentUpdated={loadTask}
+                            onCommentUpdated={() => { }} // Don't reload page on edit
                         />
 
                         {/* Materials Section */}
@@ -349,6 +305,52 @@ export default function TaskDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
+                        {/* Equipment Details - Moved to Sidebar */}
+                        {task.equipment && (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <Wrench className="h-5 w-5 text-emerald-600" />
+                                    Equipment Details
+                                </h2>
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Equipment Name</p>
+                                        <p className="text-sm font-medium text-gray-900">{task.equipment.name}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Equipment Number</p>
+                                        <p className="text-sm font-medium text-gray-900">{task.equipment.equipment_number}</p>
+                                    </div>
+                                    {task.equipment.building && typeof task.equipment.building === 'object' && (
+                                        <>
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1">Building</p>
+                                                <p className="text-sm font-medium text-gray-900">{task.equipment.building.name}</p>
+                                            </div>
+                                            {task.equipment.building.facility && typeof task.equipment.building.facility === 'object' && (
+                                                <div>
+                                                    <p className="text-sm text-gray-500 mb-1">Facility</p>
+                                                    <p className="text-sm font-medium text-gray-900">{task.equipment.building.facility.name}</p>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                    {task.equipment.location && (
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                                <MapPin className="h-4 w-4" />
+                                                Location
+                                            </p>
+                                            <p className="text-sm font-medium text-gray-900">{task.equipment.location}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Task History Section - Moved below Equipment Details */}
+                        <TaskHistory taskId={task.id} />
+
                         {/* Schedule */}
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -391,12 +393,11 @@ export default function TaskDetailPage() {
                             </div>
                         </div>
 
-                        {/* Add Comment Section - Right Side */}
-                        <TaskCommentsAdd
-                            taskId={task.id}
-                            currentCount={task.comments_count}
-                            onCommentAdded={handleCommentAdded}
-                        />
+                        {/* Description - Moved to Sidebar Below Activity */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Description</h2>
+                            <p className="text-gray-700 whitespace-pre-wrap text-sm">{task.description || 'No description provided'}</p>
+                        </div>
 
                         {/* Created By */}
                         {task.created_by && (
@@ -438,8 +439,6 @@ export default function TaskDetailPage() {
                             </div>
                         )}
 
-                        {/* Task History Section */}
-                        <TaskHistory taskId={task.id} />
                     </div>
                 </div>
             </div>
@@ -467,6 +466,21 @@ export default function TaskDetailPage() {
                     onSuccess={loadTask}
                 />
             )}
+
+            {/* Comments Modal */}
+            <TaskCommentsModal
+                taskId={taskId}
+                isOpen={isCommentsModalOpen}
+                onClose={() => setIsCommentsModalOpen(false)}
+                currentCount={task?.comments_count}
+                onCommentCountChange={(newCount: number) => {
+                    if (task) {
+                        setTask({ ...task, comments_count: newCount });
+                        // Trigger refresh of main page comments history
+                        setCommentsRefreshKey(prev => prev + 1);
+                    }
+                }}
+            />
         </OrganizationLayout>
     );
 }

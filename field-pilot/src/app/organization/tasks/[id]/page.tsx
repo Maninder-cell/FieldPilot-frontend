@@ -35,6 +35,7 @@ import TaskTimeTracking from '@/components/organization/TaskTimeTracking';
 import TaskHistory from '@/components/organization/TaskHistory';
 import TaskMaterials from '@/components/organization/TaskMaterials';
 import WorkStatusSelector from '@/components/organization/WorkStatusSelector';
+import AdminStatusSelector from '@/components/organization/AdminStatusSelector';
 
 export default function TaskDetailPage() {
     const { user, isLoading: authLoading } = useAuth();
@@ -314,6 +315,13 @@ export default function TaskDetailPage() {
                                 onStatusChange={loadTask}
                             />
                         )}
+
+                        {/* Admin Status Selector - Temporarily showing for all users */}
+                        <AdminStatusSelector
+                            taskId={task.id}
+                            currentStatus={task.status || 'new'}
+                            onStatusChange={loadTask}
+                        />
 
                         {/* Equipment Details - Moved to Sidebar */}
                         {task.equipment && (

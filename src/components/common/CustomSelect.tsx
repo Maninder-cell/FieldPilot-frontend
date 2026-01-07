@@ -1,12 +1,51 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import {
+  ChevronDown,
+  Check,
+  Wrench,
+  AlertTriangle,
+  Settings,
+  Search,
+  TrendingDown,
+  Zap,
+  Shield,
+  HelpCircle,
+  Signal,
+  SignalMedium,
+  SignalHigh,
+  Flame,
+  CircleDot,
+  Circle,
+  AlertCircle,
+  LucideIcon
+} from 'lucide-react';
+
+// Icon mapping
+const iconMap: Record<string, LucideIcon> = {
+  Wrench,
+  AlertTriangle,
+  Settings,
+  Search,
+  TrendingDown,
+  Zap,
+  Shield,
+  HelpCircle,
+  Signal,
+  SignalMedium,
+  SignalHigh,
+  Flame,
+  CircleDot,
+  Circle,
+  AlertCircle,
+};
 
 export interface SelectOption {
   value: string;
   label: string;
-  icon?: string;
+  icon?: string; // Icon name from Lucide
+  color?: string; // Tailwind color class for the icon
   description?: string;
 }
 
@@ -37,10 +76,10 @@ export default function CustomSelect({
 
   const filteredOptions = searchable
     ? options.filter(
-        (option) =>
-          option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          option.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (option) =>
+        option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        option.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : options;
 
   // Close dropdown when clicking outside
@@ -69,14 +108,16 @@ export default function CustomSelect({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow bg-white text-left flex items-center justify-between ${
-          disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400 cursor-pointer'
-        }`}
+        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow bg-white text-left flex items-center justify-between ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-400 cursor-pointer'
+          }`}
       >
         <span className={selectedOption ? 'text-gray-900' : 'text-gray-400'}>
           {selectedOption ? (
             <span className="flex items-center gap-2">
-              {selectedOption.icon && <span>{selectedOption.icon}</span>}
+              {selectedOption.icon && (() => {
+                const IconComponent = iconMap[selectedOption.icon];
+                return IconComponent ? <IconComponent className={`h-4 w-4 ${selectedOption.color || 'text-gray-600'}`} /> : null;
+              })()}
               {selectedOption.label}
             </span>
           ) : (
@@ -90,7 +131,7 @@ export default function CustomSelect({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-hidden">
+        <div className="absolute z-[9999] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-hidden">
           {/* Search Input */}
           {searchable && (
             <div className="p-2 border-b border-gray-200">
@@ -113,14 +154,16 @@ export default function CustomSelect({
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`w-full px-4 py-3 text-left transition-colors flex items-center justify-between group ${
-                    selectedOption?.value === option.value
-                      ? 'bg-emerald-50 hover:bg-emerald-100'
-                      : 'hover:bg-gray-50'
-                  }`}
+                  className={`w-full px-4 py-3 text-left transition-colors flex items-center justify-between group ${selectedOption?.value === option.value
+                    ? 'bg-emerald-50 hover:bg-emerald-100'
+                    : 'hover:bg-gray-50'
+                    }`}
                 >
                   <div className="flex items-center gap-2">
-                    {option.icon && <span className="text-lg">{option.icon}</span>}
+                    {option.icon && (() => {
+                      const IconComponent = iconMap[option.icon];
+                      return IconComponent ? <IconComponent className={`h-4 w-4 ${option.color || 'text-gray-600'}`} /> : null;
+                    })()}
                     <div>
                       <div className="text-sm font-medium text-gray-900">{option.label}</div>
                       {option.description && (

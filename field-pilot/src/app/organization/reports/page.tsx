@@ -38,8 +38,8 @@ import {
     ReportType,
     ReportAuditLog,
     ReportFilters,
-    getReportPdfUrl,
-    getReportExcelUrl,
+    downloadReportPdf,
+    downloadReportExcel,
 } from '@/lib/reports-api';
 
 // Icon mapping for categories
@@ -166,15 +166,27 @@ export default function ReportsPage() {
         }
     };
 
-    const handleExportPdf = () => {
+    const handleExportPdf = async () => {
         if (reportId) {
-            window.open(getReportPdfUrl(reportId), '_blank');
+            try {
+                await downloadReportPdf(reportId);
+                toast.success('PDF downloaded successfully!');
+            } catch (error: any) {
+                console.error('Failed to download PDF:', error);
+                toast.error(error.message || 'Failed to download PDF');
+            }
         }
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         if (reportId) {
-            window.open(getReportExcelUrl(reportId), '_blank');
+            try {
+                await downloadReportExcel(reportId);
+                toast.success('Excel downloaded successfully!');
+            } catch (error: any) {
+                console.error('Failed to download Excel:', error);
+                toast.error(error.message || 'Failed to download Excel');
+            }
         }
     };
 
@@ -233,47 +245,53 @@ export default function ReportsPage() {
         <OrganizationLayout>
             <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        {activeView !== 'dashboard' && (
-                            <button
-                                onClick={() => {
-                                    setActiveView('dashboard');
-                                    setSelectedCategory(null);
-                                    setSelectedReport(null);
-                                    setGeneratedReport(null);
-                                }}
-                                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                                <ArrowLeft className="h-5 w-5 text-gray-600" />
-                            </button>
-                        )}
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                <FileBarChart className="h-7 w-7 text-emerald-600" />
-                                {activeView === 'dashboard' && 'Reports'}
-                                {activeView === 'generate' && selectedReport?.name}
-                                {activeView === 'history' && 'Report History'}
-                            </h1>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {activeView === 'dashboard' && 'Generate comprehensive reports across all modules'}
-                                {activeView === 'generate' && selectedReport?.description}
-                                {activeView === 'history' && 'View previously generated reports'}
-                            </p>
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            {activeView !== 'dashboard' && (
+                                <button
+                                    onClick={() => {
+                                        setActiveView('dashboard');
+                                        setSelectedCategory(null);
+                                        setSelectedReport(null);
+                                        setGeneratedReport(null);
+                                    }}
+                                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                    <ArrowLeft className="h-5 w-5 text-gray-600" />
+                                </button>
+                            )}
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-emerald-100 rounded-lg">
+                                    <FileBarChart className="h-6 w-6 text-emerald-600" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold text-gray-900">
+                                        {activeView === 'dashboard' && 'Reports'}
+                                        {activeView === 'generate' && selectedReport?.name}
+                                        {activeView === 'history' && 'Report History'}
+                                    </h1>
+                                    <p className="text-sm text-gray-600 mt-0.5">
+                                        {activeView === 'dashboard' && 'Generate comprehensive reports across all modules'}
+                                        {activeView === 'generate' && selectedReport?.description}
+                                        {activeView === 'history' && 'View previously generated reports'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setActiveView('history')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'history'
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setActiveView('history')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'history'
                                     ? 'bg-emerald-600 text-white'
                                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                }`}
-                        >
-                            <History className="h-4 w-4" />
-                            History
-                        </button>
+                                    }`}
+                            >
+                                <History className="h-4 w-4" />
+                                History
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -281,50 +299,50 @@ export default function ReportsPage() {
                 {activeView === 'dashboard' && (
                     <>
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-emerald-100 rounded-lg">
-                                        <FileBarChart className="h-6 w-6 text-emerald-600" />
+                                    <div className="p-2.5 bg-emerald-100 rounded-lg">
+                                        <FileBarChart className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500">Report Types</p>
+                                        <p className="text-xs text-gray-500 font-medium">Report Types</p>
                                         <p className="text-2xl font-bold text-gray-900">17</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-blue-100 rounded-lg">
-                                        <Calendar className="h-6 w-6 text-blue-600" />
+                                    <div className="p-2.5 bg-emerald-100 rounded-lg">
+                                        <Calendar className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500">Categories</p>
+                                        <p className="text-xs text-gray-500 font-medium">Categories</p>
                                         <p className="text-2xl font-bold text-gray-900">5</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-purple-100 rounded-lg">
-                                        <Download className="h-6 w-6 text-purple-600" />
+                                    <div className="p-2.5 bg-emerald-100 rounded-lg">
+                                        <Download className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500">Export Formats</p>
+                                        <p className="text-xs text-gray-500 font-medium">Export Formats</p>
                                         <p className="text-2xl font-bold text-gray-900">3</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-orange-100 rounded-lg">
-                                        <History className="h-6 w-6 text-orange-600" />
+                                    <div className="p-2.5 bg-emerald-100 rounded-lg">
+                                        <History className="h-5 w-5 text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500">Recent Reports</p>
+                                        <p className="text-xs text-gray-500 font-medium">Recent Reports</p>
                                         <p className="text-2xl font-bold text-gray-900">{auditLogs.length}</p>
                                     </div>
                                 </div>
@@ -332,42 +350,42 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Report Categories */}
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             {Object.entries(REPORT_CATEGORIES).map(([key, category]) => {
                                 const IconComponent = categoryIcons[category.icon] || FileBarChart;
                                 return (
-                                    <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                                    <div key={key} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                                        <div className="p-5 border-b border-gray-100 bg-gray-50">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-emerald-100 rounded-lg">
                                                     <IconComponent className="h-5 w-5 text-emerald-600" />
                                                 </div>
                                                 <div>
                                                     <h2 className="text-lg font-semibold text-gray-900">{category.name}</h2>
-                                                    <p className="text-sm text-gray-500">{category.description}</p>
+                                                    <p className="text-sm text-gray-600 mt-0.5">{category.description}</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5">
                                             {category.reports.map((report) => (
                                                 <button
                                                     key={report.type}
                                                     onClick={() => handleSelectReport(report)}
-                                                    className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all text-left group"
+                                                    className="group flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all text-left"
                                                 >
                                                     <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-emerald-100 transition-colors">
-                                                        <FileText className="h-4 w-4 text-gray-600 group-hover:text-emerald-600" />
+                                                        <FileText className="h-4 w-4 text-gray-600 group-hover:text-emerald-600 transition-colors" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <h3 className="text-sm font-medium text-gray-900 group-hover:text-emerald-700">
+                                                        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
                                                             {report.name}
                                                         </h3>
                                                         <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                                                             {report.description}
                                                         </p>
                                                     </div>
-                                                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-emerald-600 flex-shrink-0 mt-1" />
+                                                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-emerald-600 flex-shrink-0 mt-0.5 transition-colors" />
                                                 </button>
                                             ))}
                                         </div>
@@ -382,45 +400,47 @@ export default function ReportsPage() {
                 {activeView === 'generate' && selectedReport && (
                     <div className="space-y-6">
                         {/* Filters Section */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Filter className="h-5 w-5 text-emerald-600" />
+                                <div className="p-1.5 bg-emerald-100 rounded-lg">
+                                    <Filter className="h-4 w-4 text-emerald-600" />
+                                </div>
                                 Report Filters
                             </h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                <div className="lg:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Start Date
                                     </label>
                                     <input
                                         type="date"
                                         value={filters.start_date || ''}
                                         onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <div className="lg:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         End Date
                                     </label>
                                     <input
                                         type="date"
                                         value={filters.end_date || ''}
                                         onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <div className="lg:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                         Output Format
                                     </label>
                                     <select
                                         value={outputFormat}
                                         onChange={(e) => setOutputFormat(e.target.value as 'json' | 'pdf' | 'excel')}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white"
                                     >
                                         <option value="json">JSON (View in Browser)</option>
                                         <option value="pdf">PDF (Download)</option>
@@ -428,11 +448,14 @@ export default function ReportsPage() {
                                     </select>
                                 </div>
 
-                                <div className="flex items-end">
+                                <div className="lg:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                        &nbsp;
+                                    </label>
                                     <button
                                         onClick={handleGenerateReport}
                                         disabled={isGenerating}
-                                        className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                        className="w-full h-10 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                     >
                                         {isGenerating ? (
                                             <>
@@ -520,16 +543,18 @@ export default function ReportsPage() {
 
                         {/* Export Actions (for PDF/Excel) */}
                         {reportId && outputFormat !== 'json' && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Download className="h-5 w-5 text-emerald-600" />
+                                    <div className="p-1.5 bg-emerald-100 rounded-lg">
+                                        <Download className="h-4 w-4 text-emerald-600" />
+                                    </div>
                                     Export Report
                                 </h2>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     {outputFormat === 'pdf' && (
                                         <button
                                             onClick={handleExportPdf}
-                                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
                                         >
                                             <FileText className="h-4 w-4" />
                                             Download PDF
@@ -538,7 +563,7 @@ export default function ReportsPage() {
                                     {outputFormat === 'excel' && (
                                         <button
                                             onClick={handleExportExcel}
-                                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
                                         >
                                             <FileSpreadsheet className="h-4 w-4" />
                                             Download Excel
@@ -595,22 +620,92 @@ export default function ReportsPage() {
 
                                 {/* Data Table or Raw JSON */}
                                 <div className="p-6">
-                                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Report Data</h3>
-                                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs overflow-x-auto max-h-96">
-                                        {JSON.stringify(generatedReport.data, null, 2)}
-                                    </pre>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-sm font-semibold text-gray-700">Report Data</h3>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(JSON.stringify(generatedReport.data, null, 2));
+                                                toast.success('Data copied to clipboard!');
+                                            }}
+                                            className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1"
+                                        >
+                                            <FileText className="h-3 w-3" />
+                                            Copy Data
+                                        </button>
+                                    </div>
+
+                                    {/* Render data as a table if it's an array */}
+                                    {Array.isArray(generatedReport.data?.results) && generatedReport.data.results.length > 0 ? (
+                                        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                                            <table className="w-full">
+                                                <thead className="bg-gray-50 border-b border-gray-200">
+                                                    <tr>
+                                                        {Object.keys(generatedReport.data.results[0]).map((key) => (
+                                                            <th key={key} className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                                {key.replace(/_/g, ' ')}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-200 bg-white">
+                                                    {generatedReport.data.results.map((row: any, idx: number) => (
+                                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                                            {Object.values(row).map((value: any, cellIdx: number) => (
+                                                                <td key={cellIdx} className="px-4 py-3 text-sm text-gray-600">
+                                                                    {typeof value === 'object' && value !== null
+                                                                        ? JSON.stringify(value)
+                                                                        : typeof value === 'number'
+                                                                            ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                            : String(value || '-')}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        /* Fallback: Show formatted key-value pairs */
+                                        <div className="space-y-3">
+                                            {Object.entries(generatedReport.data || {}).map(([key, value]) => {
+                                                if (key === 'summary') return null; // Already shown above
+                                                return (
+                                                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                        <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                                                            {key.replace(/_/g, ' ')}
+                                                        </p>
+                                                        <div className="text-sm text-gray-900">
+                                                            {typeof value === 'object' && value !== null ? (
+                                                                <pre className="bg-white p-3 rounded border border-gray-200 text-xs overflow-x-auto">
+                                                                    {JSON.stringify(value, null, 2)}
+                                                                </pre>
+                                                            ) : (
+                                                                <p className="font-medium">
+                                                                    {typeof value === 'number'
+                                                                        ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                        : String(value || '-')}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {/* Empty State */}
                         {!generatedReport && !reportId && !isGenerating && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-                                <FileBarChart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 shadow-sm p-12 text-center">
+                                <div className="inline-flex p-3 bg-emerald-100 rounded-lg mb-4">
+                                    <FileBarChart className="h-12 w-12 text-emerald-600" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                     Configure and Generate Report
                                 </h3>
-                                <p className="text-gray-500 max-w-md mx-auto">
+                                <p className="text-sm text-gray-600 max-w-md mx-auto">
                                     Set your filters above and click "Generate Report" to create your {selectedReport.name}.
                                 </p>
                             </div>
@@ -620,16 +715,18 @@ export default function ReportsPage() {
 
                 {/* History View */}
                 {activeView === 'history' && (
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 bg-gray-50">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <History className="h-5 w-5 text-emerald-600" />
+                                    <div className="p-1.5 bg-emerald-100 rounded-lg">
+                                        <History className="h-4 w-4 text-emerald-600" />
+                                    </div>
                                     Report Generation History
                                 </h2>
                                 <button
                                     onClick={loadAuditLogs}
-                                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     <RefreshCw className="h-4 w-4" />
                                     Refresh
@@ -640,42 +737,42 @@ export default function ReportsPage() {
                         {auditLogs.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Report
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 User
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Format
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Time
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Generated At
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-200">
+                                    <tbody className="divide-y divide-gray-200 bg-white">
                                         {auditLogs.map((log) => (
-                                            <tr key={log.id} className="hover:bg-gray-50">
+                                            <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div>
                                                         <p className="text-sm font-medium text-gray-900">{log.report_name}</p>
-                                                        <p className="text-xs text-gray-500">{log.report_type}</p>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{log.report_type}</p>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {log.user_name || '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 uppercase">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700 uppercase">
                                                         {log.format}
                                                     </span>
                                                 </td>
@@ -685,7 +782,7 @@ export default function ReportsPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {log.execution_time ? `${log.execution_time.toFixed(2)}s` : '-'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {formatDate(log.generated_at)}
                                                 </td>
                                             </tr>
@@ -695,8 +792,11 @@ export default function ReportsPage() {
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <History className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500">No report history found</p>
+                                <div className="inline-flex p-3 bg-emerald-100 rounded-lg mb-3">
+                                    <History className="h-10 w-10 text-emerald-600" />
+                                </div>
+                                <p className="text-gray-600 font-medium">No report history found</p>
+                                <p className="text-sm text-gray-500 mt-1">Generated reports will appear here</p>
                             </div>
                         )}
                     </div>

@@ -280,7 +280,110 @@ export async function getReportDetail(reportId: string): Promise<ApiResponse<Rep
 }
 
 /**
- * Export report as PDF - returns the URL for download
+ * Export report as PDF - downloads the file with authentication
+ */
+export async function downloadReportPdf(reportId: string): Promise<void> {
+    const token = getAccessToken();
+    const apiUrl = getApiUrl(true);
+    const url = `${apiUrl}/reports/${reportId}/export/pdf/`;
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+    });
+
+    if (!response.ok) {
+        let errorMessage = 'Failed to download PDF';
+        try {
+            const errorData = await response.json();
+            console.error('PDF Export Error Response:', errorData);
+
+            // Extract error message from various possible formats
+            if (errorData.error?.message) {
+                errorMessage = errorData.error.message;
+            } else if (errorData.message) {
+                errorMessage = errorData.message;
+            } else if (errorData.detail) {
+                errorMessage = errorData.detail;
+            } else if (errorData.error?.details?.detail) {
+                errorMessage = errorData.error.details.detail;
+            }
+        } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+
+    // Create a download link and trigger it
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `report-${reportId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+}
+
+/**
+ * Export report as Excel - downloads the file with authentication
+ */
+export async function downloadReportExcel(reportId: string): Promise<void> {
+    const token = getAccessToken();
+    const apiUrl = getApiUrl(true);
+    const url = `${apiUrl}/reports/${reportId}/export/excel/`;
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
+    });
+
+    if (!response.ok) {
+        let errorMessage = 'Failed to download Excel';
+        try {
+            const errorData = await response.json();
+            console.error('Excel Export Error Response:', errorData);
+
+            // Extract error message from various possible formats
+            if (errorData.error?.message) {
+                errorMessage = errorData.error.message;
+            } else if (errorData.message) {
+                errorMessage = errorData.message;
+            } else if (errorData.detail) {
+                errorMessage = errorData.detail;
+            } else if (errorData.error?.details?.detail) {
+                errorMessage = errorData.error.details.detail;
+            }
+        } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+
+    // Create a download link and trigger it
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `report-${reportId}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+}
+
+/**
+ * Get report PDF URL (for legacy compatibility - use downloadReportPdf instead)
+ * @deprecated Use downloadReportPdf for authenticated downloads
  */
 export function getReportPdfUrl(reportId: string): string {
     const apiUrl = getApiUrl(true);
@@ -288,7 +391,8 @@ export function getReportPdfUrl(reportId: string): string {
 }
 
 /**
- * Export report as Excel - returns the URL for download
+ * Get report Excel URL (for legacy compatibility - use downloadReportExcel instead)
+ * @deprecated Use downloadReportExcel for authenticated downloads
  */
 export function getReportExcelUrl(reportId: string): string {
     const apiUrl = getApiUrl(true);

@@ -24,10 +24,13 @@ import {
     Flame,
     FileText,
     MapPin,
+    Star,
 } from 'lucide-react';
 import AcceptRequestModal from '@/components/organization/AcceptRequestModal';
 import RejectRequestModal from '@/components/organization/RejectRequestModal';
 import FeedbackModal from '@/components/organization/FeedbackModal';
+import InternalNotesModal from '@/components/organization/InternalNotesModal';
+import ConvertToTaskModal from '@/components/organization/ConvertToTaskModal';
 import { getServiceRequestById } from '@/lib/service-requests-api';
 import { ServiceRequest } from '@/types/service-requests';
 import { toast } from 'react-hot-toast';
@@ -44,6 +47,8 @@ export default function ServiceRequestDetailPage() {
     const [showAcceptModal, setShowAcceptModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [showInternalNotesModal, setShowInternalNotesModal] = useState(false);
+    const [showConvertToTaskModal, setShowConvertToTaskModal] = useState(false);
 
 
     useEffect(() => {
@@ -134,27 +139,27 @@ export default function ServiceRequestDetailPage() {
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
                 </div>
-    
-            {/* Modals */}
-            <AcceptRequestModal
-                isOpen={showAcceptModal}
-                onClose={() => setShowAcceptModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-            <RejectRequestModal
-                isOpen={showRejectModal}
-                onClose={() => setShowRejectModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-            <FeedbackModal
-                isOpen={showFeedbackModal}
-                onClose={() => setShowFeedbackModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-        </OrganizationLayout>
+
+                {/* Modals */}
+                <AcceptRequestModal
+                    isOpen={showAcceptModal}
+                    onClose={() => setShowAcceptModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+                <RejectRequestModal
+                    isOpen={showRejectModal}
+                    onClose={() => setShowRejectModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+                <FeedbackModal
+                    isOpen={showFeedbackModal}
+                    onClose={() => setShowFeedbackModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+            </OrganizationLayout>
         );
     }
 
@@ -172,27 +177,27 @@ export default function ServiceRequestDetailPage() {
                         </button>
                     </div>
                 </div>
-    
-            {/* Modals */}
-            <AcceptRequestModal
-                isOpen={showAcceptModal}
-                onClose={() => setShowAcceptModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-            <RejectRequestModal
-                isOpen={showRejectModal}
-                onClose={() => setShowRejectModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-            <FeedbackModal
-                isOpen={showFeedbackModal}
-                onClose={() => setShowFeedbackModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-        </OrganizationLayout>
+
+                {/* Modals */}
+                <AcceptRequestModal
+                    isOpen={showAcceptModal}
+                    onClose={() => setShowAcceptModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+                <RejectRequestModal
+                    isOpen={showRejectModal}
+                    onClose={() => setShowRejectModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+                <FeedbackModal
+                    isOpen={showFeedbackModal}
+                    onClose={() => setShowFeedbackModal(false)}
+                    requestId={requestId}
+                    onSuccess={loadRequest}
+                />
+            </OrganizationLayout>
         );
     }
 
@@ -227,36 +232,6 @@ export default function ServiceRequestDetailPage() {
                             <div className="flex items-center gap-3">
                                 {getStatusBadge(request.status)}
                                 {getPriorityBadge(request.priority)}
-                                
-                                {/* Admin Actions */}
-                                {(['admin', 'manager', 'owner'].includes(user?.role as string)) && request.status === 'pending' && (
-                                    <>
-                                        <button
-                                            onClick={() => setShowAcceptModal(true)}
-                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                                        >
-                                            <CheckCircle className="h-4 w-4" />
-                                            Accept
-                                        </button>
-                                        <button
-                                            onClick={() => setShowRejectModal(true)}
-                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                                        >
-                                            <XCircle className="h-4 w-4" />
-                                            Reject
-                                        </button>
-                                    </>
-                                )}
-                                
-                                {/* Feedback Button */}
-                                {request.status === 'completed' && (user?.role as string) === 'customer' && (
-                                    <button
-                                        onClick={() => setShowFeedbackModal(true)}
-                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
-                                    >
-                                        Submit Feedback
-                                    </button>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -671,6 +646,88 @@ export default function ServiceRequestDetailPage() {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
+                            {/* Actions Card */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <Settings className="h-4 w-4 text-emerald-600" />
+                                    Actions
+                                </h3>
+                                <div className="space-y-2">
+                                    {/* Mark Under Review */}
+                                    {request.status === 'pending' && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const { markUnderReview } = await import('@/lib/service-requests-api');
+                                                    await markUnderReview(requestId);
+                                                    toast.success('Marked as under review');
+                                                    loadRequest();
+                                                } catch (error: any) {
+                                                    toast.error(error.message || 'Failed to update status');
+                                                }
+                                            }}
+                                            className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            Mark Under Review
+                                        </button>
+                                    )}
+
+                                    {/* Accept & Reject */}
+                                    {['pending', 'under_review'].includes(request.status) && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowAcceptModal(true)}
+                                                className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <CheckCircle className="h-4 w-4" />
+                                                Accept Request
+                                            </button>
+                                            <button
+                                                onClick={() => setShowRejectModal(true)}
+                                                className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <XCircle className="h-4 w-4" />
+                                                Reject Request
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {/* Internal Notes */}
+                                    {!['completed', 'cancelled', 'rejected'].includes(request.status) && (
+                                        <button
+                                            onClick={() => setShowInternalNotesModal(true)}
+                                            className="w-full px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <FileText className="h-4 w-4" />
+                                            Internal Notes
+                                        </button>
+                                    )}
+
+                                    {/* Convert to Task */}
+                                    {request.status === 'accepted' && (
+                                        <button
+                                            onClick={() => setShowConvertToTaskModal(true)}
+                                            className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            Convert to Task
+                                        </button>
+                                    )}
+
+                                    {/* Submit Feedback */}
+                                    {request.status === 'completed' && (
+                                        <button
+                                            onClick={() => setShowFeedbackModal(true)}
+                                            className="w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Star className="h-4 w-4" />
+                                            Submit Feedback
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Customer Info */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                                 <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -742,6 +799,32 @@ export default function ServiceRequestDetailPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Internal Notes Display */}
+                            {request.internal_notes && (
+                                <div className="bg-amber-50 rounded-xl shadow-sm border border-amber-200 p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                            <FileText className="h-4 w-4 text-amber-600" />
+                                            Internal Notes
+                                        </h3>
+                                        <button
+                                            onClick={() => setShowInternalNotesModal(true)}
+                                            className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                                        >
+                                            <Edit className="h-3 w-3" />
+                                            Edit
+                                        </button>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-4 border border-amber-100">
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{request.internal_notes}</p>
+                                    </div>
+                                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                                        <AlertCircleIcon className="h-3 w-3" />
+                                        Only visible to staff members
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -764,6 +847,21 @@ export default function ServiceRequestDetailPage() {
                 isOpen={showFeedbackModal}
                 onClose={() => setShowFeedbackModal(false)}
                 requestId={requestId}
+                onSuccess={loadRequest}
+            />
+            <InternalNotesModal
+                isOpen={showInternalNotesModal}
+                onClose={() => setShowInternalNotesModal(false)}
+                requestId={requestId}
+                currentNotes={request?.internal_notes || ''}
+                onSuccess={loadRequest}
+            />
+            <ConvertToTaskModal
+                isOpen={showConvertToTaskModal}
+                onClose={() => setShowConvertToTaskModal(false)}
+                requestId={requestId}
+                requestTitle={request?.title || ''}
+                requestDescription={request?.description || ''}
                 onSuccess={loadRequest}
             />
         </OrganizationLayout>

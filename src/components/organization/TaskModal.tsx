@@ -48,20 +48,43 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
     section_id: undefined,
   });
 
+  // Track selected technicians and teams with their details
+  const [selectedTechnicians, setSelectedTechnicians] = useState<Array<{ id: string, name: string }>>([]);
+  const [selectedTeams, setSelectedTeams] = useState<Array<{ id: string, name: string }>>([]);
+
   useEffect(() => {
     if (task) {
+      // Extract technician details from assignments
+      const techDetails = task.assignments
+        ? task.assignments
+          .filter(a => a.assignee)
+          .map(a => ({
+            id: a.assignee!.id,
+            name: a.assignee_name || a.assignee!.full_name
+          }))
+        : [];
+
+      // Extract team details from assignments
+      const teamDetails = task.assignments
+        ? task.assignments
+          .filter(a => a.team)
+          .map(a => ({
+            id: a.team!.id,
+            name: a.team_name || a.team!.name
+          }))
+        : [];
+
+      setSelectedTechnicians(techDetails);
+      setSelectedTeams(teamDetails);
+
       setFormData({
         equipment_id: task.equipment_id,
         title: task.title,
         description: task.description,
         priority: task.priority,
         status: task.status,
-        assignee_ids: task.assignments
-          ? task.assignments.filter(a => a.assignee).map(a => a.assignee!.id)
-          : [],
-        team_ids: task.assignments
-          ? task.assignments.filter(a => a.team).map(a => a.team!.id)
-          : [],
+        assignee_ids: techDetails.map(t => t.id),
+        team_ids: teamDetails.map(t => t.id),
         scheduled_start: task.scheduled_start || undefined,
         scheduled_end: task.scheduled_end || undefined,
         materials_needed: task.materials_needed || [],
@@ -76,11 +99,53 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
 
     try {
       setLoading(true);
+
+      // Clean up the form data - filter out null, undefined, and empty values from arrays
+      const cleanedAssigneeIds = (formData.assignee_ids || []).filter(id => id && id !== null && id !== '');
+      const cleanedTeamIds = (formData.team_ids || []).filter(id => id && id !== null && id !== '');
+
+      const cleanedData: any = {
+        ...formData,
+      };
+
+      // Only include assignment fields if editing a task and they were actually changed
       if (task) {
-        await updateTask(task.id, formData);
+        const originalAssigneeIds = task.assignments
+          ?.filter(a => a.assignee)
+          .map(a => a.assignee!.id)
+          .sort() || [];
+        const originalTeamIds = task.assignments
+          ?.filter(a => a.team)
+          .map(a => a.team!.id)
+          .sort() || [];
+
+        const currentAssigneeIds = [...cleanedAssigneeIds].sort();
+        const currentTeamIds = [...cleanedTeamIds].sort();
+
+        // Only send assignee_ids if they changed
+        if (JSON.stringify(originalAssigneeIds) !== JSON.stringify(currentAssigneeIds)) {
+          cleanedData.assignee_ids = cleanedAssigneeIds;
+        } else {
+          delete cleanedData.assignee_ids;
+        }
+
+        // Only send team_ids if they changed
+        if (JSON.stringify(originalTeamIds) !== JSON.stringify(currentTeamIds)) {
+          cleanedData.team_ids = cleanedTeamIds;
+        } else {
+          delete cleanedData.team_ids;
+        }
+      } else {
+        // For new tasks, always include the cleaned arrays
+        cleanedData.assignee_ids = cleanedAssigneeIds;
+        cleanedData.team_ids = cleanedTeamIds;
+      }
+
+      if (task) {
+        await updateTask(task.id, cleanedData);
         toast.success('Task updated successfully');
       } else {
-        await createTask(formData);
+        await createTask(cleanedData);
         toast.success('Task created successfully');
       }
       onClose();
@@ -236,8 +301,20 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   <LazySelect
                     label=""
                     value={(formData.assignee_ids?.length ?? 0) > 0 ? formData.assignee_ids![0] : ''}
-                    onChange={(value) => {
+                    onChange={async (value) => {
                       if (value && !(formData.assignee_ids ?? []).includes(value)) {
+                        // Fetch technician details to get the name
+                        try {
+                          const { getTechnicians } = await import('@/lib/teams-api');
+                          const response = await getTechnicians({ page_size: 100 });
+                          const technician = response.data?.find((t: any) => t.id === value);
+                          if (technician) {
+                            const newTech = { id: value, name: technician.full_name || technician.name };
+                            setSelectedTechnicians(prev => [...prev, newTech]);
+                          }
+                        } catch (error) {
+                          console.error('Failed to fetch technician:', error);
+                        }
                         setFormData(prev => ({
                           ...prev,
                           assignee_ids: [...(prev.assignee_ids ?? []), value]
@@ -246,7 +323,14 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                     }}
                     fetchItems={async (params) => {
                       const { getTechnicians } = await import('@/lib/teams-api');
-                      return getTechnicians(params);
+                      const response = await getTechnicians(params);
+                      const technicians = (response.results as any)?.data ?? [];
+                      // Map full_name to name for LazySelect
+                      const mappedData = technicians.map((t: any) => ({
+                        ...t,
+                        name: t.full_name
+                      }));
+                      return { data: mappedData, count: response.count ?? 0 };
                     }}
                     fetchItemById={async (id) => {
                       const { getTechnicians } = await import('@/lib/teams-api');
@@ -261,20 +345,22 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   />
 
                   {/* Selected Technicians */}
-                  {(formData.assignee_ids?.length ?? 0) > 0 && (
+                  {selectedTechnicians.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {(formData.assignee_ids ?? []).map((id) => (
+                      {selectedTechnicians.map((tech) => (
                         <span
-                          key={id}
+                          key={tech.id}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium"
                         >
-                          Technician
+                          {tech.name}
                           <button
                             type="button"
                             onClick={() => {
+                              const newTechs = selectedTechnicians.filter(t => t.id !== tech.id);
+                              setSelectedTechnicians(newTechs);
                               setFormData(prev => ({
                                 ...prev,
-                                assignee_ids: (prev.assignee_ids ?? []).filter(aid => aid !== id)
+                                assignee_ids: newTechs.map(t => t.id)
                               }));
                             }}
                             className="hover:bg-purple-200 rounded-full p-0.5"
@@ -294,8 +380,20 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   <LazySelect
                     label=""
                     value={(formData.team_ids?.length ?? 0) > 0 ? formData.team_ids![0] : ''}
-                    onChange={(value) => {
+                    onChange={async (value) => {
                       if (value && !(formData.team_ids ?? []).includes(value)) {
+                        // Fetch team details to get the name
+                        try {
+                          const { getTeams } = await import('@/lib/teams-api');
+                          const response = await getTeams({ page_size: 100 });
+                          const team = (response.results as any)?.data?.find((t: any) => t.id === value);
+                          if (team) {
+                            const newTeam = { id: value, name: team.name };
+                            setSelectedTeams(prev => [...prev, newTeam]);
+                          }
+                        } catch (error) {
+                          console.error('Failed to fetch team:', error);
+                        }
                         setFormData(prev => ({
                           ...prev,
                           team_ids: [...(prev.team_ids ?? []), value]
@@ -319,20 +417,22 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   />
 
                   {/* Selected Teams */}
-                  {(formData.team_ids?.length ?? 0) > 0 && (
+                  {selectedTeams.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {(formData.team_ids ?? []).map((id) => (
+                      {selectedTeams.map((team) => (
                         <span
-                          key={id}
+                          key={team.id}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
                         >
-                          Team
+                          {team.name}
                           <button
                             type="button"
                             onClick={() => {
+                              const newTeams = selectedTeams.filter(t => t.id !== team.id);
+                              setSelectedTeams(newTeams);
                               setFormData(prev => ({
                                 ...prev,
-                                team_ids: (prev.team_ids ?? []).filter(tid => tid !== id)
+                                team_ids: newTeams.map(t => t.id)
                               }));
                             }}
                             className="hover:bg-blue-200 rounded-full p-0.5"

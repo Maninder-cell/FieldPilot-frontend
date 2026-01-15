@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 
 interface WorkStatusSelectorProps {
     taskId: string;
-    currentStatus: 'open' | 'hold' | 'in_progress' | 'done';
+    currentStatus: 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
     onStatusChange?: () => void;
     disabled?: boolean;
 }
@@ -26,17 +26,6 @@ export default function WorkStatusSelector({
             value: 'open' as const,
             label: 'Open',
             icon: Lock,
-            selectedBg: 'bg-emerald-600',
-            selectedText: 'text-white',
-            unselectedBorder: 'border-gray-200',
-            unselectedText: 'text-gray-700',
-            unselectedHover: 'hover:border-emerald-300 hover:bg-emerald-50',
-            iconColor: 'text-emerald-600'
-        },
-        {
-            value: 'hold' as const,
-            label: 'On Hold',
-            icon: Pause,
             selectedBg: 'bg-gray-600',
             selectedText: 'text-white',
             unselectedBorder: 'border-gray-200',
@@ -48,16 +37,27 @@ export default function WorkStatusSelector({
             value: 'in_progress' as const,
             label: 'In Progress',
             icon: RefreshCw,
-            selectedBg: 'bg-emerald-600',
+            selectedBg: 'bg-blue-600',
             selectedText: 'text-white',
             unselectedBorder: 'border-gray-200',
             unselectedText: 'text-gray-700',
-            unselectedHover: 'hover:border-emerald-300 hover:bg-emerald-50',
-            iconColor: 'text-emerald-600'
+            unselectedHover: 'hover:border-blue-300 hover:bg-blue-50',
+            iconColor: 'text-blue-600'
         },
         {
-            value: 'done' as const,
-            label: 'Done',
+            value: 'on_hold' as const,
+            label: 'On Hold',
+            icon: Pause,
+            selectedBg: 'bg-yellow-600',
+            selectedText: 'text-white',
+            unselectedBorder: 'border-gray-200',
+            unselectedText: 'text-gray-700',
+            unselectedHover: 'hover:border-yellow-400 hover:bg-yellow-50',
+            iconColor: 'text-yellow-600'
+        },
+        {
+            value: 'completed' as const,
+            label: 'Completed',
             icon: Check,
             selectedBg: 'bg-emerald-600',
             selectedText: 'text-white',
@@ -68,7 +68,7 @@ export default function WorkStatusSelector({
         }
     ];
 
-    const handleStatusChange = async (newStatus: 'open' | 'hold' | 'in_progress' | 'done') => {
+    const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled') => {
         if (disabled || isUpdating || newStatus === selectedStatus) return;
 
         try {

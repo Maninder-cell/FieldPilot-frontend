@@ -3,7 +3,7 @@ import { Equipment } from './equipment';
 
 export type TaskStatus = 'new' | 'closed' | 'reopened' | 'pending' | 'rejected';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-export type WorkStatus = 'open' | 'hold' | 'in_progress' | 'done';
+export type WorkStatus = 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
 
 export interface TaskSection {
   id: string;
@@ -28,7 +28,6 @@ export interface TaskAssignment {
   team: Team | null;
   team_name?: string; // Team name from backend
   assignee_name?: string; // Assignee name from backend
-  work_status: WorkStatus;
   assigned_at: string;
 }
 
@@ -36,13 +35,11 @@ export interface Assignee {
   id: string;
   name: string;
   email: string;
-  work_status: WorkStatus;
 }
 
 export interface TeamAssignment {
   id: string;
   name: string;
-  work_status: WorkStatus;
 }
 
 export interface TaskComment {
@@ -85,6 +82,7 @@ export interface Task {
   equipment_number?: string; // Equipment number (list view)
   status: TaskStatus;
   priority: TaskPriority;
+  work_status: WorkStatus; // Work status at task level
   scheduled_start: string | null;
   scheduled_end: string | null;
   is_scheduled: boolean;

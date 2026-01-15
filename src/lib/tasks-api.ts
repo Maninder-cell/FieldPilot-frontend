@@ -251,12 +251,12 @@ export async function updateTaskStatus(
 }
 
 /**
- * Update work status of a task assignment (technician only)
- * Work status options: 'open' | 'hold' | 'in_progress' | 'done'
+ * Update work status of a task (all roles except customer)
+ * Work status options: 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled'
  */
 export async function updateWorkStatus(
   taskId: string,
-  workStatus: 'open' | 'hold' | 'in_progress' | 'done'
+  workStatus: 'open' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled'
 ): Promise<ApiResponse<Task>> {
   return fetchAPI<ApiResponse<Task>>(`/tasks/${taskId}/work-status/`, {
     method: 'PATCH',

@@ -258,13 +258,6 @@ export default function TaskDetailPage() {
                                                     </>
                                                 ) : null}
                                             </div>
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${assignment.work_status === 'done' ? 'bg-green-100 text-green-800' :
-                                                assignment.work_status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                                                    assignment.work_status === 'hold' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {assignment.work_status}
-                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -307,14 +300,12 @@ export default function TaskDetailPage() {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Work Status Selector - Only for assigned users */}
-                        {task.assignments && task.assignments.length > 0 && (
-                            <WorkStatusSelector
-                                taskId={task.id}
-                                currentStatus={task.assignments[0]?.work_status || 'open'}
-                                onStatusChange={loadTask}
-                            />
-                        )}
+                        {/* Work Status Selector - Available for all roles except customer */}
+                        <WorkStatusSelector
+                            taskId={task.id}
+                            currentStatus={task.work_status || 'open'}
+                            onStatusChange={loadTask}
+                        />
 
                         {/* Admin Status Selector - Temporarily showing for all users */}
                         <AdminStatusSelector

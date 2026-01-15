@@ -121,6 +121,7 @@ export interface CreateTaskRequest {
   materials_needed?: string[];
   notes?: string;
   section_id?: string;
+  custom_fields?: Record<string, any>;
 }
 
 export interface UpdateTaskRequest extends Partial<CreateTaskRequest> { }

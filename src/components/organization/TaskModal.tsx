@@ -8,6 +8,7 @@ import { Task, CreateTaskRequest, TaskPriority, TaskStatus } from '@/types/tasks
 import { toast } from 'react-hot-toast';
 import LazySelect from '@/components/common/LazySelect';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
+import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 
 interface TaskModalProps {
   task: Task | null;
@@ -46,6 +47,7 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
     materials_needed: [],
     notes: '',
     section_id: undefined,
+    custom_fields: {},
   });
 
   // Track selected technicians and teams with their details
@@ -90,6 +92,7 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
         materials_needed: task.materials_needed || [],
         notes: task.notes,
         section_id: task.section_id || undefined,
+        custom_fields: task.custom_fields || {},
       });
     }
   }, [task]);
@@ -512,6 +515,28 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow resize-none"
                   />
                 </div>
+              </div>
+
+              {/* Custom Fields Section */}
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 pb-3 border-b-2 border-gray-200">
+                  <div className="bg-gray-100 p-2 rounded-lg">
+                    <Settings className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Custom Fields</h3>
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
+                    Add custom key-value pairs to store additional task information
+                  </p>
+                </div>
+
+                <CustomFieldsManager
+                  value={formData.custom_fields || {}}
+                  onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
+                  disabled={loading}
+                />
               </div>
             </div>
 

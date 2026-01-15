@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Building2, MapPin, User, FileText, Settings, ChevronDown, Check } from 'lucide-react';
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
-import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 
 interface FacilityModalProps {
@@ -604,7 +604,7 @@ export default function FacilityModal({
                   </p>
                 </div>
                 
-                <CustomFieldsInput
+                <CustomFieldsManager
                   value={formData.custom_fields || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
                   disabled={isLoading}

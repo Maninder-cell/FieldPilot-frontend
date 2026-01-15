@@ -8,7 +8,7 @@ import { getBuildings } from '@/lib/buildings-api';
 import { getEquipment } from '@/lib/equipment-api';
 import { Location, CreateLocationData } from '@/types/locations';
 import { toast } from 'react-hot-toast';
-import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 
 interface LocationModalProps {
@@ -373,7 +373,7 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
                   </p>
                 </div>
 
-                <CustomFieldsInput
+                <CustomFieldsManager
                   value={formData.additional_info || {}}
                   onChange={(value) => setFormData({ ...formData, additional_info: value })}
                   disabled={loading}

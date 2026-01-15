@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Building2, MapPin, User, FileText, Settings, ChevronDown, Check } from 'lucide-react';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
-import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 import LazySelect from '@/components/common/LazySelect';
 import { getFacilities, getFacility } from '@/lib/facilities-api';
@@ -518,7 +518,7 @@ export default function BuildingModal({
                   </p>
                 </div>
                 
-                <CustomFieldsInput
+                <CustomFieldsManager
                   value={formData.custom_fields || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
                   disabled={isLoading}

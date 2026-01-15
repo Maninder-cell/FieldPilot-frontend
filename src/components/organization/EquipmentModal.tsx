@@ -7,7 +7,7 @@ import { createEquipment, updateEquipment } from '@/lib/equipment-api';
 import { getBuildings, getBuilding } from '@/lib/buildings-api';
 import { Equipment, CreateEquipmentData, EquipmentType, OperationalStatus, Condition } from '@/types/equipment';
 import { toast } from 'react-hot-toast';
-import CustomFieldsInput from '@/components/common/CustomFieldsInput';
+import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 import LazySelect from '@/components/common/LazySelect';
 
@@ -528,7 +528,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   </p>
                 </div>
 
-                <CustomFieldsInput
+                <CustomFieldsManager
                   value={formData.specifications || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, specifications: value }))}
                   disabled={loading}
@@ -550,7 +550,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   </p>
                 </div>
 
-                <CustomFieldsInput
+                <CustomFieldsManager
                   value={formData.custom_fields || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}
                   disabled={loading}

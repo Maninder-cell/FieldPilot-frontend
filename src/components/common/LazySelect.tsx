@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, ChevronDown, X } from 'lucide-react';
 
 interface LazySelectProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
   fetchItems: (params: { search?: string; page: number; page_size: number }) => Promise<{
     data: Array<{ id: string; name: string; code?: string }>;
     count: number;
@@ -17,6 +17,7 @@ interface LazySelectProps {
   disabled?: boolean;
   pageSize?: number;
   className?: string;
+  multiple?: boolean;
 }
 
 export default function LazySelect({
@@ -30,6 +31,7 @@ export default function LazySelect({
   disabled = false,
   pageSize = 5,
   className = '',
+  multiple = false,
 }: LazySelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState<Array<{ id: string; name: string; code?: string }>>([]);
@@ -39,10 +41,16 @@ export default function LazySelect({
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedItem, setSelectedItem] = useState<{ id: string; name: string; code?: string } | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Array<{ id: string; name: string; code?: string }>>([]);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Get selected IDs as array
+  const selectedIds = multiple 
+    ? (Array.isArray(value) ? value : []) 
+    : (value ? [value as string] : []);
 
   // Load items
   const loadItems = useCallback(async (page: number, search: string = '', append: boolean = false) => {
@@ -52,14 +60,17 @@ export default function LazySelect({
       setIsLoading(true);
       const response = await fetchItems({ search, page, page_size: pageSize });
       
+      // Ensure response.data is an array
+      const dataArray = Array.isArray(response.data) ? response.data : [];
+      
       if (append) {
-        setItems(prev => [...prev, ...response.data]);
+        setItems(prev => [...prev, ...dataArray]);
       } else {
-        setItems(response.data);
+        setItems(dataArray);
       }
       
       setTotalCount(response.count);
-      setHasMore(items.length + response.data.length < response.count);
+      setHasMore(items.length + dataArray.length < response.count);
     } catch (error) {
       console.error('Failed to load items:', error);
       setItems([]);
@@ -90,44 +101,71 @@ export default function LazySelect({
 
   // Load selected item details
   useEffect(() => {
-    const loadSelectedItem = async () => {
-      if (!value) {
-        setSelectedItem(null);
-        return;
-      }
-      
-      // Check if we need to update the selected item
-      if (selectedItem && selectedItem.id === value) {
-        return; // Already have the correct item
-      }
-      
-      console.log('LazySelect - Loading item for value:', value);
-      
-      // First, try to find in current items
-      const found = items.find(item => item.id === value);
-      if (found) {
-        console.log('LazySelect - Found in items:', found);
-        setSelectedItem(found);
-        return;
-      }
-      
-      // If not found and we have a fetchItemById function, fetch it
-      if (fetchItemById) {
-        try {
-          console.log('LazySelect - Fetching item by ID:', value);
-          const response = await fetchItemById(value);
-          console.log('LazySelect - Fetched item:', response.data);
-          setSelectedItem(response.data);
-        } catch (error) {
-          console.error('Failed to load selected item:', error);
+    const loadSelectedItems = async () => {
+      if (multiple) {
+        // Multi-select mode
+        const ids = Array.isArray(value) ? value.filter(id => id && id.trim()) : [];
+        
+        if (ids.length === 0) {
+          setSelectedItems([]);
+          return;
         }
+
+        // Load details for all selected IDs
+        const itemsToLoad: Array<{ id: string; name: string; code?: string }> = [];
+        
+        for (const id of ids) {
+          if (!id || !id.trim()) continue; // Skip empty/invalid IDs
+          
+          // Check if already in items list
+          const found = items.find(item => item.id === id);
+          if (found) {
+            itemsToLoad.push(found);
+          } else if (fetchItemById) {
+            // Fetch from API
+            try {
+              const response = await fetchItemById(id);
+              itemsToLoad.push(response.data);
+            } catch (error) {
+              console.error('Failed to load item:', id, error);
+            }
+          }
+        }
+        
+        setSelectedItems(itemsToLoad);
       } else {
-        console.log('LazySelect - No fetchItemById function provided');
+        // Single-select mode
+        if (!value || Array.isArray(value)) {
+          setSelectedItem(null);
+          return;
+        }
+        
+        // Check if we need to update the selected item
+        if (selectedItem && selectedItem.id === value) {
+          return; // Already have the correct item
+        }
+        
+        // First, try to find in current items
+        const found = items.find(item => item.id === value);
+        if (found) {
+          setSelectedItem(found);
+          return;
+        }
+        
+        // If not found and we have a fetchItemById function, fetch it
+        if (fetchItemById) {
+          try {
+            const response = await fetchItemById(value as string);
+            setSelectedItem(response.data);
+          } catch (error) {
+            console.error('Failed to load selected item:', error);
+          }
+        }
       }
     };
     
-    loadSelectedItem();
-  }, [value, items, fetchItemById, selectedItem]);
+    loadSelectedItems();
+  }, [value, items, fetchItemById, multiple]);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(() => {
@@ -163,16 +201,53 @@ export default function LazySelect({
   }, [isOpen]);
 
   const handleSelect = (item: { id: string; name: string; code?: string }) => {
-    setSelectedItem(item);
-    onChange(item.id);
-    setIsOpen(false);
-    setSearchQuery('');
+    if (multiple) {
+      // Multi-select mode
+      const ids = Array.isArray(value) ? value : [];
+      if (ids.includes(item.id)) {
+        // Remove if already selected
+        const newIds = ids.filter(id => id !== item.id);
+        const newItems = selectedItems.filter(i => i.id !== item.id);
+        setSelectedItems(newItems);
+        onChange(newIds);
+      } else {
+        // Add to selection
+        const newIds = [...ids, item.id];
+        const newItems = [...selectedItems, item];
+        setSelectedItems(newItems);
+        onChange(newIds);
+      }
+      // Keep dropdown open in multi-select mode
+      setSearchQuery('');
+    } else {
+      // Single-select mode
+      setSelectedItem(item);
+      onChange(item.id);
+      setIsOpen(false);
+      setSearchQuery('');
+    }
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedItem(null);
-    onChange('');
+    if (multiple) {
+      setSelectedItems([]);
+      onChange([]);
+    } else {
+      setSelectedItem(null);
+      onChange('');
+    }
+  };
+
+  const handleRemoveItem = (e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    if (multiple) {
+      const ids = Array.isArray(value) ? value : [];
+      const newIds = ids.filter(id => id !== itemId);
+      const newItems = selectedItems.filter(i => i.id !== itemId);
+      setSelectedItems(newItems);
+      onChange(newIds);
+    }
   };
 
   return (
@@ -189,22 +264,48 @@ export default function LazySelect({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-left flex items-center justify-between ${
+          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-left flex items-center justify-between min-h-[42px] ${
             disabled ? 'bg-gray-100 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'
           }`}
         >
-          <span className={selectedItem ? 'text-gray-900' : 'text-gray-500'}>
-            {selectedItem ? (
-              <>
-                {selectedItem.name}
-                {selectedItem.code && <span className="text-gray-500 ml-1">({selectedItem.code})</span>}
-              </>
-            ) : (
-              placeholder
-            )}
-          </span>
-          <div className="flex items-center gap-1">
-            {selectedItem && !disabled && (
+          {multiple ? (
+            // Multi-select display
+            <div className="flex-1 flex flex-wrap gap-1.5">
+              {selectedItems.length > 0 ? (
+                selectedItems.map((item) => (
+                  <span
+                    key={item.id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="max-w-[150px] truncate">{item.name}</span>
+                    {!disabled && (
+                      <X
+                        className="h-3 w-3 hover:text-emerald-900 cursor-pointer"
+                        onClick={(e) => handleRemoveItem(e, item.id)}
+                      />
+                    )}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">{placeholder}</span>
+              )}
+            </div>
+          ) : (
+            // Single-select display
+            <span className={selectedItem ? 'text-gray-900' : 'text-gray-500'}>
+              {selectedItem ? (
+                <>
+                  {selectedItem.name}
+                  {selectedItem.code && <span className="text-gray-500 ml-1">({selectedItem.code})</span>}
+                </>
+              ) : (
+                placeholder
+              )}
+            </span>
+          )}
+          <div className="flex items-center gap-1 ml-2">
+            {((multiple && selectedItems.length > 0) || (!multiple && selectedItem)) && !disabled && (
               <X
                 className="h-4 w-4 text-gray-400 hover:text-gray-600"
                 onClick={handleClear}
@@ -245,21 +346,37 @@ export default function LazySelect({
                 </div>
               ) : (
                 <>
-                  {items.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSelect(item)}
-                      className={`w-full px-4 py-2 text-left hover:bg-emerald-50 transition-colors ${
-                        item.id === value ? 'bg-emerald-100 text-emerald-900' : 'text-gray-900'
-                      }`}
-                    >
-                      <div className="text-sm font-medium">{item.name}</div>
-                      {item.code && (
-                        <div className="text-xs text-gray-500">{item.code}</div>
-                      )}
-                    </button>
-                  ))}
+                  {items.map((item) => {
+                    const isSelected = selectedIds.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSelect(item)}
+                        className={`w-full px-4 py-2 text-left hover:bg-emerald-50 transition-colors flex items-center gap-2 ${
+                          isSelected ? 'bg-emerald-100 text-emerald-900' : 'text-gray-900'
+                        }`}
+                      >
+                        {multiple && (
+                          <div className={`w-4 h-4 border-2 rounded flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? 'bg-emerald-600 border-emerald-600' : 'border-gray-300'
+                          }`}>
+                            {isSelected && (
+                              <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M5 13l4 4L19 7"></path>
+                              </svg>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.name}</div>
+                          {item.code && (
+                            <div className="text-xs text-gray-500">{item.code}</div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                   
                   {isLoading && (
                     <div className="p-4 text-center">

@@ -50,43 +50,37 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
     custom_fields: {},
   });
 
-  // Track selected technicians and teams with their details
-  const [selectedTechnicians, setSelectedTechnicians] = useState<Array<{ id: string, name: string }>>([]);
-  const [selectedTeams, setSelectedTeams] = useState<Array<{ id: string, name: string }>>([]);
-
   useEffect(() => {
     if (task) {
-      // Extract technician details from assignments
-      const techDetails = task.assignments
+      // Extract technician IDs from assignments
+      const techIds = task.assignments
         ? task.assignments
           .filter(a => a.assignee)
-          .map(a => ({
-            id: a.assignee!.id,
-            name: a.assignee_name || a.assignee!.full_name
-          }))
+          .map(a => a.assignee!.id)
         : [];
 
-      // Extract team details from assignments
-      const teamDetails = task.assignments
+      // Extract team IDs from assignments
+      // Note: team can be either a string ID or an object with id
+      const teamIds = task.assignments
         ? task.assignments
           .filter(a => a.team)
-          .map(a => ({
-            id: a.team!.id,
-            name: a.team_name || a.team!.name
-          }))
+          .map(a => typeof a.team === 'string' ? a.team : a.team!.id)
         : [];
 
-      setSelectedTechnicians(techDetails);
-      setSelectedTeams(teamDetails);
+      // Handle equipment_id - it can be a string or we need to extract it from equipment object
+      let equipmentId: string = task.equipment_id;
+      if (typeof task.equipment === 'object' && task.equipment !== null) {
+        equipmentId = task.equipment.id;
+      }
 
       setFormData({
-        equipment_id: task.equipment_id,
+        equipment_id: equipmentId,
         title: task.title,
         description: task.description,
         priority: task.priority,
         status: task.status,
-        assignee_ids: techDetails.map(t => t.id),
-        team_ids: teamDetails.map(t => t.id),
+        assignee_ids: techIds,
+        team_ids: teamIds,
         scheduled_start: task.scheduled_start || undefined,
         scheduled_end: task.scheduled_end || undefined,
         materials_needed: task.materials_needed || [],
@@ -210,12 +204,30 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                 <LazySelect
                   label="Equipment"
                   value={formData.equipment_id}
-                  onChange={(value) => setFormData(prev => ({ ...prev, equipment_id: value }))}
-                  fetchItems={getEquipment}
+                  onChange={(value) => {
+                    const id = typeof value === 'string' ? value : '';
+                    setFormData(prev => ({ ...prev, equipment_id: id }));
+                  }}
+                  fetchItems={async (params) => {
+                    const response = await getEquipment(params);
+                    // Map equipment to include code field for display
+                    const mappedData = (response.data || []).map((eq: any) => ({
+                      id: eq.id,
+                      name: eq.name,
+                      code: eq.equipment_number
+                    }));
+                    return { data: mappedData, count: response.count || 0 };
+                  }}
                   fetchItemById={async (id) => {
                     const { getEquipmentById } = await import('@/lib/equipment-api');
                     const response = await getEquipmentById(id);
-                    return { data: { id: response.data.id, name: response.data.name, equipment_number: response.data.equipment_number } };
+                    return { 
+                      data: { 
+                        id: response.data.id, 
+                        name: response.data.name, 
+                        code: response.data.equipment_number 
+                      } 
+                    };
                   }}
                   placeholder="Select equipment"
                   required
@@ -303,77 +315,57 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   </label>
                   <LazySelect
                     label=""
-                    value={(formData.assignee_ids?.length ?? 0) > 0 ? formData.assignee_ids![0] : ''}
-                    onChange={async (value) => {
-                      if (value && !(formData.assignee_ids ?? []).includes(value)) {
-                        // Fetch technician details to get the name
-                        try {
-                          const { getTechnicians } = await import('@/lib/teams-api');
-                          const response = await getTechnicians({ page_size: 100 });
-                          const technician = response.data?.find((t: any) => t.id === value);
-                          if (technician) {
-                            const newTech = { id: value, name: technician.full_name || technician.name };
-                            setSelectedTechnicians(prev => [...prev, newTech]);
-                          }
-                        } catch (error) {
-                          console.error('Failed to fetch technician:', error);
-                        }
-                        setFormData(prev => ({
-                          ...prev,
-                          assignee_ids: [...(prev.assignee_ids ?? []), value]
-                        }));
-                      }
+                    value={(formData.assignee_ids || []).filter(id => id && id.trim())}
+                    multiple={true}
+                    onChange={(value) => {
+                      const ids = Array.isArray(value) ? value.filter(id => id && id.trim()) : [];
+                      setFormData(prev => ({ ...prev, assignee_ids: ids }));
                     }}
                     fetchItems={async (params) => {
-                      const { getTechnicians } = await import('@/lib/teams-api');
-                      const response = await getTechnicians(params);
-                      const technicians = (response.results as any)?.data ?? [];
-                      // Map full_name to name for LazySelect
-                      const mappedData = technicians.map((t: any) => ({
-                        ...t,
-                        name: t.full_name
-                      }));
-                      return { data: mappedData, count: response.count ?? 0 };
+                      try {
+                        const { getTechnicians } = await import('@/lib/teams-api');
+                        const response = await getTechnicians(params);
+                        const technicians = (response.results as any)?.data ?? response.data ?? [];
+                        // Ensure technicians is an array
+                        const techArray = Array.isArray(technicians) ? technicians : [];
+                        // Map full_name to name for LazySelect
+                        const mappedData = techArray.map((t: any) => ({
+                          id: t.id,
+                          name: t.full_name || t.name,
+                          code: t.email
+                        }));
+                        return { data: mappedData, count: response.count ?? 0 };
+                      } catch (error) {
+                        console.error('Error fetching technicians:', error);
+                        return { data: [], count: 0 };
+                      }
                     }}
                     fetchItemById={async (id) => {
-                      const { getTechnicians } = await import('@/lib/teams-api');
-                      const response = await getTechnicians({ page_size: 100 });
-                      const technician = response.data?.find((t: any) => t.id === id);
-                      return { data: technician };
+                      try {
+                        const { getTechnicians } = await import('@/lib/teams-api');
+                        const response = await getTechnicians({ page_size: 100 });
+                        const technicians = (response.results as any)?.data ?? response.data ?? [];
+                        const technician = technicians.find((t: any) => t.id === id);
+                        if (technician) {
+                          return { 
+                            data: { 
+                              id: technician.id, 
+                              name: technician.full_name || technician.name,
+                              code: technician.email
+                            } 
+                          };
+                        }
+                        return { data: { id, name: 'Unknown', code: '' } };
+                      } catch (error) {
+                        console.error('Error fetching technician by ID:', id, error);
+                        return { data: { id, name: 'Unknown', code: '' } };
+                      }
                     }}
-                    placeholder="Select technicians to assign"
+                    placeholder="Select technicians (multiple allowed)"
                     required={false}
                     disabled={loading}
                     pageSize={10}
                   />
-
-                  {/* Selected Technicians */}
-                  {selectedTechnicians.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {selectedTechnicians.map((tech) => (
-                        <span
-                          key={tech.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium"
-                        >
-                          {tech.name}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newTechs = selectedTechnicians.filter(t => t.id !== tech.id);
-                              setSelectedTechnicians(newTechs);
-                              setFormData(prev => ({
-                                ...prev,
-                                assignee_ids: newTechs.map(t => t.id)
-                              }));
-                            }}
-                            className="hover:bg-purple-200 rounded-full p-0.5"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <div>
@@ -382,70 +374,43 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   </label>
                   <LazySelect
                     label=""
-                    value={(formData.team_ids?.length ?? 0) > 0 ? formData.team_ids![0] : ''}
-                    onChange={async (value) => {
-                      if (value && !(formData.team_ids ?? []).includes(value)) {
-                        // Fetch team details to get the name
-                        try {
-                          const { getTeams } = await import('@/lib/teams-api');
-                          const response = await getTeams({ page_size: 100 });
-                          const team = (response.results as any)?.data?.find((t: any) => t.id === value);
-                          if (team) {
-                            const newTeam = { id: value, name: team.name };
-                            setSelectedTeams(prev => [...prev, newTeam]);
-                          }
-                        } catch (error) {
-                          console.error('Failed to fetch team:', error);
-                        }
-                        setFormData(prev => ({
-                          ...prev,
-                          team_ids: [...(prev.team_ids ?? []), value]
-                        }));
-                      }
+                    value={(formData.team_ids || []).filter(id => id && id.trim())}
+                    multiple={true}
+                    onChange={(value) => {
+                      const ids = Array.isArray(value) ? value.filter(id => id && id.trim()) : [];
+                      setFormData(prev => ({ ...prev, team_ids: ids }));
                     }}
                     fetchItems={async (params) => {
-                      const { getTeams } = await import('@/lib/teams-api');
-                      const response = await getTeams(params);
-                      return { data: (response.results as any)?.data ?? [], count: response.count ?? 0 };
+                      try {
+                        const { getTeams } = await import('@/lib/teams-api');
+                        const response = await getTeams(params);
+                        // Handle nested structure: results.data contains the array
+                        const teams = Array.isArray((response.results as any)?.data) 
+                          ? (response.results as any).data 
+                          : Array.isArray(response.results) 
+                            ? response.results 
+                            : [];
+                        return { data: teams, count: response.count ?? 0 };
+                      } catch (error) {
+                        console.error('Error fetching teams:', error);
+                        return { data: [], count: 0 };
+                      }
                     }}
                     fetchItemById={async (id) => {
-                      const { getTeam } = await import('@/lib/teams-api');
-                      const response = await getTeam(id);
-                      return { data: response.data };
+                      try {
+                        const { getTeam } = await import('@/lib/teams-api');
+                        const response = await getTeam(id);
+                        return { data: response.data };
+                      } catch (error) {
+                        console.error('Error fetching team by ID:', id, error);
+                        return { data: { id, name: 'Unknown Team', code: '' } };
+                      }
                     }}
-                    placeholder="Select teams to assign"
+                    placeholder="Select teams (multiple allowed)"
                     required={false}
                     disabled={loading}
                     pageSize={10}
                   />
-
-                  {/* Selected Teams */}
-                  {selectedTeams.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {selectedTeams.map((team) => (
-                        <span
-                          key={team.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
-                        >
-                          {team.name}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newTeams = selectedTeams.filter(t => t.id !== team.id);
-                              setSelectedTeams(newTeams);
-                              setFormData(prev => ({
-                                ...prev,
-                                team_ids: newTeams.map(t => t.id)
-                              }));
-                            }}
-                            className="hover:bg-blue-200 rounded-full p-0.5"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
 

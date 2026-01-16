@@ -465,33 +465,54 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
         })}
       </div>
 
-      {/* Change Role Modal - Custom Implementation */}
+      {/* Change Role Modal */}
       {showRoleModal && selectedMember && (
         <div className="fixed inset-0 z-100 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => {
-              setShowRoleModal(false);
-              setSelectedMember(null);
-              setNewRole('');
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => {
+              if (!actionLoading) {
+                setShowRoleModal(false);
+                setSelectedMember(null);
+                setNewRole('');
+              }
             }}></div>
 
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <div className="relative inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full z-101">
-              {/* Header with gradient */}
-              <div className="bg-linear-to-r from-teal-500 to-blue-500 px-6 py-4">
-                <div className="flex items-center">
-                  <div className="shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-white bg-opacity-20">
-                    <Shield className="h-6 w-6 text-white" />
+              {/* Header */}
+              <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-5 rounded-t-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-full bg-emerald-100">
+                      <Shield className="h-8 w-8 text-emerald-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Change Member Role
+                    </h3>
                   </div>
-                  <h3 className="ml-4 text-xl font-semibold text-white">Change Member Role</h3>
+                  {!actionLoading && (
+                    <button
+                      onClick={() => {
+                        setShowRoleModal(false);
+                        setSelectedMember(null);
+                        setNewRole('');
+                      }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                      aria-label="Close"
+                    >
+                      <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Content */}
-              <div className="bg-white px-6 py-5">
+              <div className="px-6 py-5">
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-base text-gray-700">
                     Update the role for <strong className="text-gray-900">{selectedMember.user.full_name}</strong>
                   </p>
                   
@@ -504,9 +525,11 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
                         id="role"
                         value={newRole}
                         onChange={(e) => setNewRole(e.target.value)}
-                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-gray-900 bg-white"
+                        disabled={actionLoading}
+                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-gray-900 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="employee">Employee - Standard team member</option>
+                        <option value="technician">Technician - Field technician with task access</option>
                         <option value="manager">Manager - Can manage team members</option>
                         <option value="admin">Admin - Full administrative access</option>
                         {isOwner && <option value="owner">Owner - Complete control</option>}
@@ -522,37 +545,39 @@ export default function TeamMemberList({ onInvite, onMemberUpdate }: TeamMemberL
               </div>
 
               {/* Footer */}
-              <div className="bg-gray-50 px-6 py-4 sm:flex sm:flex-row-reverse gap-3">
-                <button
-                  type="button"
-                  onClick={handleUpdateRole}
-                  disabled={actionLoading}
-                  className="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-linear-to-r from-teal-600 to-teal-700 text-base font-medium text-white hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {actionLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Role'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowRoleModal(false);
-                    setSelectedMember(null);
-                    setNewRole('');
-                  }}
-                  disabled={actionLoading}
-                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
-                >
-                  Cancel
-                </button>
+              <div className="bg-gray-50 px-6 py-4 rounded-b-xl border-t border-gray-200">
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRoleModal(false);
+                      setSelectedMember(null);
+                      setNewRole('');
+                    }}
+                    disabled={actionLoading}
+                    className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUpdateRole}
+                    disabled={actionLoading}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {actionLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Updating...
+                      </span>
+                    ) : (
+                      'Update Role'
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

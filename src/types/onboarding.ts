@@ -242,7 +242,8 @@ export const COMPANY_SIZE_OPTIONS = [
 // All available member roles (must match backend ROLE_CHOICES)
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'employee' | 'technician' | 'customer';
 
-// Role options for dropdowns and forms
+// Role options for dropdowns and forms (Team Management)
+// Note: Customer role is excluded as customers are managed separately in Organization Portal
 export const ROLE_OPTIONS = [
   {
     value: 'owner' as const,
@@ -268,11 +269,6 @@ export const ROLE_OPTIONS = [
     value: 'technician' as const,
     label: 'Technician',
     description: 'Field technician with access to tasks and time tracking',
-  },
-  {
-    value: 'customer' as const,
-    label: 'Customer',
-    description: 'External customer with limited access to their data',
   },
 ] as const;
 

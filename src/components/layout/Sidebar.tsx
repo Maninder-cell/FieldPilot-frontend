@@ -17,6 +17,7 @@ import {
   CreditCard,
   AlertCircle,
   ExternalLink,
+  Settings,
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 import TrialStatusBadge from '@/components/onboarding/TrialStatusBadge';
@@ -64,6 +65,11 @@ export default function Sidebar() {
       name: 'Profile',
       href: '/profile',
       icon: User,
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Settings,
     }
   ];
 

@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 import ChangePasswordSkeleton from '@/components/profile/ChangePasswordSkeleton';
 
@@ -39,11 +38,10 @@ export default function ChangePasswordPage() {
             </p>
           </div>
 
-          {/* Change Password with Sidebar Layout */}
-          <ProfileSettingsLayout>
-            {isLoading ? (
-              <ChangePasswordSkeleton />
-            ) : (
+          {/* Change Password Content */}
+          {isLoading ? (
+            <ChangePasswordSkeleton />
+          ) : (
             <div className="space-y-6">
               {/* Form Card */}
               <div className="bg-white shadow-sm rounded-lg border border-gray-200">
@@ -84,8 +82,7 @@ export default function ChangePasswordPage() {
                 </div>
               </div>
             </div>
-            )}
-          </ProfileSettingsLayout>
+          )}
         </div>
       </div>
     </DashboardLayout>

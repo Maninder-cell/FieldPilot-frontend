@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import SettingsPageSkeleton from '@/components/profile/SettingsPageSkeleton';
 import { Lock, Bell, Shield, Globe } from 'lucide-react';
 
@@ -89,11 +88,10 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* Settings with Sidebar Layout */}
-          <ProfileSettingsLayout>
-            {isLoading ? (
-              <SettingsPageSkeleton />
-            ) : (
+          {/* Settings Content */}
+          {isLoading ? (
+            <SettingsPageSkeleton />
+          ) : (
             <div className="space-y-6">
               {settingsCategories.map((category) => {
                 const Icon = category.icon;
@@ -172,8 +170,7 @@ export default function SettingsPage() {
                 );
               })}
             </div>
-            )}
-          </ProfileSettingsLayout>
+          )}
         </div>
       </div>
     </DashboardLayout>

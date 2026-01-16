@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ProfileView from '@/components/profile/ProfileView';
 import ProfileViewSkeleton from '@/components/profile/ProfileViewSkeleton';
 
@@ -34,10 +33,8 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          {/* Profile with Sidebar Layout */}
-          <ProfileSettingsLayout>
-            {isLoading ? <ProfileViewSkeleton /> : <ProfileView />}
-          </ProfileSettingsLayout>
+          {/* Profile Content */}
+          {isLoading ? <ProfileViewSkeleton /> : <ProfileView />}
         </div>
       </div>
     </DashboardLayout>

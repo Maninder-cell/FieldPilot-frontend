@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProfileSettingsLayout from '@/components/profile/ProfileSettingsLayout';
 import ProfileForm from '@/components/profile/ProfileForm';
 import ProfileFormSkeleton from '@/components/profile/ProfileFormSkeleton';
 
@@ -42,14 +41,12 @@ export default function ProfileEditPage() {
             </p>
           </div>
 
-          {/* Profile Edit with Sidebar Layout */}
-          <ProfileSettingsLayout>
-            {isLoading ? (
-              <ProfileFormSkeleton />
-            ) : (
-              <ProfileForm onSuccess={handleSuccess} onCancel={handleCancel} />
-            )}
-          </ProfileSettingsLayout>
+          {/* Profile Edit Content */}
+          {isLoading ? (
+            <ProfileFormSkeleton />
+          ) : (
+            <ProfileForm onSuccess={handleSuccess} onCancel={handleCancel} />
+          )}
         </div>
       </div>
     </DashboardLayout>

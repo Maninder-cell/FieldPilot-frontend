@@ -284,6 +284,9 @@ export default function TaskDetailPage() {
                             onCommentUpdated={() => { }} // Don't reload page on edit
                         />
 
+                        {/* Time Tracking Section */}
+                        <TaskTimeTracking taskId={task.id} />
+
                         {/* Materials Section */}
                         <TaskMaterials taskId={task.id} />
 
@@ -293,9 +296,6 @@ export default function TaskDetailPage() {
                             currentCount={task.attachments_count}
                             onAttachmentChange={updateAttachmentsCount}
                         />
-
-                        {/* Time Tracking Section */}
-                        <TaskTimeTracking taskId={task.id} />
                     </div>
 
                     {/* Sidebar */}

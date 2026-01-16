@@ -135,8 +135,9 @@ export default function TaskTimeTracking({ taskId }: TaskTimeTrackingProps) {
         });
     };
 
-    const formatHours = (hours: number) => {
-        return hours.toFixed(2) + 'h';
+    const formatHours = (hours: number | string) => {
+        const numHours = typeof hours === 'string' ? parseFloat(hours) : hours;
+        return (isNaN(numHours) ? 0 : numHours).toFixed(2) + 'h';
     };
 
     const getCurrentStatus = () => {
@@ -150,9 +151,24 @@ export default function TaskTimeTracking({ taskId }: TaskTimeTrackingProps) {
     const status = getCurrentStatus();
 
     // Calculate total hours from all logs
-    const totalHours = timeLogs.reduce((sum, log) => sum + (log.total_work_hours || 0), 0);
-    const totalNormalHours = timeLogs.reduce((sum, log) => sum + (log.normal_hours || 0), 0);
-    const totalOvertimeHours = timeLogs.reduce((sum, log) => sum + (log.overtime_hours || 0), 0);
+    const totalHours = timeLogs.reduce((sum, log) => {
+        const hours = typeof log.total_work_hours === 'string' 
+            ? parseFloat(log.total_work_hours) 
+            : log.total_work_hours;
+        return sum + (hours || 0);
+    }, 0);
+    const totalNormalHours = timeLogs.reduce((sum, log) => {
+        const hours = typeof log.normal_hours === 'string' 
+            ? parseFloat(log.normal_hours) 
+            : log.normal_hours;
+        return sum + (hours || 0);
+    }, 0);
+    const totalOvertimeHours = timeLogs.reduce((sum, log) => {
+        const hours = typeof log.overtime_hours === 'string' 
+            ? parseFloat(log.overtime_hours) 
+            : log.overtime_hours;
+        return sum + (hours || 0);
+    }, 0);
 
     if (isLoading) {
         return (

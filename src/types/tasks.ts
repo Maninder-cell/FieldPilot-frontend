@@ -154,9 +154,9 @@ export interface TimeLog {
   lunch_started_at: string | null;
   lunch_ended_at: string | null;
   equipment_status_at_departure: EquipmentStatusAtDeparture | null;
-  total_work_hours: number;
-  normal_hours: number;
-  overtime_hours: number;
+  total_work_hours: number | string;
+  normal_hours: number | string;
+  overtime_hours: number | string;
   is_on_site: boolean;
   is_traveling: boolean;
   is_on_lunch: boolean;

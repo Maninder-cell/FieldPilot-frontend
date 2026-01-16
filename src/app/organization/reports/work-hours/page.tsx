@@ -28,9 +28,9 @@ interface TimeLogEntry {
     travel_started_at: string | null;
     arrived_at: string | null;
     departed_at: string | null;
-    total_work_hours: number;
-    normal_hours: number;
-    overtime_hours: number;
+    total_work_hours: number | string;
+    normal_hours: number | string;
+    overtime_hours: number | string;
 }
 
 interface ReportData {
@@ -40,9 +40,9 @@ interface ReportData {
         email: string;
     };
     summary: {
-        total_work_hours: number;
-        normal_hours: number;
-        overtime_hours: number;
+        total_work_hours: number | string;
+        normal_hours: number | string;
+        overtime_hours: number | string;
         total_tasks: number;
     };
     time_logs: TimeLogEntry[];
@@ -130,8 +130,9 @@ export default function WorkHoursReportPage() {
         });
     };
 
-    const formatHours = (hours: number) => {
-        return hours.toFixed(2) + 'h';
+    const formatHours = (hours: number | string) => {
+        const numHours = typeof hours === 'string' ? parseFloat(hours) : hours;
+        return (isNaN(numHours) ? 0 : numHours).toFixed(2) + 'h';
     };
 
     if (authLoading) {

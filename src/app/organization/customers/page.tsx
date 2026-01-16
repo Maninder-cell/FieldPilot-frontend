@@ -37,6 +37,14 @@ import {
     CreateCustomerRequest,
     UpdateCustomerRequest
 } from '@/lib/customers-api';
+import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
+
+// Customer Status Options
+const customerStatusOptions: SelectOption[] = [
+    { value: 'pending', label: 'Pending', icon: 'Clock', color: 'text-yellow-600' },
+    { value: 'active', label: 'Active', icon: 'CheckCircle2', color: 'text-green-600' },
+    { value: 'inactive', label: 'Inactive', icon: 'XCircle', color: 'text-red-600' },
+];
 
 export default function CustomersPage() {
     const { user, isLoading: authLoading } = useAuth();
@@ -509,7 +517,7 @@ export default function CustomersPage() {
                                                                 e.stopPropagation();
                                                                 openViewModal(customer);
                                                             }}
-                                                            className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                            className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                                                             title="View Details"
                                                         >
                                                             <Eye className="h-4 w-4" />
@@ -519,7 +527,7 @@ export default function CustomersPage() {
                                                                 e.stopPropagation();
                                                                 openEditModal(customer);
                                                             }}
-                                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            className="p-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
                                                             title="Edit Customer"
                                                         >
                                                             <Edit className="h-4 w-4" />
@@ -532,8 +540,8 @@ export default function CustomersPage() {
                                                                 }}
                                                                 disabled={customer.invitation?.status === 'pending'}
                                                                 className={`p-2 rounded-lg transition-colors ${customer.invitation?.status === 'pending'
-                                                                        ? 'text-gray-300 cursor-not-allowed'
-                                                                        : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
+                                                                    ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                                                                    : 'text-purple-700 bg-purple-50 hover:bg-purple-100'
                                                                     }`}
                                                                 title={
                                                                     customer.invitation?.status === 'pending'
@@ -549,7 +557,7 @@ export default function CustomersPage() {
                                                                 e.stopPropagation();
                                                                 openDeleteModal(customer);
                                                             }}
-                                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            className="p-2 text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                                                             title="Delete Customer"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
@@ -589,7 +597,7 @@ export default function CustomersPage() {
                                         <div className="flex gap-2 pt-3 border-t">
                                             <button
                                                 onClick={() => openViewModal(customer)}
-                                                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100"
+                                                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100"
                                             >
                                                 <Eye className="h-4 w-4" />
                                                 View
@@ -606,8 +614,8 @@ export default function CustomersPage() {
                                                     onClick={() => openInviteModal(customer)}
                                                     disabled={customer.invitation?.status === 'pending'}
                                                     className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg ${customer.invitation?.status === 'pending'
-                                                            ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                                                            : 'text-purple-700 bg-purple-50 hover:bg-purple-100'
+                                                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                                                        : 'text-purple-700 bg-purple-50 hover:bg-purple-100'
                                                         }`}
                                                     title={
                                                         customer.invitation?.status === 'pending'
@@ -731,15 +739,13 @@ export default function CustomersPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                    <select
-                                        value={formData.status}
-                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
+                                    <CustomSelect
+                                        options={customerStatusOptions}
+                                        value={formData.status || null}
+                                        onChange={(value) => setFormData({ ...formData, status: value as any })}
+                                        placeholder="Select status"
+                                        disabled={isSubmitting}
+                                    />
                                 </div>
                             </div>
 
@@ -779,7 +785,8 @@ export default function CustomersPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {/* Address Fields - Row 1: City and State */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
                                     <input
@@ -798,6 +805,10 @@ export default function CustomersPage() {
                                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     />
                                 </div>
+                            </div>
+
+                            {/* Address Fields - Row 2: ZIP Code and Country */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
                                     <input

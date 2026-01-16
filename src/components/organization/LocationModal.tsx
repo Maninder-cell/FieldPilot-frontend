@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, MapPin, Building2, FileText, Settings, Globe } from 'lucide-react';
+import {
+  X,
+  MapPin,
+  Building2,
+  FileText,
+  Settings,
+  Globe,
+  Building,
+  Warehouse,
+  Wrench
+} from 'lucide-react';
 import { createLocation, updateLocation } from '@/lib/locations-api';
 import { getFacilities } from '@/lib/facilities-api';
 import { getBuildings } from '@/lib/buildings-api';
@@ -18,9 +28,9 @@ interface LocationModalProps {
 
 // Entity Type Options
 const entityTypeOptions: SelectOption[] = [
-  { value: 'facility', label: 'Facility', icon: '🏢' },
-  { value: 'building', label: 'Building', icon: '🏗️' },
-  { value: 'equipment', label: 'Equipment', icon: '🔧' },
+  { value: 'facility', label: 'Facility', icon: 'Building', color: 'text-purple-600' },
+  { value: 'building', label: 'Building', icon: 'Warehouse', color: 'text-blue-600' },
+  { value: 'equipment', label: 'Equipment', icon: 'Wrench', color: 'text-orange-600' },
 ];
 
 export default function LocationModal({ location, onClose }: LocationModalProps) {
@@ -56,8 +66,12 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
         zone: location.zone,
         additional_info: location.additional_info || {},
       });
+      // Load entities based on the location's entity_type
+      loadEntities(location.entity_type);
+    } else {
+      // Load entities based on default entity_type for new locations
+      loadEntities(formData.entity_type);
     }
-    loadEntities(formData.entity_type);
   }, [location]);
 
   const loadEntities = async (entityType: string) => {
@@ -87,7 +101,7 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
     e.preventDefault();
     try {
       setLoading(true);
-      
+
       // Clean up the data - convert empty strings to undefined
       const cleanedData = {
         ...formData,
@@ -99,7 +113,7 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
         room: formData.room || undefined,
         zone: formData.zone || undefined,
       };
-      
+
       if (location) {
         const { entity_type, entity_id, ...updateData } = cleanedData;
         await updateLocation(location.id, updateData);
@@ -126,11 +140,11 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={onClose}
         />
-        
+
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-5 flex items-center justify-between">
@@ -315,8 +329,8 @@ export default function LocationModal({ location, onClose }: LocationModalProps)
                   <h3 className="text-lg font-bold text-gray-900">GPS Coordinates</h3>
                 </div>
 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <p className="text-sm text-purple-800">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
                     <span className="font-semibold">Optional:</span> Add GPS coordinates for precise location mapping
                   </p>
                 </div>

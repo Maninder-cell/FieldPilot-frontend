@@ -1,7 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, CheckSquare, FileText, Calendar, Settings } from 'lucide-react';
+import {
+  X,
+  CheckSquare,
+  FileText,
+  Calendar,
+  Settings,
+  CircleDot,
+  Circle,
+  AlertCircle,
+  Flame,
+  Sparkles,
+  Clock,
+  CheckCircle2,
+  RotateCcw,
+  XCircle
+} from 'lucide-react';
 import { createTask, updateTask } from '@/lib/tasks-api';
 import { getEquipment } from '@/lib/equipment-api';
 import { Task, CreateTaskRequest, TaskPriority, TaskStatus } from '@/types/tasks';
@@ -17,19 +32,19 @@ interface TaskModalProps {
 
 // Priority Options
 const priorityOptions: SelectOption[] = [
-  { value: 'low', label: 'Low', icon: '🟢' },
-  { value: 'medium', label: 'Medium', icon: '🟡' },
-  { value: 'high', label: 'High', icon: '🟠' },
-  { value: 'critical', label: 'Critical', icon: '🔴' },
+  { value: 'low', label: 'Low', icon: 'CircleDot', color: 'text-green-500' },
+  { value: 'medium', label: 'Medium', icon: 'Circle', color: 'text-yellow-500' },
+  { value: 'high', label: 'High', icon: 'AlertCircle', color: 'text-orange-500' },
+  { value: 'critical', label: 'Critical', icon: 'Flame', color: 'text-red-500' },
 ];
 
 // Status Options
 const statusOptions: SelectOption[] = [
-  { value: 'new', label: 'New', icon: '🆕' },
-  { value: 'pending', label: 'Pending', icon: '⏳' },
-  { value: 'closed', label: 'Closed', icon: '✅' },
-  { value: 'reopened', label: 'Reopened', icon: '🔄' },
-  { value: 'rejected', label: 'Rejected', icon: '❌' },
+  { value: 'new', label: 'New', icon: 'Sparkles', color: 'text-blue-600' },
+  { value: 'pending', label: 'Pending', icon: 'Clock', color: 'text-yellow-600' },
+  { value: 'closed', label: 'Closed', icon: 'CheckCircle2', color: 'text-green-600' },
+  { value: 'reopened', label: 'Reopened', icon: 'RotateCcw', color: 'text-purple-600' },
+  { value: 'rejected', label: 'Rejected', icon: 'XCircle', color: 'text-red-600' },
 ];
 
 export default function TaskModal({ task, onClose }: TaskModalProps) {
@@ -221,12 +236,12 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   fetchItemById={async (id) => {
                     const { getEquipmentById } = await import('@/lib/equipment-api');
                     const response = await getEquipmentById(id);
-                    return { 
-                      data: { 
-                        id: response.data.id, 
-                        name: response.data.name, 
-                        code: response.data.equipment_number 
-                      } 
+                    return {
+                      data: {
+                        id: response.data.id,
+                        name: response.data.name,
+                        code: response.data.equipment_number
+                      }
                     };
                   }}
                   placeholder="Select equipment"
@@ -303,8 +318,8 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   <h3 className="text-lg font-bold text-gray-900">Assignment</h3>
                 </div>
 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <p className="text-sm text-purple-800">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
                     <span className="font-semibold">Required:</span> Assign at least one technician or team to this task
                   </p>
                 </div>
@@ -347,12 +362,12 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                         const technicians = (response.results as any)?.data ?? response.data ?? [];
                         const technician = technicians.find((t: any) => t.id === id);
                         if (technician) {
-                          return { 
-                            data: { 
-                              id: technician.id, 
+                          return {
+                            data: {
+                              id: technician.id,
                               name: technician.full_name || technician.name,
                               code: technician.email
-                            } 
+                            }
                           };
                         }
                         return { data: { id, name: 'Unknown', code: '' } };
@@ -385,10 +400,10 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                         const { getTeams } = await import('@/lib/teams-api');
                         const response = await getTeams(params);
                         // Handle nested structure: results.data contains the array
-                        const teams = Array.isArray((response.results as any)?.data) 
-                          ? (response.results as any).data 
-                          : Array.isArray(response.results) 
-                            ? response.results 
+                        const teams = Array.isArray((response.results as any)?.data)
+                          ? (response.results as any).data
+                          : Array.isArray(response.results)
+                            ? response.results
                             : [];
                         return { data: teams, count: response.count ?? 0 };
                       } catch (error) {
@@ -423,8 +438,8 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
                   <h3 className="text-lg font-bold text-gray-900">Scheduling</h3>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
                     <span className="font-semibold">Optional:</span> Set start and end dates for this task
                   </p>
                 </div>

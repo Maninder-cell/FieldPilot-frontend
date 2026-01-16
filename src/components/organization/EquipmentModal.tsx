@@ -1,7 +1,30 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Wrench, MapPin, User, FileText, Settings, DollarSign, ChevronDown, Check } from 'lucide-react';
+import {
+  X,
+  Wrench,
+  MapPin,
+  User,
+  FileText,
+  Settings,
+  DollarSign,
+  ChevronDown,
+  Check,
+  Wind,
+  Zap,
+  Droplet,
+  Cog,
+  Laptop,
+  ShieldCheck,
+  CheckCircle,
+  XCircle,
+  Package,
+  Star,
+  ThumbsUp,
+  Minus,
+  ThumbsDown
+} from 'lucide-react';
 
 import { createEquipment, updateEquipment } from '@/lib/equipment-api';
 import { getBuildings, getBuilding } from '@/lib/buildings-api';
@@ -18,29 +41,29 @@ interface EquipmentModalProps {
 
 // Equipment Type Options
 const equipmentTypeOptions: SelectOption[] = [
-  { value: 'hvac', label: 'HVAC', icon: '❄️' },
-  { value: 'electrical', label: 'Electrical', icon: '⚡' },
-  { value: 'plumbing', label: 'Plumbing', icon: '🚰' },
-  { value: 'machinery', label: 'Machinery', icon: '⚙️' },
-  { value: 'it', label: 'IT Equipment', icon: '💻' },
-  { value: 'safety', label: 'Safety Equipment', icon: '🦺' },
-  { value: 'other', label: 'Other', icon: '🔧' },
+  { value: 'hvac', label: 'HVAC', icon: 'Wind', color: 'text-cyan-600' },
+  { value: 'electrical', label: 'Electrical', icon: 'Zap', color: 'text-yellow-600' },
+  { value: 'plumbing', label: 'Plumbing', icon: 'Droplet', color: 'text-blue-600' },
+  { value: 'machinery', label: 'Machinery', icon: 'Cog', color: 'text-gray-600' },
+  { value: 'it', label: 'IT Equipment', icon: 'Laptop', color: 'text-indigo-600' },
+  { value: 'safety', label: 'Safety Equipment', icon: 'ShieldCheck', color: 'text-orange-600' },
+  { value: 'other', label: 'Other', icon: 'Settings', color: 'text-gray-600' },
 ];
 
 // Operational Status Options
 const operationalStatusOptions: SelectOption[] = [
-  { value: 'operational', label: 'Operational', icon: '✅' },
-  { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
-  { value: 'broken', label: 'Broken', icon: '❌' },
-  { value: 'retired', label: 'Retired', icon: '📦' },
+  { value: 'operational', label: 'Operational', icon: 'CheckCircle', color: 'text-green-600' },
+  { value: 'maintenance', label: 'Maintenance', icon: 'Wrench', color: 'text-orange-600' },
+  { value: 'broken', label: 'Broken', icon: 'XCircle', color: 'text-red-600' },
+  { value: 'retired', label: 'Retired', icon: 'Package', color: 'text-gray-600' },
 ];
 
 // Condition Options
 const conditionOptions: SelectOption[] = [
-  { value: 'excellent', label: 'Excellent', icon: '⭐' },
-  { value: 'good', label: 'Good', icon: '👍' },
-  { value: 'fair', label: 'Fair', icon: '👌' },
-  { value: 'poor', label: 'Poor', icon: '👎' },
+  { value: 'excellent', label: 'Excellent', icon: 'Star', color: 'text-yellow-500' },
+  { value: 'good', label: 'Good', icon: 'ThumbsUp', color: 'text-green-600' },
+  { value: 'fair', label: 'Fair', icon: 'Minus', color: 'text-yellow-600' },
+  { value: 'poor', label: 'Poor', icon: 'ThumbsDown', color: 'text-red-600' },
 ];
 
 // Mock customer data
@@ -82,12 +105,12 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
     console.log('EquipmentModal - equipment:', !!equipment);
     if (equipment) {
       // Extract building_id - it can be an object or string
-      const buildingId = typeof equipment.building === 'string' 
-        ? equipment.building 
+      const buildingId = typeof equipment.building === 'string'
+        ? equipment.building
         : equipment.building?.id || '';
-      
+
       console.log('EquipmentModal - building_id:', buildingId);
-      
+
       setFormData({
         building_id: buildingId,
         name: equipment.name,
@@ -153,7 +176,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
   };
 
   const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
-  
+
   const filteredCustomers = mockCustomers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
@@ -168,11 +191,11 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={onClose}
         />
-        
+
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-5 flex items-center justify-between">
@@ -206,7 +229,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                 <LazySelect
                   label="Building"
                   value={formData.building_id}
-                  onChange={(value) => setFormData(prev => ({ ...prev, building_id: value }))}
+                  onChange={(value) => setFormData(prev => ({ ...prev, building_id: Array.isArray(value) ? value[0] : value }))}
                   fetchItems={getBuildings}
                   fetchItemById={async (id) => {
                     const response = await getBuilding(id);
@@ -423,7 +446,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Customer <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
-                  
+
                   {/* Custom Customer Dropdown */}
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -522,8 +545,8 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                   <h3 className="text-lg font-bold text-gray-900">Technical Specifications</h3>
                 </div>
 
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                  <p className="text-sm text-indigo-800">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
                     Add technical specifications and parameters for this equipment
                   </p>
                 </div>

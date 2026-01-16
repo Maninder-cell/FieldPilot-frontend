@@ -39,12 +39,12 @@ export default function CustomFieldsManager({
     if (!editingField || !editingField.key.trim()) return;
 
     const updatedFields = { ...value };
-    
+
     // Remove old key if it changed
     if (editingField.originalKey !== editingField.key) {
       delete updatedFields[editingField.originalKey];
     }
-    
+
     updatedFields[editingField.key.trim()] = editingField.value.trim();
     onChange(updatedFields);
     setEditingField(null);
@@ -192,7 +192,7 @@ export default function CustomFieldsManager({
 
       {/* Add New Field Section */}
       {isAddingNew ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
+        <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-3">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               Field Name

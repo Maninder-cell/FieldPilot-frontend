@@ -1,7 +1,26 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Building2, MapPin, User, FileText, Settings, ChevronDown, Check } from 'lucide-react';
+import {
+  X,
+  Building2,
+  MapPin,
+  User,
+  FileText,
+  Settings,
+  ChevronDown,
+  Check,
+  Building as BuildingIcon,
+  Warehouse,
+  Factory,
+  Package,
+  Microscope,
+  Landmark,
+  CheckCircle,
+  Construction,
+  Wrench,
+  Lock
+} from 'lucide-react';
 import { Building, CreateBuildingRequest } from '@/types/buildings';
 import { Facility } from '@/types/facilities';
 import CustomFieldsManager from '@/components/common/CustomFieldsManager';
@@ -19,20 +38,20 @@ interface BuildingModalProps {
 
 // Building Type Options
 const buildingTypeOptions: SelectOption[] = [
-  { value: 'office', label: 'Office', icon: '🏢' },
-  { value: 'warehouse', label: 'Warehouse', icon: '🏭' },
-  { value: 'production', label: 'Production', icon: '🏗️' },
-  { value: 'storage', label: 'Storage', icon: '📦' },
-  { value: 'laboratory', label: 'Laboratory', icon: '🔬' },
-  { value: 'other', label: 'Other', icon: '🏛️' },
+  { value: 'office', label: 'Office', icon: 'Building', color: 'text-purple-600' },
+  { value: 'warehouse', label: 'Warehouse', icon: 'Warehouse', color: 'text-blue-600' },
+  { value: 'production', label: 'Production', icon: 'Factory', color: 'text-orange-600' },
+  { value: 'storage', label: 'Storage', icon: 'Package', color: 'text-indigo-600' },
+  { value: 'laboratory', label: 'Laboratory', icon: 'Microscope', color: 'text-teal-600' },
+  { value: 'other', label: 'Other', icon: 'Landmark', color: 'text-gray-600' },
 ];
 
 // Operational Status Options
 const operationalStatusOptions: SelectOption[] = [
-  { value: 'operational', label: 'Operational', icon: '✅' },
-  { value: 'under_construction', label: 'Under Construction', icon: '🚧' },
-  { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
-  { value: 'closed', label: 'Closed', icon: '🔒' },
+  { value: 'operational', label: 'Operational', icon: 'CheckCircle', color: 'text-green-600' },
+  { value: 'under_construction', label: 'Under Construction', icon: 'Construction', color: 'text-yellow-600' },
+  { value: 'maintenance', label: 'Maintenance', icon: 'Wrench', color: 'text-orange-600' },
+  { value: 'closed', label: 'Closed', icon: 'Lock', color: 'text-red-600' },
 ];
 
 // Mock customer data - replace with actual API call
@@ -77,12 +96,12 @@ export default function BuildingModal({
     console.log('BuildingModal - building:', !!building);
     if (building) {
       // Extract facility_id - it can be an object or string
-      const facilityId = typeof building.facility === 'string' 
-        ? building.facility 
+      const facilityId = typeof building.facility === 'string'
+        ? building.facility
         : building.facility?.id || '';
-      
+
       console.log('BuildingModal - facility_id:', facilityId);
-      
+
       setFormData({
         facility_id: facilityId,
         name: building.name,
@@ -142,15 +161,15 @@ export default function BuildingModal({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    
+
     let processedValue: any = value;
-    
+
     if (value === '') {
       processedValue = null;
     } else if (type === 'number') {
       processedValue = value ? parseFloat(value) : null;
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: processedValue,
@@ -160,7 +179,7 @@ export default function BuildingModal({
   if (!isOpen) return null;
 
   const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
-  
+
   const filteredCustomers = mockCustomers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
@@ -175,11 +194,11 @@ export default function BuildingModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={onClose}
         />
-        
+
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-5 flex items-center justify-between">
@@ -213,7 +232,7 @@ export default function BuildingModal({
                 <LazySelect
                   label="Facility"
                   value={formData.facility_id}
-                  onChange={(value) => setFormData(prev => ({ ...prev, facility_id: value }))}
+                  onChange={(value) => setFormData(prev => ({ ...prev, facility_id: Array.isArray(value) ? value[0] : value }))}
                   fetchItems={getFacilities}
                   fetchItemById={async (id) => {
                     const response = await getFacility(id);
@@ -413,7 +432,7 @@ export default function BuildingModal({
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Customer <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
-                  
+
                   {/* Custom Customer Dropdown */}
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -517,7 +536,7 @@ export default function BuildingModal({
                     Add custom key-value pairs to store additional building information
                   </p>
                 </div>
-                
+
                 <CustomFieldsManager
                   value={formData.custom_fields || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}

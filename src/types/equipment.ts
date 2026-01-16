@@ -31,6 +31,8 @@ export interface Equipment {
   custom_fields: Record<string, any>;
   is_operational: boolean;
   is_under_warranty: boolean;
+  created_by: string;
+  created_by_name?: string;
   created_at: string;
   updated_at: string;
 }

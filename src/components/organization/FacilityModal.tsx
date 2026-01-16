@@ -1,7 +1,26 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Building2, MapPin, User, FileText, Settings, ChevronDown, Check } from 'lucide-react';
+import {
+  X,
+  Building2,
+  MapPin,
+  User,
+  FileText,
+  Settings,
+  ChevronDown,
+  Check,
+  Warehouse,
+  Building,
+  Factory,
+  Store,
+  Server,
+  Package,
+  CheckCircle,
+  Construction,
+  Wrench,
+  Lock
+} from 'lucide-react';
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
 import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
@@ -16,20 +35,20 @@ interface FacilityModalProps {
 
 // Facility Type Options
 const facilityTypeOptions: SelectOption[] = [
-  { value: 'warehouse', label: 'Warehouse', icon: '🏭' },
-  { value: 'office', label: 'Office', icon: '🏢' },
-  { value: 'factory', label: 'Factory', icon: '🏗️' },
-  { value: 'retail', label: 'Retail', icon: '🏪' },
-  { value: 'datacenter', label: 'Data Center', icon: '💾' },
-  { value: 'other', label: 'Other', icon: '📦' },
+  { value: 'warehouse', label: 'Warehouse', icon: 'Warehouse', color: 'text-blue-600' },
+  { value: 'office', label: 'Office', icon: 'Building', color: 'text-purple-600' },
+  { value: 'factory', label: 'Factory', icon: 'Factory', color: 'text-orange-600' },
+  { value: 'retail', label: 'Retail', icon: 'Store', color: 'text-pink-600' },
+  { value: 'datacenter', label: 'Data Center', icon: 'Server', color: 'text-indigo-600' },
+  { value: 'other', label: 'Other', icon: 'Package', color: 'text-gray-600' },
 ];
 
 // Operational Status Options
 const operationalStatusOptions: SelectOption[] = [
-  { value: 'operational', label: 'Operational', icon: '✅' },
-  { value: 'under_construction', label: 'Under Construction', icon: '🚧' },
-  { value: 'maintenance', label: 'Maintenance', icon: '🔧' },
-  { value: 'closed', label: 'Closed', icon: '🔒' },
+  { value: 'operational', label: 'Operational', icon: 'CheckCircle', color: 'text-green-600' },
+  { value: 'under_construction', label: 'Under Construction', icon: 'Construction', color: 'text-yellow-600' },
+  { value: 'maintenance', label: 'Maintenance', icon: 'Wrench', color: 'text-orange-600' },
+  { value: 'closed', label: 'Closed', icon: 'Lock', color: 'text-red-600' },
 ];
 
 // Mock customer data - replace with actual API call
@@ -51,7 +70,7 @@ export default function FacilityModal({
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const [formData, setFormData] = useState<CreateFacilityRequest>({
     name: '',
     facility_type: 'other',
@@ -143,9 +162,9 @@ export default function FacilityModal({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    
+
     let processedValue: any = value;
-    
+
     // Handle empty values
     if (value === '') {
       processedValue = null;
@@ -154,7 +173,7 @@ export default function FacilityModal({
     else if (type === 'number') {
       processedValue = value ? parseFloat(value) : null;
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: processedValue,
@@ -164,7 +183,7 @@ export default function FacilityModal({
   if (!isOpen) return null;
 
   const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
-  
+
   const filteredCustomers = mockCustomers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
@@ -179,11 +198,11 @@ export default function FacilityModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          onClick={onClose}
         />
-        
+
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-5 flex items-center justify-between">
@@ -261,7 +280,7 @@ export default function FacilityModal({
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Customer <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
-                  
+
                   {/* Custom Dropdown */}
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -603,7 +622,7 @@ export default function FacilityModal({
                     Add custom key-value pairs to store additional facility information
                   </p>
                 </div>
-                
+
                 <CustomFieldsManager
                   value={formData.custom_fields || {}}
                   onChange={(value) => setFormData(prev => ({ ...prev, custom_fields: value }))}

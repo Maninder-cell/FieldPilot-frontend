@@ -187,7 +187,7 @@ export default function ServiceRequestModal({ request, onClose }: ServiceRequest
                                 <LazySelect
                                     label="Equipment"
                                     value={formData.equipment_id}
-                                    onChange={(value) => setFormData(prev => ({ ...prev, equipment_id: value }))}
+                                    onChange={(value) => setFormData(prev => ({ ...prev, equipment_id: Array.isArray(value) ? value[0] : value }))}
                                     fetchItems={getEquipment}
                                     fetchItemById={async (id) => {
                                         const { getEquipmentById } = await import('@/lib/equipment-api');

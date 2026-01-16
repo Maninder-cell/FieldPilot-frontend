@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import OrganizationLayout from '@/components/organization/OrganizationLayout';
 import FacilityModal from '@/components/organization/FacilityModal';
 import DeleteFacilityModal from '@/components/organization/DeleteFacilityModal';
-import { Home, Plus, Search, Edit, Trash2, Building, Wrench, Filter, X, CheckCircle2, Construction, AlertCircle, XCircle, Warehouse, Building2, Factory, Store, Server, MoreHorizontal } from 'lucide-react';
+import { Home, Plus, Search, Edit, Trash2, Building, Wrench, Filter, X, CheckCircle2, Construction, AlertCircle, XCircle, Warehouse, Building2, Factory, Store, Server, MoreHorizontal, Eye } from 'lucide-react';
 import { getFacilities, getFacility, createFacility, updateFacility, deleteFacility } from '@/lib/facilities-api';
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
 import { toast } from 'react-hot-toast';
@@ -59,11 +59,11 @@ export default function FacilitiesPage() {
     try {
       setIsLoading(true);
       const params: any = { page, page_size: size };
-      
+
       if (searchQuery) params.search = searchQuery;
       if (statusFilter) params.status = statusFilter;
       if (typeFilter) params.type = typeFilter;
-      
+
       const response = await getFacilities(params);
       setFacilities(response.data);
       setTotalCount(response.count || 0);
@@ -100,12 +100,12 @@ export default function FacilitiesPage() {
     try {
       setIsFetchingDetails(true);
       toast.loading('Loading facility details...', { id: 'fetch-facility' });
-      
+
       // Fetch complete facility data from detail endpoint
       const response = await getFacility(facility.id);
       setSelectedFacility(response.data);
       setIsModalOpen(true);
-      
+
       toast.dismiss('fetch-facility');
     } catch (error: any) {
       console.error('Failed to load facility details:', error);
@@ -115,10 +115,14 @@ export default function FacilitiesPage() {
     }
   };
 
+  const handleView = (facility: Facility) => {
+    router.push(`/organization/facilities/${facility.id}`);
+  };
+
   const handleSubmit = async (data: CreateFacilityRequest) => {
     try {
       setIsSubmitting(true);
-      
+
       if (selectedFacility) {
         await updateFacility(selectedFacility.id, data);
         toast.success('Facility updated successfully');
@@ -126,10 +130,10 @@ export default function FacilitiesPage() {
         await createFacility(data);
         toast.success('Facility created successfully');
       }
-      
+
       setIsModalOpen(false);
       setSelectedFacility(null);
-      
+
       // Clear filters and reload all facilities
       clearFilters();
       loadFacilities();
@@ -154,7 +158,7 @@ export default function FacilitiesPage() {
       toast.success('Facility deleted successfully');
       setIsDeleteModalOpen(false);
       setFacilityToDelete(null);
-      
+
       // Clear filters and reload all facilities
       clearFilters();
       loadFacilities();
@@ -217,11 +221,10 @@ export default function FacilitiesPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${
-                  showFilters || hasActiveFilters
+                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${showFilters || hasActiveFilters
                     ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden xs:inline">Filters</span>
@@ -268,11 +271,10 @@ export default function FacilitiesPage() {
                     setStatusFilter('');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    statusFilter === ''
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === ''
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   All Status
                 </button>
@@ -281,11 +283,10 @@ export default function FacilitiesPage() {
                     setStatusFilter('operational');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    statusFilter === 'operational'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === 'operational'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Operational
@@ -295,11 +296,10 @@ export default function FacilitiesPage() {
                     setStatusFilter('under_construction');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    statusFilter === 'under_construction'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === 'under_construction'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                  }`}
+                    }`}
                 >
                   <Construction className="h-4 w-4" />
                   Under Construction
@@ -309,11 +309,10 @@ export default function FacilitiesPage() {
                     setStatusFilter('maintenance');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    statusFilter === 'maintenance'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === 'maintenance'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-yellow-400 hover:bg-yellow-50'
-                  }`}
+                    }`}
                 >
                   <AlertCircle className="h-4 w-4" />
                   Maintenance
@@ -323,11 +322,10 @@ export default function FacilitiesPage() {
                     setStatusFilter('closed');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    statusFilter === 'closed'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === 'closed'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <XCircle className="h-4 w-4" />
                   Closed
@@ -346,11 +344,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === ''
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === ''
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   All Types
                 </button>
@@ -359,11 +356,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('warehouse');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'warehouse'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'warehouse'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <Warehouse className="h-4 w-4" />
                   Warehouse
@@ -373,11 +369,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('office');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'office'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'office'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <Building2 className="h-4 w-4" />
                   Office
@@ -387,11 +382,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('factory');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'factory'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'factory'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <Factory className="h-4 w-4" />
                   Factory
@@ -401,11 +395,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('retail');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'retail'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'retail'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <Store className="h-4 w-4" />
                   Retail
@@ -415,11 +408,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('datacenter');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'datacenter'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'datacenter'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <Server className="h-4 w-4" />
                   Data Center
@@ -429,11 +421,10 @@ export default function FacilitiesPage() {
                     setTypeFilter('other');
                     setCurrentPage(1);
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    typeFilter === 'other'
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'other'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                  }`}
+                    }`}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                   Other
@@ -523,15 +514,14 @@ export default function FacilitiesPage() {
                         </td>
                         <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              facility.operational_status === 'operational'
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${facility.operational_status === 'operational'
                                 ? 'bg-green-100 text-green-800'
                                 : facility.operational_status === 'maintenance'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : facility.operational_status === 'under_construction'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : facility.operational_status === 'under_construction'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}
                           >
                             {facility.operational_status.replace('_', ' ')}
                           </span>
@@ -549,22 +539,31 @@ export default function FacilitiesPage() {
                           </div>
                         </td>
                         <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleEdit(facility)}
-                            disabled={isFetchingDetails}
-                            className="text-emerald-600 hover:text-emerald-900 mr-3 lg:mr-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Edit facility"
-                          >
-                            <Edit className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(facility)}
-                            disabled={isFetchingDetails}
-                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Delete facility"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleView(facility)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="View facility"
+                            >
+                              <Eye className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(facility)}
+                              disabled={isFetchingDetails}
+                              className="text-emerald-600 hover:text-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Edit facility"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(facility)}
+                              disabled={isFetchingDetails}
+                              className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete facility"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -582,15 +581,14 @@ export default function FacilitiesPage() {
                         <p className="text-xs text-gray-500 mt-0.5">{facility.code}</p>
                       </div>
                       <span
-                        className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
-                          facility.operational_status === 'operational'
+                        className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${facility.operational_status === 'operational'
                             ? 'bg-green-100 text-green-800'
                             : facility.operational_status === 'maintenance'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : facility.operational_status === 'under_construction'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : facility.operational_status === 'under_construction'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}
                       >
                         {facility.operational_status.replace('_', ' ')}
                       </span>
@@ -622,6 +620,13 @@ export default function FacilitiesPage() {
                     </div>
 
                     <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => handleView(facility)}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </button>
                       <button
                         onClick={() => handleEdit(facility)}
                         disabled={isFetchingDetails}
@@ -728,63 +733,62 @@ export default function FacilitiesPage() {
 
                   {totalCount > pageSize && (
                     <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        const newPage = currentPage - 1;
-                        setCurrentPage(newPage);
-                        loadFacilities(newPage);
-                      }}
-                      disabled={currentPage === 1}
-                      className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ‹
-                  </button>
+                      <button
+                        onClick={() => {
+                          const newPage = currentPage - 1;
+                          setCurrentPage(newPage);
+                          loadFacilities(newPage);
+                        }}
+                        disabled={currentPage === 1}
+                        className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ‹
+                      </button>
 
-                  {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1)
-                    .filter(page => {
-                      const totalPages = Math.ceil(totalCount / pageSize);
-                      if (totalPages <= 7) return true;
-                      if (page === 1 || page === totalPages) return true;
-                      if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                      if (page === currentPage - 2 || page === currentPage + 2) return page;
-                      return false;
-                    })
-                    .map((page, index, array) => {
-                      const prevPage = array[index - 1];
-                      const showEllipsis = prevPage && page - prevPage > 1;
-                      
-                      return (
-                        <div key={page} className="flex items-center">
-                          {showEllipsis && (
-                            <span className="px-2 text-gray-400">...</span>
-                          )}
-                          <button
-                            onClick={() => {
-                              setCurrentPage(page);
-                              loadFacilities(page);
-                            }}
-                            className={`min-w-[32px] px-3 py-1 rounded text-sm font-medium ${
-                              currentPage === page
-                                ? 'bg-emerald-600 text-white'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        </div>
-                      );
-                    })}
+                      {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1)
+                        .filter(page => {
+                          const totalPages = Math.ceil(totalCount / pageSize);
+                          if (totalPages <= 7) return true;
+                          if (page === 1 || page === totalPages) return true;
+                          if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                          if (page === currentPage - 2 || page === currentPage + 2) return page;
+                          return false;
+                        })
+                        .map((page, index, array) => {
+                          const prevPage = array[index - 1];
+                          const showEllipsis = prevPage && page - prevPage > 1;
 
-                    <button
-                      onClick={() => {
-                        const newPage = currentPage + 1;
-                        setCurrentPage(newPage);
-                        loadFacilities(newPage);
-                      }}
-                      disabled={currentPage >= Math.ceil(totalCount / pageSize)}
-                      className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ›
+                          return (
+                            <div key={page} className="flex items-center">
+                              {showEllipsis && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setCurrentPage(page);
+                                  loadFacilities(page);
+                                }}
+                                className={`min-w-[32px] px-3 py-1 rounded text-sm font-medium ${currentPage === page
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                  }`}
+                              >
+                                {page}
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                      <button
+                        onClick={() => {
+                          const newPage = currentPage + 1;
+                          setCurrentPage(newPage);
+                          loadFacilities(newPage);
+                        }}
+                        disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                        className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        ›
                       </button>
                     </div>
                   )}

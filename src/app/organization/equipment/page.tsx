@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import OrganizationLayout from '@/components/organization/OrganizationLayout';
 import EquipmentModal from '@/components/organization/EquipmentModal';
 import DeleteEquipmentModal from '@/components/organization/DeleteEquipmentModal';
-import { Wrench, Plus, Search, Edit, Trash2, Filter, X, CheckCircle2, AlertCircle, XCircle, Zap, Droplet, Cog, Monitor, Shield, Settings } from 'lucide-react';
+import { Wrench, Plus, Search, Edit, Trash2, Filter, X, CheckCircle2, AlertCircle, XCircle, Zap, Droplet, Cog, Monitor, Shield, Settings, Eye } from 'lucide-react';
 import { getEquipment as getEquipmentList, getEquipmentById } from '@/lib/equipment-api';
 import { Equipment } from '@/types/equipment';
 import { toast } from 'react-hot-toast';
@@ -53,11 +53,11 @@ export default function EquipmentPage() {
     try {
       setIsLoading(true);
       const params: any = { page, page_size: size };
-      
+
       if (searchQuery) params.search = searchQuery;
       if (statusFilter) params.status = statusFilter;
       if (typeFilter) params.type = typeFilter;
-      
+
       const response = await getEquipmentList(params);
       setEquipment(response.data);
       setTotalCount(response.count || 0);
@@ -93,10 +93,10 @@ export default function EquipmentPage() {
     try {
       setIsFetchingDetails(true);
       toast.loading('Loading equipment details...', { id: 'fetch-equipment' });
-      
+
       const response = await getEquipmentById(equip.id);
       setSelectedEquipment(response.data);
-      
+
       toast.dismiss('fetch-equipment');
     } catch (error: any) {
       console.error('Failed to load equipment details:', error);
@@ -104,6 +104,10 @@ export default function EquipmentPage() {
     } finally {
       setIsFetchingDetails(false);
     }
+  };
+
+  const handleView = (equip: Equipment) => {
+    router.push(`/organization/equipment/${equip.id}`);
   };
 
   const handleDeleteClick = (equip: Equipment) => {
@@ -173,11 +177,10 @@ export default function EquipmentPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${
-                  showFilters || hasActiveFilters
+                className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 border rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap ${showFilters || hasActiveFilters
                     ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden xs:inline">Filters</span>
@@ -221,11 +224,10 @@ export default function EquipmentPage() {
                       setStatusFilter(status);
                       setCurrentPage(1);
                     }}
-                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      statusFilter === status
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${statusFilter === status
                         ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {status === '' && 'All Status'}
                     {status === 'operational' && <><CheckCircle2 className="h-4 w-4" />Operational</>}
@@ -256,11 +258,10 @@ export default function EquipmentPage() {
                       setTypeFilter(value);
                       setCurrentPage(1);
                     }}
-                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                      typeFilter === value
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${typeFilter === value
                         ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-white text-gray-700 border border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
-                    }`}
+                      }`}
                   >
                     {Icon && <Icon className="h-4 w-4" />}
                     {label}
@@ -318,22 +319,26 @@ export default function EquipmentPage() {
                         <td className="px-4 lg:px-6 py-4 text-sm text-gray-900">{item.facility_name || '-'}</td>
                         <td className="px-4 lg:px-6 py-4 text-sm text-gray-900 capitalize">{item.equipment_type}</td>
                         <td className="px-4 lg:px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            item.operational_status === 'operational' ? 'bg-green-100 text-green-800' :
-                            item.operational_status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
-                            item.operational_status === 'broken' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.operational_status === 'operational' ? 'bg-green-100 text-green-800' :
+                              item.operational_status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                                item.operational_status === 'broken' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800'
+                            }`}>
                             {item.operational_status}
                           </span>
                         </td>
                         <td className="px-4 lg:px-6 py-4 text-right">
-                          <button onClick={() => handleEdit(item)} disabled={isFetchingDetails} className="text-emerald-600 hover:text-emerald-900 mr-3 disabled:opacity-50">
-                            <Edit className="h-5 w-5" />
-                          </button>
-                          <button onClick={() => handleDeleteClick(item)} disabled={isFetchingDetails} className="text-red-600 hover:text-red-900 disabled:opacity-50">
-                            <Trash2 className="h-5 w-5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => handleView(item)} className="text-blue-600 hover:text-blue-900">
+                              <Eye className="h-5 w-5" />
+                            </button>
+                            <button onClick={() => handleEdit(item)} disabled={isFetchingDetails} className="text-emerald-600 hover:text-emerald-900 disabled:opacity-50">
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button onClick={() => handleDeleteClick(item)} disabled={isFetchingDetails} className="text-red-600 hover:text-red-900 disabled:opacity-50">
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -349,12 +354,11 @@ export default function EquipmentPage() {
                         <h3 className="text-sm font-semibold text-gray-900">{item.name}</h3>
                         <p className="text-xs text-gray-500">{item.equipment_number}</p>
                       </div>
-                      <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${
-                        item.operational_status === 'operational' ? 'bg-green-100 text-green-800' :
-                        item.operational_status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
-                        item.operational_status === 'broken' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full ${item.operational_status === 'operational' ? 'bg-green-100 text-green-800' :
+                          item.operational_status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                            item.operational_status === 'broken' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                        }`}>
                         {item.operational_status}
                       </span>
                     </div>
@@ -363,6 +367,9 @@ export default function EquipmentPage() {
                       <div className="text-xs text-gray-600"><span className="font-medium">Type:</span> {item.equipment_type}</div>
                     </div>
                     <div className="flex gap-2 pt-3 border-t">
+                      <button onClick={() => handleView(item)} className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100">
+                        <Eye className="h-4 w-4" />View
+                      </button>
                       <button onClick={() => handleEdit(item)} disabled={isFetchingDetails} className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100">
                         <Edit className="h-4 w-4" />Edit
                       </button>
@@ -385,7 +392,7 @@ export default function EquipmentPage() {
                 <span className="font-medium">{Math.min(currentPage * pageSize, totalCount)}</span> of{' '}
                 <span className="font-medium">{totalCount}</span> results
               </div>
-              
+
               <div className="flex items-center gap-2 order-1 sm:order-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -401,7 +408,7 @@ export default function EquipmentPage() {
                 >
                   Prev
                 </button>
-                
+
                 <div className="hidden md:flex items-center gap-1">
                   {Array.from({ length: Math.min(5, Math.ceil(totalCount / pageSize)) }, (_, i) => {
                     const pageNum = i + 1;
@@ -409,22 +416,21 @@ export default function EquipmentPage() {
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === pageNum
+                        className={`px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                             ? 'bg-emerald-600 text-white border-emerald-600'
                             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
                     );
                   })}
                 </div>
-                
+
                 <span className="md:hidden text-sm text-gray-700 px-2">
                   Page {currentPage} of {Math.ceil(totalCount / pageSize)}
                 </span>
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= Math.ceil(totalCount / pageSize)}

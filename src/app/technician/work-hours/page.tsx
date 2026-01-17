@@ -83,8 +83,8 @@ export default function WorkHoursPage() {
                             <button
                                 onClick={() => setDateRange('week')}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${dateRange === 'week'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 Last 7 Days
@@ -92,8 +92,8 @@ export default function WorkHoursPage() {
                             <button
                                 onClick={() => setDateRange('month')}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${dateRange === 'month'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 Last 30 Days
@@ -101,8 +101,8 @@ export default function WorkHoursPage() {
                             <button
                                 onClick={() => setDateRange('custom')}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${dateRange === 'custom'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 Custom Range
@@ -152,7 +152,7 @@ export default function WorkHoursPage() {
                                     <TrendingUp className="h-5 w-5 opacity-60" />
                                 </div>
                                 <p className="text-sm opacity-90 mb-1">Total Hours</p>
-                                <p className="text-3xl font-bold">{formatHours(workHours.total_hours)}</p>
+                                <p className="text-3xl font-bold">{formatHours(workHours.summary.total_hours)}</p>
                             </div>
 
                             {/* Normal Hours */}
@@ -163,7 +163,7 @@ export default function WorkHoursPage() {
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-600 mb-1">Normal Hours</p>
-                                <p className="text-2xl font-bold text-gray-900">{formatHours(workHours.normal_hours)}</p>
+                                <p className="text-2xl font-bold text-gray-900">{formatHours(workHours.summary.normal_hours)}</p>
                             </div>
 
                             {/* Overtime Hours */}
@@ -174,7 +174,7 @@ export default function WorkHoursPage() {
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-600 mb-1">Overtime Hours</p>
-                                <p className="text-2xl font-bold text-gray-900">{formatHours(workHours.overtime_hours)}</p>
+                                <p className="text-2xl font-bold text-gray-900">{formatHours(workHours.summary.overtime_hours)}</p>
                             </div>
 
                             {/* Travel Hours */}
@@ -184,8 +184,8 @@ export default function WorkHoursPage() {
                                         <Clock className="h-6 w-6 text-purple-600" />
                                     </div>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-1">Travel Hours</p>
-                                <p className="text-2xl font-bold text-gray-900">{formatHours(workHours.travel_hours)}</p>
+                                <p className="text-sm text-gray-600 mb-1">Tasks Completed</p>
+                                <p className="text-2xl font-bold text-gray-900">{workHours.summary.task_count}</p>
                             </div>
                         </div>
 
@@ -219,13 +219,15 @@ export default function WorkHoursPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {workHours.by_date.length > 0 ? (
-                                            workHours.by_date.map((day, index) => {
-                                                const total = day.normal_hours + day.overtime_hours + day.travel_hours;
+                                        {workHours.time_logs && workHours.time_logs.length > 0 ? (
+                                            workHours.time_logs.map((log, index) => {
+                                                const normalHours = Number(log.normal_hours || 0);
+                                                const overtimeHours = Number(log.overtime_hours || 0);
+                                                const total = normalHours + overtimeHours;
                                                 return (
-                                                    <tr key={index} className="hover:bg-gray-50">
+                                                    <tr key={log.id} className="hover:bg-gray-50">
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                            {new Date(day.date).toLocaleDateString('en-US', {
+                                                            {new Date(log.created_at).toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 month: 'short',
                                                                 day: 'numeric',
@@ -233,13 +235,15 @@ export default function WorkHoursPage() {
                                                             })}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {formatHours(day.normal_hours)}
+                                                            {formatHours(normalHours)}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {formatHours(day.overtime_hours)}
+                                                            {formatHours(overtimeHours)}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {formatHours(day.travel_hours)}
+                                                            {log.travel_started_at && log.arrived_at ?
+                                                                formatHours((new Date(log.arrived_at).getTime() - new Date(log.travel_started_at).getTime()) / (1000 * 60 * 60))
+                                                                : '0h 0m'}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                                             {formatHours(total)}

@@ -53,15 +53,34 @@ export default function TimeTrackingPage() {
         try {
             setIsLoading(true);
             const response = await getTasks({
-                status: 'assigned,in_progress',
-            });
+                work_status: 'in_progress',
+            }) as any; // Cast to any to handle nested response structure
 
-            const responseData = response as any;
-            const taskList = response.data || responseData.results || [];
+            // Handle nested response structure
+            // API returns: { count, next, previous, results: { success, data: [...], message } }
+            let taskList: Task[] = [];
+
+            // The response structure is: response.results.data (not response.data.results.data)
+            if (response.results && response.results.data && Array.isArray(response.results.data)) {
+                taskList = response.results.data;
+            } else if (Array.isArray(response.data)) {
+                // Fallback: Direct array
+                taskList = response.data;
+            } else if (response.data && typeof response.data === 'object') {
+                // Fallback: Check for other nested structures
+                if (response.data.results && response.data.results.data) {
+                    taskList = response.data.results.data;
+                } else if ('results' in response.data && Array.isArray(response.data.results)) {
+                    taskList = response.data.results as Task[];
+                } else if ('data' in response.data && Array.isArray(response.data.data)) {
+                    taskList = response.data.data;
+                }
+            }
+
             setTasks(taskList);
 
             // Auto-select first in-progress task
-            const inProgressTask = taskList.find((t: Task) => t.status === 'in_progress');
+            const inProgressTask = taskList.find((t: Task) => t.work_status === 'in_progress');
             if (inProgressTask) {
                 setSelectedTask(inProgressTask);
             } else if (taskList.length > 0) {
@@ -119,10 +138,7 @@ export default function TimeTrackingPage() {
 
         try {
             setActionLoading(true);
-            await logDeparture(selectedTask.id, {
-                equipment_status: 'operational',
-                notes: ''
-            });
+            await logDeparture(selectedTask.id, 'functional');
             toast.success('Departure logged');
             await loadTimeLogs(selectedTask.id);
         } catch (error: any) {

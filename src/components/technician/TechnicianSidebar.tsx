@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -8,7 +9,6 @@ import {
     ClipboardList,
     Clock,
     BarChart3,
-    Wrench,
     User,
     Settings,
     LogOut,
@@ -27,7 +27,6 @@ const navigationItems: NavigationItem[] = [
     { name: 'My Tasks', href: '/technician/tasks', icon: ClipboardList },
     { name: 'Time Tracking', href: '/technician/time-tracking', icon: Clock },
     { name: 'Work Hours', href: '/technician/work-hours', icon: BarChart3 },
-    { name: 'Equipment', href: '/technician/equipment', icon: Wrench },
     { name: 'Profile', href: '/technician/profile', icon: User },
     { name: 'Settings', href: '/technician/settings', icon: Settings },
 ];
@@ -61,18 +60,15 @@ export default function TechnicianSidebar({ isMobileMenuOpen, setIsMobileMenuOpe
         }
     };
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
+    const isActive = (href: string) => {
+        return pathname === href || pathname?.startsWith(href + '/');
     };
+
+    if (!user) return null;
 
     return (
         <>
-            <div className="flex flex-col h-full">
+            <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
                 {/* Logo - Only visible on desktop */}
                 <div className="hidden lg:flex items-center gap-3 p-6 border-b border-gray-200">
                     <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
@@ -86,20 +82,23 @@ export default function TechnicianSidebar({ isMobileMenuOpen, setIsMobileMenuOpe
                     <ul className="space-y-1">
                         {navigationItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                            const active = isActive(item.href);
 
                             return (
                                 <li key={item.name}>
                                     <Link
                                         href={item.href}
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                                ? 'bg-emerald-600 text-white'
-                                                : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
+                                        className={`
+                                            flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                                            ${active
+                                                ? 'bg-emerald-50 text-emerald-700'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                            }
+                                        `}
                                     >
-                                        <Icon className="h-5 w-5" />
-                                        <span className="font-medium">{item.name}</span>
+                                        <Icon className="w-5 h-5 shrink-0" />
+                                        <span className="text-sm font-medium">{item.name}</span>
                                     </Link>
                                 </li>
                             );
@@ -107,40 +106,45 @@ export default function TechnicianSidebar({ isMobileMenuOpen, setIsMobileMenuOpe
                     </ul>
                 </nav>
 
-                {/* User Profile */}
-                <div className="border-t border-gray-200 p-4">
-                    <div className="flex items-center gap-3 mb-3">
+                {/* User Profile Section */}
+                <div className="p-4 border-t border-gray-200">
+                    <div className="flex items-center gap-3 mb-3 px-3 py-2">
                         <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                             <span className="text-emerald-700 font-semibold text-sm">
-                                {user?.full_name ? getInitials(user.full_name) : 'U'}
+                                {user?.full_name
+                                    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                                    : 'U'}
                             </span>
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">
                                 {user?.full_name || 'User'}
                             </p>
-                            <p className="text-xs text-gray-500 capitalize">{user?.role || 'Technician'}</p>
+                            <p className="text-xs text-gray-500 capitalize">Technician</p>
                         </div>
                     </div>
 
                     {/* Logout Button */}
                     <button
                         onClick={handleLogoutClick}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                     >
-                        <LogOut className="h-5 w-5" />
-                        <span className="font-medium">Logout</span>
+                        <LogOut className="w-5 h-5 shrink-0" />
+                        <span className="text-sm font-medium">Logout</span>
                     </button>
                 </div>
             </div>
 
-            {/* Logout Modal */}
-            <LogoutModal
-                isOpen={isLogoutModalOpen}
-                onClose={() => setIsLogoutModalOpen(false)}
-                onConfirm={handleLogout}
-                isLoading={isLoggingOut}
-            />
+            {/* Logout Modal - Rendered at document body level */}
+            {typeof document !== 'undefined' && createPortal(
+                <LogoutModal
+                    isOpen={isLogoutModalOpen}
+                    onClose={() => setIsLogoutModalOpen(false)}
+                    onConfirm={handleLogout}
+                    isLoading={isLoggingOut}
+                />,
+                document.body
+            )}
         </>
     );
 }

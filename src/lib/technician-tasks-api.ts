@@ -19,7 +19,21 @@ export interface Task {
         id: string;
         name: string;
         equipment_number: string;
+        manufacturer?: string;
+        model?: string;
+        serial_number?: string;
     };
+    equipment_name?: string;  // For list view
+    equipment_number?: string;  // For list view
+    assignees?: Array<{
+        id: string;
+        name: string;
+        email: string;
+    }>;
+    teams?: Array<{
+        id: string;
+        name: string;
+    }>;
     scheduled_start?: string;
     scheduled_end?: string;
     actual_start?: string;
@@ -28,6 +42,11 @@ export interface Task {
     materials_needed: string[];
     notes: string;
     custom_fields: Record<string, any>;
+    created_by?: {
+        id: string;
+        email: string;
+        full_name: string;
+    };
     created_at: string;
     updated_at: string;
 }
@@ -48,36 +67,44 @@ export interface TimeLog {
     equipment_status?: 'operational' | 'needs_repair' | 'replaced';
     notes?: string;
     created_at: string;
-    updated_at: string;
 }
 
 export interface WorkHoursSummary {
-    total_hours: number;
-    normal_hours: number;
-    overtime_hours: number;
-    travel_hours: number;
-    lunch_hours: number;
-    by_date: Array<{
-        date: string;
+    technician: {
+        id: string;
+        name: string;
+        email: string;
+    };
+    summary: {
+        total_hours: number;
         normal_hours: number;
         overtime_hours: number;
-        travel_hours: number;
-    }>;
+        task_count: number;
+    };
+    time_logs: TimeLog[];
 }
 
-interface ApiResponse<T> {
+export interface TaskComment {
+    id: string;
+    task: string;
+    author: {
+        id: string;
+        full_name: string;
+        email: string;
+    };
+    comment: string;
+    is_system_generated: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ApiResponse<T> {
     success: boolean;
     data: T;
-    message: string;
-}
-
-interface PaginatedResponse<T> {
-    success: boolean;
-    data: T[];
-    message: string;
-    count: number;
-    next: string | null;
-    previous: string | null;
+    message?: string;
+    meta?: {
+        timestamp: string;
+    };
 }
 
 async function fetchAPI<T>(
@@ -118,58 +145,38 @@ async function fetchAPI<T>(
         throw new Error(errorMessage);
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
 }
 
 /**
- * Get list of tasks assigned to the technician
+ * Get tasks assigned to the current technician
  */
 export async function getTasks(params?: {
     status?: string;
     priority?: string;
     search?: string;
-    page?: number;
-    page_size?: number;
-}): Promise<PaginatedResponse<Task>> {
+    work_status?: string;
+}): Promise<ApiResponse<{ results: Task[] }>> {
     const queryParams = new URLSearchParams();
-    if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-            if (value) queryParams.append(key, value.toString());
-        });
-    }
 
-    const endpoint = `/tasks/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await fetchAPI<any>(endpoint);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.priority) queryParams.append('priority', params.priority);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.work_status) queryParams.append('work_status', params.work_status);
 
-    // Handle nested response structure from backend
-    if (response.results && response.results.data) {
-        return {
-            success: response.results.success,
-            data: response.results.data,
-            message: response.results.message,
-            count: response.count,
-            next: response.next,
-            previous: response.previous,
-        };
-    }
+    const url = `/tasks/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-    return response;
+    return fetchAPI<ApiResponse<{ results: Task[] }>>(url, {
+        method: 'GET',
+    });
 }
 
 /**
- * Get a single task by ID
+ * Get task by ID
  */
 export async function getTaskById(taskId: string): Promise<ApiResponse<Task>> {
-    return fetchAPI<ApiResponse<Task>>(`/tasks/${taskId}/`);
-}
-
-/**
- * Update task work status
- */
-export async function updateWorkStatus(taskId: string, workStatus: string): Promise<ApiResponse<Task>> {
-    return fetchAPI<ApiResponse<Task>>(`/tasks/${taskId}/work-status/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ work_status: workStatus }),
+    return fetchAPI<ApiResponse<Task>>(`/tasks/${taskId}/`, {
+        method: 'GET',
     });
 }
 
@@ -177,75 +184,124 @@ export async function updateWorkStatus(taskId: string, workStatus: string): Prom
  * Get task history
  */
 export async function getTaskHistory(taskId: string): Promise<ApiResponse<any[]>> {
-    return fetchAPI<ApiResponse<any[]>>(`/tasks/${taskId}/history/`);
+    return fetchAPI<ApiResponse<any[]>>(`/tasks/${taskId}/history/`, {
+        method: 'GET',
+    });
 }
 
 /**
- * Start travel to job site
+ * Update task work status (technician can update)
  */
-export async function startTravel(taskId: string, travelStartedAt?: string): Promise<ApiResponse<TimeLog>> {
+export async function updateWorkStatus(
+    taskId: string,
+    workStatus: 'open' | 'in_progress' | 'on_hold' | 'completed'
+): Promise<ApiResponse<Task>> {
+    return fetchAPI<ApiResponse<Task>>(`/tasks/${taskId}/work-status/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ work_status: workStatus }),
+    });
+}
+
+/**
+ * Get task comments
+ */
+export async function getTaskComments(taskId: string, page?: number): Promise<ApiResponse<TaskComment[]>> {
+    const queryParams = page ? `?page=${page}` : '';
+    return fetchAPI<ApiResponse<TaskComment[]>>(`/tasks/${taskId}/comments/${queryParams}`, {
+        method: 'GET',
+    });
+}
+
+/**
+ * Add task comment
+ */
+export async function addTaskComment(
+    taskId: string,
+    comment: string
+): Promise<ApiResponse<TaskComment>> {
+    return fetchAPI<ApiResponse<TaskComment>>(`/tasks/${taskId}/comments/`, {
+        method: 'POST',
+        body: JSON.stringify({ comment }),
+    });
+}
+
+/**
+ * Update task comment
+ */
+export async function updateTaskComment(
+    taskId: string,
+    commentId: string,
+    comment: string
+): Promise<ApiResponse<TaskComment>> {
+    return fetchAPI<ApiResponse<TaskComment>>(`/tasks/comments/${commentId}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ comment }),
+    });
+}
+
+/**
+ * Delete task comment
+ */
+export async function deleteTaskComment(
+    taskId: string,
+    commentId: string
+): Promise<ApiResponse<void>> {
+    return fetchAPI<ApiResponse<void>>(`/tasks/comments/${commentId}/`, {
+        method: 'DELETE',
+    });
+}
+
+// Time Tracking APIs
+
+/**
+ * Start travel for a task
+ */
+export async function startTravel(taskId: string): Promise<ApiResponse<TimeLog>> {
     return fetchAPI<ApiResponse<TimeLog>>(`/tasks/${taskId}/travel/`, {
         method: 'POST',
-        body: JSON.stringify({
-            travel_started_at: travelStartedAt || new Date().toISOString(),
-        }),
     });
 }
 
 /**
- * Log arrival at job site
+ * Log arrival at task site
  */
-export async function logArrival(taskId: string, arrivedAt?: string): Promise<ApiResponse<TimeLog>> {
+export async function logArrival(taskId: string): Promise<ApiResponse<TimeLog>> {
     return fetchAPI<ApiResponse<TimeLog>>(`/tasks/${taskId}/arrive/`, {
         method: 'POST',
-        body: JSON.stringify({
-            arrived_at: arrivedAt || new Date().toISOString(),
-        }),
+        body: JSON.stringify({}),
     });
 }
 
 /**
- * Log departure from job site
+ * Log departure from task site
  */
 export async function logDeparture(
     taskId: string,
-    data: {
-        departed_at?: string;
-        equipment_status: 'operational' | 'needs_repair' | 'replaced';
-        notes?: string;
-    }
+    equipmentStatus: 'functional' | 'shutdown'
 ): Promise<ApiResponse<TimeLog>> {
     return fetchAPI<ApiResponse<TimeLog>>(`/tasks/${taskId}/depart/`, {
         method: 'POST',
-        body: JSON.stringify({
-            departed_at: data.departed_at || new Date().toISOString(),
-            equipment_status: data.equipment_status,
-            notes: data.notes,
-        }),
+        body: JSON.stringify({ equipment_status: equipmentStatus }),
     });
 }
 
 /**
  * Start lunch break
  */
-export async function startLunch(taskId: string, lunchStartedAt?: string): Promise<ApiResponse<TimeLog>> {
+export async function startLunch(taskId: string): Promise<ApiResponse<TimeLog>> {
     return fetchAPI<ApiResponse<TimeLog>>(`/tasks/${taskId}/lunch-start/`, {
         method: 'POST',
-        body: JSON.stringify({
-            lunch_started_at: lunchStartedAt || new Date().toISOString(),
-        }),
+        body: JSON.stringify({}),
     });
 }
 
 /**
  * End lunch break
  */
-export async function endLunch(taskId: string, lunchEndedAt?: string): Promise<ApiResponse<TimeLog>> {
+export async function endLunch(taskId: string): Promise<ApiResponse<TimeLog>> {
     return fetchAPI<ApiResponse<TimeLog>>(`/tasks/${taskId}/lunch-end/`, {
         method: 'POST',
-        body: JSON.stringify({
-            lunch_ended_at: lunchEndedAt || new Date().toISOString(),
-        }),
+        body: JSON.stringify({}),
     });
 }
 
@@ -254,86 +310,6 @@ export async function endLunch(taskId: string, lunchEndedAt?: string): Promise<A
  */
 export async function getTimeLogs(taskId: string): Promise<ApiResponse<TimeLog[]>> {
     return fetchAPI<ApiResponse<TimeLog[]>>(`/tasks/${taskId}/time-logs/`);
-}
-
-/**
- * Add comment to task
- */
-export async function addComment(taskId: string, comment: string, isInternal: boolean = false): Promise<ApiResponse<any>> {
-    return fetchAPI<ApiResponse<any>>(`/tasks/${taskId}/comments/`, {
-        method: 'POST',
-        body: JSON.stringify({
-            comment,
-            is_internal: isInternal,
-        }),
-    });
-}
-
-/**
- * Upload attachment to task
- */
-export async function uploadAttachment(taskId: string, file: File, description?: string): Promise<ApiResponse<any>> {
-    const token = getAccessToken();
-    const apiUrl = getApiUrl(true);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    if (description) {
-        formData.append('description', description);
-    }
-
-    const response = await fetch(`${apiUrl}/tasks/${taskId}/attachments/`, {
-        method: 'POST',
-        headers: {
-            ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: formData,
-    });
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({
-            message: 'An error occurred',
-        }));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
-}
-
-/**
- * Log materials needed
- */
-export async function logMaterialsNeeded(
-    taskId: string,
-    data: {
-        material_name: string;
-        quantity: number;
-        unit: string;
-        notes?: string;
-    }
-): Promise<ApiResponse<any>> {
-    return fetchAPI<ApiResponse<any>>(`/tasks/${taskId}/materials/needed/`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
-}
-
-/**
- * Log materials received
- */
-export async function logMaterialsReceived(
-    taskId: string,
-    data: {
-        material_name: string;
-        quantity: number;
-        unit: string;
-        notes?: string;
-    }
-): Promise<ApiResponse<any>> {
-    return fetchAPI<ApiResponse<any>>(`/tasks/${taskId}/materials/received/`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
 }
 
 /**
@@ -350,9 +326,8 @@ export async function getWorkHoursReport(startDate: string, endDate: string): Pr
     });
 }
 
-/**
- * Equipment interfaces and types
- */
+// Equipment APIs (if needed for technicians)
+
 export interface Equipment {
     id: string;
     equipment_number: string;
@@ -389,7 +364,7 @@ export async function getEquipmentList(params?: {
     type?: string;
 }): Promise<ApiResponse<Equipment[]>> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
     if (params?.search) queryParams.append('search', params.search);
@@ -397,7 +372,7 @@ export async function getEquipmentList(params?: {
     if (params?.type) queryParams.append('type', params.type);
 
     const url = `/equipment/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
+
     return fetchAPI<ApiResponse<Equipment[]>>(url, {
         method: 'GET',
     });
@@ -411,3 +386,4 @@ export async function getEquipmentDetails(equipmentId: string): Promise<ApiRespo
         method: 'GET',
     });
 }
+

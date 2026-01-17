@@ -8,7 +8,7 @@ export interface User {
   full_name: string;
   phone: string | null;
   avatar_url?: string | null;
-  role: 'owner' | 'admin' | 'employee';
+  role: 'owner' | 'admin' | 'employee' | 'technician' | 'manager';
   employee_id: string;
   department?: string | null;
   job_title?: string | null;
@@ -18,6 +18,20 @@ export interface User {
   created_at: string;
   last_login_at?: string | null;
   tenant_slug?: string; // Tenant slug for API routing
+}
+
+export interface TenantMembership {
+  role: string;
+  employee_id: string;
+  department: string;
+  job_title: string;
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string;
 }
 
 export interface LoginRequest {
@@ -34,6 +48,8 @@ export interface LoginResponse {
   };
   token_type: string;
   expires_in: number;
+  tenant_membership?: TenantMembership;
+  tenant?: Tenant;
 }
 
 export interface RegisterRequest {

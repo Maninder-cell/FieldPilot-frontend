@@ -113,10 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await loginUser({ email, password, remember_me: rememberMe });
 
+      // Extract tenant_slug from tenant object and add it to user
+      const userWithTenant = {
+        ...response.user,
+        tenant_slug: response.tenant?.slug || undefined,
+      };
+
       // Store tokens and user data
       storeTokens(response.tokens.access, response.tokens.refresh);
-      storeUserData(response.user);
-      setUser(response.user);
+      storeUserData(userWithTenant);
+      setUser(userWithTenant);
 
       // Store email in localStorage if remember me is checked
       if (rememberMe) {

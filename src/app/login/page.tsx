@@ -11,23 +11,33 @@ import Footer from '@/components/landing/Footer';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   // Redirect authenticated users
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      // Let ProtectedRoute handle onboarding checks
-      // Just redirect to the intended destination
-      const redirectTo = searchParams.get('redirect') || '/dashboard';
-      router.push(redirectTo);
+    if (!isLoading && isAuthenticated && user) {
+      // Check if there's a redirect parameter
+      const redirectParam = searchParams.get('redirect');
+
+      // If there's a specific redirect parameter (not just /dashboard), use it
+      // But if it's /dashboard, we should use role-based routing instead
+      if (redirectParam && redirectParam !== '/dashboard') {
+        router.push(redirectParam);
+        return;
+      }
+
+      // Otherwise, redirect based on role
+      if (user.role === 'technician') {
+        router.push('/technician/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }, [isAuthenticated, isLoading, router, searchParams]);
+  }, [isAuthenticated, isLoading, user, router, searchParams]);
 
   const handleSuccess = () => {
-    // Let ProtectedRoute handle onboarding checks
-    // Just redirect to the intended destination
-    const redirectTo = searchParams.get('redirect') || '/dashboard';
-    router.push(redirectTo);
+    // The useEffect above will handle the redirect based on user role
+    // after the user is set in the auth context
   };
 
   // Show loading state while checking authentication

@@ -10,6 +10,8 @@ import {
     AlertCircle,
     User,
     CheckCircle2,
+    Play,
+    Pause,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import {
@@ -228,33 +230,74 @@ export default function TechnicianTimeTracking({ taskId }: TechnicianTimeTrackin
                                     <span className="text-xs text-gray-500">{formatDate(log.created_at)}</span>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <p className="text-gray-500 text-xs mb-1">Travel Start</p>
-                                        <p className="text-gray-900 font-medium">{formatTime(log.travel_started_at || null)}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                    {/* Travel Start */}
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <Car className="h-4 w-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-gray-500 text-xs mb-0.5">Travel Start</p>
+                                            <p className="text-gray-900 font-medium">{formatTime(log.travel_started_at || null)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-500 text-xs mb-1">Arrival</p>
-                                        <p className="text-gray-900 font-medium">{formatTime(log.arrived_at || null)}</p>
+
+                                    {/* Arrival */}
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <MapPin className="h-4 w-4 text-green-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-gray-500 text-xs mb-0.5">Arrival</p>
+                                            <p className="text-gray-900 font-medium">{formatTime(log.arrived_at || null)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-500 text-xs mb-1">Lunch Start</p>
-                                        <p className="text-gray-900 font-medium">{formatTime(log.lunch_started_at || null)}</p>
+
+                                    {/* Lunch Start */}
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <Coffee className="h-4 w-4 text-orange-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-gray-500 text-xs mb-0.5">Lunch Start</p>
+                                            <p className="text-gray-900 font-medium">{formatTime(log.lunch_started_at || null)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-500 text-xs mb-1">Lunch End</p>
-                                        <p className="text-gray-900 font-medium">{formatTime(log.lunch_ended_at || null)}</p>
+
+                                    {/* Lunch End */}
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <Coffee className="h-4 w-4 text-yellow-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-gray-500 text-xs mb-0.5">Lunch End</p>
+                                            <p className="text-gray-900 font-medium">{formatTime(log.lunch_ended_at || null)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-gray-500 text-xs mb-1">Departure</p>
-                                        <p className="text-gray-900 font-medium">{formatTime(log.departed_at || null)}</p>
+
+                                    {/* Departure */}
+                                    <div className="flex items-start gap-2">
+                                        <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <LogOut className="h-4 w-4 text-red-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-gray-500 text-xs mb-0.5">Departure</p>
+                                            <p className="text-gray-900 font-medium">{formatTime(log.departed_at || null)}</p>
+                                        </div>
                                     </div>
+
+                                    {/* Total Hours */}
                                     {(log.normal_hours !== undefined || log.overtime_hours !== undefined) && (
-                                        <div>
-                                            <p className="text-gray-500 text-xs mb-1">Total Hours</p>
-                                            <p className="text-emerald-600 font-semibold">
-                                                {(Number(log.normal_hours || 0) + Number(log.overtime_hours || 0)).toFixed(2)}h
-                                            </p>
+                                        <div className="flex items-start gap-2">
+                                            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <Clock className="h-4 w-4 text-emerald-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-gray-500 text-xs mb-0.5">Total Hours</p>
+                                                <p className="text-emerald-600 font-semibold">
+                                                    {(Number(log.normal_hours || 0) + Number(log.overtime_hours || 0)).toFixed(2)}h
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

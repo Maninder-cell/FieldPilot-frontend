@@ -227,13 +227,13 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm">
                     {/* Profile Tab */}
                     {activeTab === 'profile' && (
-                        <form onSubmit={handleProfileUpdate} className="p-6 space-y-6">
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form onSubmit={handleProfileUpdate} className="p-4 sm:p-6">
+                            <div className="max-w-3xl">
+                                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             First Name
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                                             type="text"
                                             value={profileData.first_name}
                                             onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm sm:text-base"
                                             required
                                         />
                                     </div>
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                                             type="text"
                                             value={profileData.last_name}
                                             onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm sm:text-base"
                                             required
                                         />
                                     </div>
@@ -268,7 +268,7 @@ export default function SettingsPage() {
                                             type="tel"
                                             value={profileData.phone}
                                             onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm sm:text-base"
                                             placeholder="+1 (555) 123-4567"
                                         />
                                     </div>
@@ -281,18 +281,18 @@ export default function SettingsPage() {
                                             type="email"
                                             value={user?.email || ''}
                                             disabled
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed text-sm sm:text-base"
                                         />
                                         <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-4 border-t border-gray-200">
+                            <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-6">
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base font-medium"
                                 >
                                     {isSaving ? (
                                         <>
@@ -312,10 +312,10 @@ export default function SettingsPage() {
 
                     {/* Security Tab */}
                     {activeTab === 'security' && (
-                        <form onSubmit={handlePasswordChange} className="p-6 space-y-6">
-                            <div>
+                        <form onSubmit={handlePasswordChange} className="p-4 sm:p-6">
+                            <div className="max-w-2xl">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-                                <div className="space-y-4 max-w-md">
+                                <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Current Password
@@ -501,10 +501,10 @@ export default function SettingsPage() {
 
                     {/* Preferences Tab */}
                     {activeTab === 'preferences' && (
-                        <form onSubmit={handleProfileUpdate} className="p-6 space-y-6">
-                            <div>
+                        <form onSubmit={handleProfileUpdate} className="p-4 sm:p-6">
+                            <div className="max-w-2xl">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">App Preferences</h2>
-                                <div className="space-y-6 max-w-md">
+                                <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Timezone
@@ -544,26 +544,26 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex justify-end pt-4 border-t border-gray-200">
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-5 w-5" />
-                                            Save Changes
-                                        </>
-                                    )}
-                                </button>
+                                <div className="flex justify-end pt-6 border-t border-gray-200 mt-6">
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-5 w-5" />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     )}

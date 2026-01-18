@@ -387,3 +387,76 @@ export async function getEquipmentDetails(equipmentId: string): Promise<ApiRespo
     });
 }
 
+/**
+ * Dashboard Data Types
+ */
+export interface DashboardStats {
+    today_tasks: number;
+    active_tasks: number;
+    completed_today: number;
+    hours_today: number;
+    hours_this_week: number;
+    completion_rate: number;
+}
+
+export interface CurrentTask {
+    id: string;
+    task_number: string;
+    title: string;
+    priority: string;
+    started_at: string | null;
+    duration_minutes: number;
+    equipment: string | null;
+    location: string | null;
+}
+
+export interface TodayTask {
+    id: string;
+    task_number: string;
+    title: string;
+    priority: string;
+    status: string;
+    work_status: string;
+    due_date: string | null;
+    equipment: string | null;
+    location: string | null;
+}
+
+export interface WeeklyHour {
+    day: string;
+    date: string;
+    hours: number;
+    percentage: number;
+    is_today: boolean;
+}
+
+export interface PriorityBreakdown {
+    high: number;
+    medium: number;
+    low: number;
+}
+
+export interface RecentActivity {
+    time: string;
+    action: string;
+    timestamp: string;
+}
+
+export interface DashboardData {
+    stats: DashboardStats;
+    current_task: CurrentTask | null;
+    today_tasks: TodayTask[];
+    weekly_hours: WeeklyHour[];
+    priority_breakdown: PriorityBreakdown;
+    recent_activity: RecentActivity[];
+}
+
+/**
+ * Get technician dashboard data
+ */
+export async function getDashboardData(): Promise<ApiResponse<DashboardData>> {
+    return fetchAPI<ApiResponse<DashboardData>>('/tasks/reports/dashboard/', {
+        method: 'GET',
+    });
+}
+

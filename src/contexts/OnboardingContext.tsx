@@ -76,12 +76,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [membersLoaded, setMembersLoaded] = useState(false);
   const [invitationsLoaded, setInvitationsLoaded] = useState(false);
 
-  // Load tenant data when user is authenticated
+  // Load tenant data when user is authenticated (but not for customers)
   useEffect(() => {
-    if (isAuthenticated && user) {
+    // Only load tenant for users with roles (admin, owner, technician, etc.)
+    // Customers (users without roles) don't have tenants
+    if (isAuthenticated && user && user.role) {
       loadTenantData();
     } else {
-      // Clear data when user logs out
+      // Clear data when user logs out or is a customer
       setTenant(null);
       setMembers([]);
       setPendingInvitations([]);

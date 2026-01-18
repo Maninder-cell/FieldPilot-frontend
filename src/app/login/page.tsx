@@ -19,18 +19,23 @@ function LoginContent() {
       // Check if there's a redirect parameter
       const redirectParam = searchParams.get('redirect');
 
-      // If there's a specific redirect parameter (not just /dashboard), use it
-      // But if it's /dashboard, we should use role-based routing instead
-      if (redirectParam && redirectParam !== '/dashboard') {
-        router.push(redirectParam);
-        return;
+      // Always use role-based routing for dashboard
+      // Determine the correct dashboard based on user role
+      let dashboardRoute = '/dashboard'; // Default admin dashboard
+
+      if (user.role === 'technician') {
+        dashboardRoute = '/technician/dashboard';
+      } else if (!user.role || user.role === null) {
+        // Users without a role are likely customers
+        dashboardRoute = '/customer/dashboard';
       }
 
-      // Otherwise, redirect based on role
-      if (user.role === 'technician') {
-        router.push('/technician/dashboard');
+      // If there's a specific redirect parameter, use it
+      // Otherwise use the role-based dashboard
+      if (redirectParam) {
+        router.push(redirectParam);
       } else {
-        router.push('/dashboard');
+        router.push(dashboardRoute);
       }
     }
   }, [isAuthenticated, isLoading, user, router, searchParams]);

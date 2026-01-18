@@ -36,28 +36,28 @@ interface BillingContextType {
   isLoading: boolean;
   error: string | null;
   selectedBillingCycle: 'monthly' | 'yearly';
-  
+
   // Subscription Management
   loadSubscription: () => Promise<void>;
   createNewSubscription: (planSlug: string, billingCycle: 'monthly' | 'yearly', paymentMethodId?: string) => Promise<void>;
   upgradeDowngrade: (planSlug: string, billingCycle?: 'monthly' | 'yearly') => Promise<void>;
   cancelCurrentSubscription: (immediately: boolean, reason?: string) => Promise<void>;
   reactivateSubscription: () => Promise<void>;
-  
+
   // Plan Management
   loadPlans: () => Promise<void>;
   setBillingCycle: (cycle: 'monthly' | 'yearly') => void;
-  
+
   // Payment Methods
   setupPaymentMethod: () => Promise<SetupIntentResponse>;
   savePaymentMethod: (paymentMethodId: string, setAsDefault: boolean) => Promise<void>;
   checkPaymentMethods: () => Promise<boolean>;
-  
+
   // Billing Data
   loadBillingOverview: () => Promise<void>;
   loadInvoices: (page?: number) => Promise<void>;
   loadPayments: (page?: number) => Promise<void>;
-  
+
   // Utility
   refreshBillingData: () => Promise<void>;
   clearError: () => void;
@@ -66,7 +66,7 @@ interface BillingContextType {
 const BillingContext = createContext<BillingContextType | undefined>(undefined);
 
 export function BillingProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -76,12 +76,14 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Load subscription on mount if authenticated
+  // Load subscription on mount if authenticated (but not for customers)
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only load subscription for users with roles (admin, owner, etc.)
+    // Customers (users without roles) don't have subscriptions
+    if (isAuthenticated && user && user.role) {
       loadSubscription();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const handleError = (err: unknown) => {
     if ((err as BillingApiError).error) {

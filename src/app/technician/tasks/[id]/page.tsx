@@ -288,31 +288,99 @@ export default function TechnicianTaskDetailPage() {
 
     return (
         <TechnicianLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+            <div className="p-3 sm:p-4 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 min-w-0 flex-1">
-                        <button
-                            onClick={() => router.push('/technician/tasks')}
-                            className="mt-1 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            <ArrowLeft className="h-5 w-5 text-gray-600" />
-                        </button>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getPriorityColor(task.priority)}`}>
-                                    {task.priority.toUpperCase()} PRIORITY
-                                </span>
-                            </div>
-                            <p className="text-sm text-gray-500">{task.task_number}</p>
+                <div className="flex items-start gap-2 sm:gap-4">
+                    <button
+                        onClick={() => router.push('/technician/tasks')}
+                        className="mt-1 p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                    >
+                        <ArrowLeft className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">{task.title}</h1>
+                            <span className={`inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border ${getPriorityColor(task.priority)} w-fit`}>
+                                {task.priority.toUpperCase()} PRIORITY
+                            </span>
                         </div>
+                        <p className="text-xs sm:text-sm text-gray-500">{task.task_number}</p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Sidebar - Shows first on mobile, last on desktop */}
+                    <div className="space-y-4 sm:space-y-6 lg:col-start-3 lg:row-start-1">
+                        {/* Work Status Selector */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Status</h2>
+                            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                                {[
+                                    {
+                                        value: 'open',
+                                        label: 'Open',
+                                        icon: FileText,
+                                        selectedBg: 'bg-gray-600',
+                                        iconColor: 'text-gray-600'
+                                    },
+                                    {
+                                        value: 'in_progress',
+                                        label: 'In Progress',
+                                        icon: Zap,
+                                        selectedBg: 'bg-blue-600',
+                                        iconColor: 'text-blue-600'
+                                    },
+                                    {
+                                        value: 'on_hold',
+                                        label: 'On Hold',
+                                        icon: Pause,
+                                        selectedBg: 'bg-yellow-600',
+                                        iconColor: 'text-yellow-600'
+                                    },
+                                    {
+                                        value: 'completed',
+                                        label: 'Completed',
+                                        icon: CheckCircle2,
+                                        selectedBg: 'bg-emerald-600',
+                                        iconColor: 'text-emerald-600'
+                                    },
+                                ].map((status) => {
+                                    const Icon = status.icon;
+                                    const isSelected = task.work_status === status.value;
+
+                                    return (
+                                        <button
+                                            key={status.value}
+                                            onClick={() => handleWorkStatusChange(status.value as any)}
+                                            className={`
+                                                relative flex flex-col items-center justify-center px-2 sm:px-3 py-3 sm:py-4 rounded-lg border-2 transition-all duration-200
+                                                ${isSelected
+                                                    ? `${status.selectedBg} text-white border-transparent shadow-md`
+                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100'
+                                                }
+                                                cursor-pointer active:scale-95 group min-h-[80px] sm:min-h-[90px]
+                                            `}
+                                        >
+                                            <Icon
+                                                className={`h-5 w-5 sm:h-6 sm:w-6 mb-1.5 sm:mb-2 transition-transform group-hover:scale-110 ${isSelected ? 'text-white' : status.iconColor
+                                                    }`}
+                                            />
+                                            <span className={`text-xs sm:text-sm font-medium leading-tight text-center ${isSelected ? 'text-white' : 'text-gray-700'
+                                                }`}>
+                                                {status.label}
+                                            </span>
+                                            {isSelected && (
+                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content - Shows second on mobile, first on desktop */}
+                    <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:col-start-1 lg:row-start-1">
                         {/* Time Tracking Section */}
                         <TechnicianTimeTracking taskId={taskId} />
 
@@ -498,127 +566,55 @@ export default function TechnicianTaskDetailPage() {
 
                         {/* Notes */}
                         {task.notes && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <AlertCircle className="h-5 w-5 text-emerald-600" />
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                                     Notes
                                 </h2>
-                                <p className="text-gray-700 whitespace-pre-wrap">{task.notes}</p>
+                                <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap">{task.notes}</p>
                             </div>
                         )}
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-6">
-                        {/* Work Status Selector */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Status</h2>
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {[
-                                    {
-                                        value: 'open',
-                                        label: 'Open',
-                                        icon: FileText,
-                                        selectedBg: 'bg-gray-600',
-                                        iconColor: 'text-gray-600'
-                                    },
-                                    {
-                                        value: 'in_progress',
-                                        label: 'In Progress',
-                                        icon: Zap,
-                                        selectedBg: 'bg-blue-600',
-                                        iconColor: 'text-blue-600'
-                                    },
-                                    {
-                                        value: 'on_hold',
-                                        label: 'On Hold',
-                                        icon: Pause,
-                                        selectedBg: 'bg-yellow-600',
-                                        iconColor: 'text-yellow-600'
-                                    },
-                                    {
-                                        value: 'completed',
-                                        label: 'Completed',
-                                        icon: CheckCircle2,
-                                        selectedBg: 'bg-emerald-600',
-                                        iconColor: 'text-emerald-600'
-                                    },
-                                ].map((status) => {
-                                    const Icon = status.icon;
-                                    const isSelected = task.work_status === status.value;
-
-                                    return (
-                                        <button
-                                            key={status.value}
-                                            onClick={() => handleWorkStatusChange(status.value as any)}
-                                            className={`
-                                                relative flex flex-col items-center justify-center px-3 py-4 rounded-lg border-2 transition-all duration-200
-                                                ${isSelected
-                                                    ? `${status.selectedBg} text-white border-transparent shadow-md`
-                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                                                }
-                                                cursor-pointer active:scale-95 group
-                                            `}
-                                        >
-                                            <Icon
-                                                className={`h-5 w-5 mb-2 transition-transform group-hover:scale-110 ${isSelected ? 'text-white' : status.iconColor
-                                                    }`}
-                                            />
-                                            <span className={`text-sm font-medium leading-tight text-center ${isSelected ? 'text-white' : 'text-gray-700'
-                                                }`}>
-                                                {status.label}
-                                            </span>
-                                            {isSelected && (
-                                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
 
                         {/* Description */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-emerald-600" />
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                                 Description
                             </h2>
-                            <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                            <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap">{task.description}</p>
                         </div>
 
                         {/* Equipment Details */}
                         {task.equipment && (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Wrench className="h-5 w-5 text-emerald-600" />
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                                    <Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                                     Equipment
                                 </h2>
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-sm text-gray-500">Equipment Name</p>
-                                        <p className="font-medium text-gray-900">{task.equipment.name}</p>
+                                        <p className="text-xs sm:text-sm text-gray-500">Equipment Name</p>
+                                        <p className="text-sm sm:text-base font-medium text-gray-900">{task.equipment.name}</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500">Equipment Number</p>
-                                        <p className="font-medium text-gray-900">{task.equipment.equipment_number}</p>
+                                        <p className="text-xs sm:text-sm text-gray-500">Equipment Number</p>
+                                        <p className="text-sm sm:text-base font-medium text-gray-900">{task.equipment.equipment_number}</p>
                                     </div>
                                     {task.equipment.manufacturer && (
                                         <div>
-                                            <p className="text-sm text-gray-500">Manufacturer</p>
-                                            <p className="font-medium text-gray-900">{task.equipment.manufacturer}</p>
+                                            <p className="text-xs sm:text-sm text-gray-500">Manufacturer</p>
+                                            <p className="text-sm sm:text-base font-medium text-gray-900">{task.equipment.manufacturer}</p>
                                         </div>
                                     )}
                                     {task.equipment.model && (
                                         <div>
-                                            <p className="text-sm text-gray-500">Model</p>
-                                            <p className="font-medium text-gray-900">{task.equipment.model}</p>
+                                            <p className="text-xs sm:text-sm text-gray-500">Model</p>
+                                            <p className="text-sm sm:text-base font-medium text-gray-900">{task.equipment.model}</p>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         )}
-
-
                     </div>
                 </div>
             </div>

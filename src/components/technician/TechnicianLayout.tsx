@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Menu, X } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
+import Header from '../layout/Header';
+import Footer from '../layout/Footer';
 import TechnicianSidebar from './TechnicianSidebar';
 
 interface TechnicianLayoutProps {
@@ -35,6 +38,8 @@ export default function TechnicianLayout({ children }: TechnicianLayoutProps) {
 
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
+            <Toaster position="top-right" />
+
             {/* Mobile Header with Menu Button */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-4 z-50">
                 <button
@@ -47,16 +52,19 @@ export default function TechnicianLayout({ children }: TechnicianLayoutProps) {
                         <Menu className="w-6 h-6 text-gray-600" />
                     )}
                 </button>
-                <div className="ml-3 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">FP</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">FieldPilot</span>
-                </div>
+                <img
+                    src="/logo/fieldrino.png"
+                    alt="FieldRino"
+                    className="ml-3 h-7 w-auto"
+                />
+                <span className="ml-3 text-sm font-semibold text-gray-900">Technician Portal</span>
             </div>
 
-            {/* Main Content Area with Sidebar */}
-            <div className="flex flex-1 overflow-hidden pt-0 lg:pt-0">
+            {/* Header - Full Width, Fixed */}
+            <Header />
+
+            {/* Main Content Area with Sidebar - Fills remaining space, starts below header */}
+            <div className="flex flex-1 overflow-hidden pt-16">
                 {/* Mobile overlay with backdrop blur */}
                 {isMobileMenuOpen && (
                     <div
@@ -65,7 +73,7 @@ export default function TechnicianLayout({ children }: TechnicianLayoutProps) {
                     />
                 )}
 
-                {/* Sidebar - Fixed below header on mobile, always visible on desktop */}
+                {/* Sidebar - Fixed below header, scrollable */}
                 <aside
                     className={`
                         w-64 shrink-0 overflow-y-auto bg-white border-r border-gray-200
@@ -81,10 +89,13 @@ export default function TechnicianLayout({ children }: TechnicianLayoutProps) {
                 </aside>
 
                 {/* Main content - Scrollable */}
-                <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
+                <main className="flex-1 overflow-y-auto">
                     {children}
                 </main>
             </div>
+
+            {/* Footer - Full Width */}
+            <Footer />
         </div>
     );
 }

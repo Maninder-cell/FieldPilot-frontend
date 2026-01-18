@@ -17,8 +17,10 @@ import {
     AlertTriangle,
     Info,
     CheckCircle,
+    CheckCircle2,
     Pause,
-    FileText
+    FileText,
+    ChevronDown
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -30,6 +32,8 @@ export default function TechnicianTasksPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
+    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -145,12 +149,16 @@ export default function TechnicianTasksPage() {
 
     return (
         <TechnicianLayout>
-            <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+            <div className="p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
-                        <p className="mt-1 text-gray-600">View and manage your assigned tasks</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Tasks</h1>
+                        <p className="mt-1 text-sm sm:text-base text-gray-600">View and manage your assigned tasks</p>
+                    </div>
+                    <div className="flex sm:hidden items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-emerald-700">{tasks.length} Active Tasks</span>
                     </div>
                     <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-lg border border-emerald-200">
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -159,42 +167,172 @@ export default function TechnicianTasksPage() {
                 </div>
 
                 {/* Search and Filters */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search tasks by title or number..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                            />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                         </div>
-                        <div className="flex gap-2">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                        <input
+                            type="text"
+                            placeholder="Search tasks..."
+                            value={searchQuery}
+                            onChange={handleSearch}
+                            className="block w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base transition-all"
+                        />
+                    </div>
+
+                    <div className="flex gap-2 sm:gap-3">
+                        {/* Status Dropdown */}
+                        <div className="relative flex-1 sm:flex-none">
+                            <button
+                                onClick={() => {
+                                    setShowStatusDropdown(!showStatusDropdown);
+                                    setShowPriorityDropdown(false);
+                                }}
+                                className={`w-full sm:w-auto inline-flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg text-sm sm:text-base font-medium shadow-sm transition-all whitespace-nowrap min-w-[120px] sm:min-w-[140px] ${statusFilter
+                                    ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
+                                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100'
+                                    }`}
                             >
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="on_hold">On Hold</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                            <select
-                                value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
-                                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                                <span className="flex items-center gap-1.5 sm:gap-2 truncate">
+                                    {statusFilter === '' && 'All Status'}
+                                    {statusFilter === 'open' && <><FileText className="h-4 w-4 flex-shrink-0" /><span className="truncate">Open</span></>}
+                                    {statusFilter === 'in_progress' && <><Play className="h-4 w-4 flex-shrink-0" /><span className="truncate">In Progress</span></>}
+                                    {statusFilter === 'on_hold' && <><Pause className="h-4 w-4 flex-shrink-0" /><span className="truncate">On Hold</span></>}
+                                    {statusFilter === 'completed' && <><CheckCircle2 className="h-4 w-4 flex-shrink-0" /><span className="truncate">Completed</span></>}
+                                </span>
+                                <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                            </button>
+
+                            {showStatusDropdown && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10 sm:hidden"
+                                        onClick={() => setShowStatusDropdown(false)}
+                                    />
+                                    <div className="absolute left-0 sm:left-auto right-0 z-20 mt-2 w-full sm:w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                                        {[
+                                            { value: '', label: 'All Status', icon: null },
+                                            { value: 'open', label: 'Open', icon: FileText },
+                                            { value: 'in_progress', label: 'In Progress', icon: Play },
+                                            { value: 'on_hold', label: 'On Hold', icon: Pause },
+                                            { value: 'completed', label: 'Completed', icon: CheckCircle2 }
+                                        ].map((option) => {
+                                            const Icon = option.icon;
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    onClick={() => {
+                                                        setStatusFilter(option.value);
+                                                        setShowStatusDropdown(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-3 sm:py-2 text-sm sm:text-base flex items-center gap-2 transition-colors active:bg-gray-100 ${statusFilter === option.value
+                                                        ? 'bg-emerald-50 text-emerald-700 font-medium'
+                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    {statusFilter === option.value && <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />}
+                                                    {statusFilter !== option.value && <span className="w-4 flex-shrink-0" />}
+                                                    {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
+                                                    <span className="truncate">{option.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Priority Dropdown */}
+                        <div className="relative flex-1 sm:flex-none">
+                            <button
+                                onClick={() => {
+                                    setShowPriorityDropdown(!showPriorityDropdown);
+                                    setShowStatusDropdown(false);
+                                }}
+                                className={`w-full sm:w-auto inline-flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border rounded-lg text-sm sm:text-base font-medium shadow-sm transition-all whitespace-nowrap min-w-[120px] sm:min-w-[140px] ${priorityFilter
+                                    ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
+                                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100'
+                                    }`}
                             >
-                                <option value="">All Priority</option>
-                                <option value="critical">Critical</option>
-                                <option value="high">High</option>
-                                <option value="medium">Medium</option>
-                                <option value="low">Low</option>
-                            </select>
+                                <span className="flex items-center gap-1.5 sm:gap-2 truncate">
+                                    {priorityFilter === '' && 'All Priority'}
+                                    {priorityFilter === 'low' && (
+                                        <>
+                                            <div className="w-4 h-4 rounded-full border-2 border-green-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                            </div>
+                                            <span className="truncate">Low</span>
+                                        </>
+                                    )}
+                                    {priorityFilter === 'medium' && (
+                                        <>
+                                            <div className="w-4 h-4 rounded-full border-2 border-yellow-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                            </div>
+                                            <span className="truncate">Medium</span>
+                                        </>
+                                    )}
+                                    {priorityFilter === 'high' && (
+                                        <>
+                                            <div className="w-4 h-4 rounded-full border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                            </div>
+                                            <span className="truncate">High</span>
+                                        </>
+                                    )}
+                                    {priorityFilter === 'critical' && (
+                                        <>
+                                            <div className="w-4 h-4 rounded-full border-2 border-red-500 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                            </div>
+                                            <span className="truncate">Critical</span>
+                                        </>
+                                    )}
+                                </span>
+                                <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                            </button>
+
+                            {showPriorityDropdown && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10 sm:hidden"
+                                        onClick={() => setShowPriorityDropdown(false)}
+                                    />
+                                    <div className="absolute left-0 sm:left-auto right-0 z-20 mt-2 w-full sm:w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                                        {[
+                                            { value: '', label: 'All Priority', color: null },
+                                            { value: 'low', label: 'Low', color: 'green' },
+                                            { value: 'medium', label: 'Medium', color: 'yellow' },
+                                            { value: 'high', label: 'High', color: 'orange' },
+                                            { value: 'critical', label: 'Critical', color: 'red' }
+                                        ].map((option) => {
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    onClick={() => {
+                                                        setPriorityFilter(option.value);
+                                                        setShowPriorityDropdown(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-3 sm:py-2 text-sm sm:text-base flex items-center gap-2 transition-colors active:bg-gray-100 ${priorityFilter === option.value
+                                                        ? 'bg-emerald-50 text-emerald-700 font-medium'
+                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    {priorityFilter === option.value && <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />}
+                                                    {priorityFilter !== option.value && <span className="w-4 flex-shrink-0" />}
+                                                    {option.color && (
+                                                        <div className={`w-4 h-4 rounded-full border-2 border-${option.color}-500 flex items-center justify-center flex-shrink-0`}>
+                                                            <div className={`w-2 h-2 rounded-full bg-${option.color}-500`}></div>
+                                                        </div>
+                                                    )}
+                                                    <span className="truncate">{option.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -279,18 +417,9 @@ export default function TechnicianTasksPage() {
 
                                         {/* Actions */}
                                         <div className="flex gap-2 pt-4 border-t border-gray-100">
-                                            {task.work_status !== 'in_progress' && task.work_status !== 'completed' && (
-                                                <button
-                                                    onClick={() => router.push(`/technician/tasks/${task.id}`)}
-                                                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm"
-                                                >
-                                                    <Play className="h-4 w-4" />
-                                                    Start
-                                                </button>
-                                            )}
                                             <button
                                                 onClick={() => router.push(`/technician/tasks/${task.id}`)}
-                                                className={`${task.work_status !== 'in_progress' && task.work_status !== 'completed' ? 'flex-1' : 'w-full'} inline-flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm`}
+                                                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm"
                                             >
                                                 <Eye className="h-4 w-4" />
                                                 View Details

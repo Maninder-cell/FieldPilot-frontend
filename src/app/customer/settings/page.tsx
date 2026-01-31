@@ -14,13 +14,39 @@ import {
     Loader2,
     Eye,
     EyeOff,
+    Shield,
+    Mail,
+    MessageSquare,
+    Smartphone,
+    Wrench,
+    Calendar,
+    Megaphone,
+    Clock,
+    Languages,
+    ChevronDown,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const TABS = [
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'preferences', label: 'Preferences', icon: Globe },
+];
+
+const NOTIFICATION_CONFIG = [
+    { key: 'email_notifications', label: 'Email Notifications', description: 'Receive updates via email', icon: Mail },
+    { key: 'sms_notifications', label: 'SMS Notifications', description: 'Get text message alerts', icon: MessageSquare },
+    { key: 'push_notifications', label: 'Push Notifications', description: 'Browser push notifications', icon: Smartphone },
+    { key: 'service_updates', label: 'Service Updates', description: 'Updates on your service requests', icon: Wrench },
+    { key: 'maintenance_reminders', label: 'Maintenance Reminders', description: 'Scheduled maintenance alerts', icon: Calendar },
+    { key: 'marketing_emails', label: 'Marketing Emails', description: 'News and promotional content', icon: Megaphone },
+];
 
 export default function CustomerSettings() {
     const { user, isLoading: authLoading } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('security');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -51,7 +77,6 @@ export default function CustomerSettings() {
         if (!authLoading && !user) {
             router.push('/login');
         } else if (user) {
-            // Load settings from user profile or customer profile
             loadSettings();
         }
     }, [user, authLoading, router]);
@@ -62,8 +87,6 @@ export default function CustomerSettings() {
             if (!accessToken) return;
 
             const apiUrl = getApiUrl(true);
-
-            // Load customer profile to get preferences
             const response = await fetch(`${apiUrl}/customers/profile/update/`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -74,8 +97,6 @@ export default function CustomerSettings() {
                 const data = await response.json();
                 const customerData = data.success ? data.data : data;
 
-                // Load preferences from customer notes or settings field if available
-                // For now, using defaults
                 if (customerData.notes) {
                     try {
                         const notes = JSON.parse(customerData.notes);
@@ -116,8 +137,7 @@ export default function CustomerSettings() {
                 return;
             }
 
-            const apiUrl = getApiUrl(false); // Use base URL for auth endpoints
-
+            const apiUrl = getApiUrl(false);
             const response = await fetch(`${apiUrl}/auth/change-password/`, {
                 method: 'POST',
                 headers: {
@@ -133,25 +153,16 @@ export default function CustomerSettings() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-
-                // Extract error message from various possible locations
                 let errorMessage = 'Failed to change password';
 
                 if (errorData.error?.details) {
-                    // Check for non_field_errors first
                     if (errorData.error.details.non_field_errors) {
                         errorMessage = errorData.error.details.non_field_errors[0];
-                    }
-                    // Check for current_password errors
-                    else if (errorData.error.details.current_password) {
+                    } else if (errorData.error.details.current_password) {
                         errorMessage = errorData.error.details.current_password[0];
-                    }
-                    // Check for new_password errors
-                    else if (errorData.error.details.new_password) {
+                    } else if (errorData.error.details.new_password) {
                         errorMessage = errorData.error.details.new_password[0];
-                    }
-                    // Check for new_password_confirm errors
-                    else if (errorData.error.details.new_password_confirm) {
+                    } else if (errorData.error.details.new_password_confirm) {
                         errorMessage = errorData.error.details.new_password_confirm[0];
                     }
                 } else if (errorData.error?.message) {
@@ -185,8 +196,6 @@ export default function CustomerSettings() {
             }
 
             const apiUrl = getApiUrl(true);
-
-            // Save notification settings to customer notes as JSON
             const response = await fetch(`${apiUrl}/customers/profile/update/`, {
                 method: 'PATCH',
                 headers: {
@@ -221,8 +230,6 @@ export default function CustomerSettings() {
             }
 
             const apiUrl = getApiUrl(true);
-
-            // Save preferences to customer notes as JSON
             const response = await fetch(`${apiUrl}/customers/profile/update/`, {
                 method: 'PATCH',
                 headers: {
@@ -249,235 +256,319 @@ export default function CustomerSettings() {
 
     return (
         <CustomerLayout>
-            <div className="min-h-screen bg-slate-50">
+            <div className="bg-gray-50 min-h-full">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
-                        <p className="text-sm sm:text-base text-gray-600 mt-1">
+                    <div className="px-4 sm:px-6 py-4">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Settings</h1>
+                        <p className="text-sm text-gray-600 mt-0.5">
                             Manage your account settings and preferences
                         </p>
                     </div>
+
+                    {/* Horizontal Tabs */}
+                    <div className="px-4 sm:px-6">
+                        <div className="flex gap-1 border-b border-gray-200 -mb-px">
+                            {TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                            isActive
+                                                ? 'border-emerald-600 text-emerald-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-                    {/* Security Section */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Lock className="h-5 w-5 text-emerald-600" />
-                            Security
-                        </h2>
-                        <form onSubmit={handlePasswordChange} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Current Password
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showCurrentPassword ? 'text' : 'password'}
-                                        value={passwordData.current_password}
-                                        onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                    </button>
+                {/* Content */}
+                <div className="px-4 sm:px-6 py-6">
+                    <div className="max-w-2xl mx-auto">
+                        {/* Security Tab */}
+                        {activeTab === 'security' && (
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Shield className="h-5 w-5 text-emerald-600" />
+                                        Change Password
+                                    </h2>
+                                    <p className="text-xs text-gray-500 mt-1">Update your password to keep your account secure</p>
                                 </div>
+                                <form onSubmit={handlePasswordChange} className="p-5 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                            Current Password
+                                        </label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <input
+                                                type={showCurrentPassword ? 'text' : 'password'}
+                                                value={passwordData.current_password}
+                                                onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+                                                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                placeholder="Enter current password"
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            >
+                                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                New Password
+                                            </label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <input
+                                                    type={showNewPassword ? 'text' : 'password'}
+                                                    value={passwordData.new_password}
+                                                    onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    placeholder="Enter new password"
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                >
+                                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                Confirm Password
+                                            </label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <input
+                                                    type={showConfirmPassword ? 'text' : 'password'}
+                                                    value={passwordData.confirm_password}
+                                                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    placeholder="Confirm new password"
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                >
+                                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        Password must be at least 8 characters long
+                                    </p>
+                                    <div className="pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Save className="h-4 w-4" />
+                                            )}
+                                            Change Password
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    New Password
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showNewPassword ? 'text' : 'password'}
-                                        value={passwordData.new_password}
-                                        onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Confirm New Password
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        value={passwordData.confirm_password}
-                                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                                Change Password
-                            </button>
-                        </form>
-                    </div>
+                        )}
 
-                    {/* Notifications Section */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Bell className="h-5 w-5 text-emerald-600" />
-                            Notifications
-                        </h2>
-                        <div className="space-y-4">
-                            {Object.entries(notificationSettings).map(([key, value]) => (
-                                <div key={key} className="flex items-center justify-between">
-                                    <label className="text-sm font-medium text-gray-700">
-                                        {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                                    </label>
-                                    <button
-                                        onClick={() => setNotificationSettings(prev => ({ ...prev, [key]: !value }))}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${value ? 'bg-emerald-600' : 'bg-gray-200'
-                                            }`}
-                                    >
-                                        <span
-                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${value ? 'translate-x-6' : 'translate-x-1'
-                                                }`}
-                                        />
-                                    </button>
+                        {/* Notifications Tab */}
+                        {activeTab === 'notifications' && (
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Bell className="h-5 w-5 text-emerald-600" />
+                                        Notification Preferences
+                                    </h2>
+                                    <p className="text-xs text-gray-500 mt-1">Choose how you want to receive notifications</p>
                                 </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={handleNotificationSave}
-                            disabled={isLoading}
-                            className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                            Save Notification Settings
-                        </button>
-                    </div>
+                                <div className="p-5">
+                                    <div className="space-y-1">
+                                        {NOTIFICATION_CONFIG.map(({ key, label, description, icon: Icon }) => (
+                                            <div
+                                                key={key}
+                                                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-gray-100 rounded-lg">
+                                                        <Icon className="h-4 w-4 text-gray-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">{label}</p>
+                                                        <p className="text-xs text-gray-500">{description}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setNotificationSettings(prev => ({
+                                                        ...prev,
+                                                        [key]: !prev[key as keyof typeof prev]
+                                                    }))}
+                                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                                        notificationSettings[key as keyof typeof notificationSettings]
+                                                            ? 'bg-emerald-600'
+                                                            : 'bg-gray-200'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                                                            notificationSettings[key as keyof typeof notificationSettings]
+                                                                ? 'translate-x-6'
+                                                                : 'translate-x-1'
+                                                        }`}
+                                                    />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="pt-4 mt-4 border-t border-gray-100">
+                                        <button
+                                            type="button"
+                                            onClick={handleNotificationSave}
+                                            disabled={isLoading}
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Save className="h-4 w-4" />
+                                            )}
+                                            Save Notifications
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-                    {/* Preferences Section */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Globe className="h-5 w-5 text-emerald-600" />
-                            Preferences
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Language
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={preferences.language}
-                                        onChange={(e) => setPreferences(prev => ({ ...prev, language: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
-                                    >
-                                        <option value="en">English</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="fr">French</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
+                        {/* Preferences Tab */}
+                        {activeTab === 'preferences' && (
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Globe className="h-5 w-5 text-emerald-600" />
+                                        Display Preferences
+                                    </h2>
+                                    <p className="text-xs text-gray-500 mt-1">Customize your experience</p>
+                                </div>
+                                <div className="p-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                Language
+                                            </label>
+                                            <div className="relative">
+                                                <Languages className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <select
+                                                    value={preferences.language}
+                                                    onChange={(e) => setPreferences(prev => ({ ...prev, language: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
+                                                >
+                                                    <option value="en">English</option>
+                                                    <option value="es">Spanish</option>
+                                                    <option value="fr">French</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                Timezone
+                                            </label>
+                                            <div className="relative">
+                                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <select
+                                                    value={preferences.timezone}
+                                                    onChange={(e) => setPreferences(prev => ({ ...prev, timezone: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
+                                                >
+                                                    <option value="UTC">UTC</option>
+                                                    <option value="America/New_York">Eastern Time</option>
+                                                    <option value="America/Chicago">Central Time</option>
+                                                    <option value="America/Denver">Mountain Time</option>
+                                                    <option value="America/Los_Angeles">Pacific Time</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                Date Format
+                                            </label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <select
+                                                    value={preferences.date_format}
+                                                    onChange={(e) => setPreferences(prev => ({ ...prev, date_format: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
+                                                >
+                                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                                                Time Format
+                                            </label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <select
+                                                    value={preferences.time_format}
+                                                    onChange={(e) => setPreferences(prev => ({ ...prev, time_format: e.target.value }))}
+                                                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
+                                                >
+                                                    <option value="12h">12 Hour</option>
+                                                    <option value="24h">24 Hour</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="pt-4 mt-4 border-t border-gray-100">
+                                        <button
+                                            type="button"
+                                            onClick={handlePreferencesSave}
+                                            disabled={isLoading}
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Save className="h-4 w-4" />
+                                            )}
+                                            Save Preferences
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Timezone
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={preferences.timezone}
-                                        onChange={(e) => setPreferences(prev => ({ ...prev, timezone: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
-                                    >
-                                        <option value="UTC">UTC</option>
-                                        <option value="America/New_York">Eastern Time</option>
-                                        <option value="America/Chicago">Central Time</option>
-                                        <option value="America/Denver">Mountain Time</option>
-                                        <option value="America/Los_Angeles">Pacific Time</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Date Format
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={preferences.date_format}
-                                        onChange={(e) => setPreferences(prev => ({ ...prev, date_format: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
-                                    >
-                                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Time Format
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={preferences.time_format}
-                                        onChange={(e) => setPreferences(prev => ({ ...prev, time_format: e.target.value }))}
-                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none bg-white cursor-pointer"
-                                    >
-                                        <option value="12h">12 Hour</option>
-                                        <option value="24h">24 Hour</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handlePreferencesSave}
-                            disabled={isLoading}
-                            className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                            Save Preferences
-                        </button>
+                        )}
                     </div>
                 </div>
             </div>

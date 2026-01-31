@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import {
@@ -13,20 +13,17 @@ import {
     Settings,
     LogOut,
     Building2,
-    Plus,
     ChevronRight,
-    X,
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 
 interface CustomerSidebarProps {
-    isMobileMenuOpen: boolean;
+    isMobileMenuOpen?: boolean;
     setIsMobileMenuOpen: (open: boolean) => void;
 }
 
-export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen }: CustomerSidebarProps) {
+export default function CustomerSidebar({ setIsMobileMenuOpen }: CustomerSidebarProps) {
     const pathname = usePathname();
-    const router = useRouter();
     const { user, logout } = useAuth();
     const { tenant } = useOnboarding();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -56,49 +53,17 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
 
     return (
         <>
-            <div className="h-full flex flex-col">
-                {/* Header */}
-                <div className="h-14 lg:h-16 flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/logo/fieldrino.png"
-                            alt="FieldRino"
-                            className="h-6 lg:h-7 w-auto"
-                        />
-                        <span className="text-sm font-semibold text-gray-900 hidden lg:block">Customer</span>
-                    </div>
-                    <button
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
-                </div>
-
+            <div className="h-full flex flex-col overflow-hidden">
                 {/* Organization Info */}
                 {tenant && (
-                    <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="px-4 py-4 border-b border-gray-100 shrink-0">
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                             <Building2 className="w-3.5 h-3.5" />
                             <span>Organization</span>
                         </div>
-                        <p className="text-sm font-medium text-gray-900 truncate">{tenant.name}</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{tenant.name}</p>
                     </div>
                 )}
-
-                {/* Quick Action */}
-                <div className="px-4 py-3">
-                    <button
-                        onClick={() => {
-                            router.push('/customer/requests/new');
-                            handleNavClick();
-                        }}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        <Plus className="w-4 h-4" />
-                        New Request
-                    </button>
-                </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto px-3 py-2">
@@ -129,7 +94,7 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
                 </nav>
 
                 {/* User Section */}
-                <div className="border-t border-gray-200 p-3 space-y-1">
+                <div className="border-t border-gray-200 p-3 space-y-1 shrink-0">
                     <Link
                         href="/customer/profile"
                         onClick={handleNavClick}
@@ -163,23 +128,6 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
                         <LogOut className="w-5 h-5" />
                         Sign out
                     </button>
-                </div>
-
-                {/* User Info */}
-                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                            <span className="text-sm font-medium text-emerald-700">
-                                {user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                            </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                                {user?.full_name || 'Customer'}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 

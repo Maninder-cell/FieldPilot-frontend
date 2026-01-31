@@ -19,8 +19,16 @@ import {
     MessageSquare,
     Paperclip,
     Loader2,
+    FileText,
+    Building2,
+    Wrench,
+    AlertTriangle,
+    Info,
+    ChevronRight,
+    RefreshCw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function ServiceRequestDetail() {
     const { user, isLoading: authLoading } = useAuth();
@@ -70,66 +78,71 @@ export default function ServiceRequestDetail() {
         }
     };
 
-    const getStatusIcon = (status: string) => {
+    const getStatusConfig = (status: string) => {
         switch (status?.toLowerCase()) {
             case 'completed':
-                return <CheckCircle2 className="h-6 w-6 text-emerald-600" />;
+                return { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200', label: 'Completed' };
             case 'in_progress':
-                return <Clock className="h-6 w-6 text-blue-600" />;
+                return { icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', label: 'In Progress' };
             case 'pending':
-                return <AlertCircle className="h-6 w-6 text-orange-600" />;
-            case 'cancelled':
-            case 'rejected':
-                return <XCircle className="h-6 w-6 text-red-600" />;
-            default:
-                return <Clock className="h-6 w-6 text-gray-600" />;
-        }
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'completed':
-                return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'pending':
-                return 'bg-orange-100 text-orange-800 border-orange-200';
+                return { icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200', label: 'Pending' };
             case 'under_review':
-                return 'bg-purple-100 text-purple-800 border-purple-200';
+                return { icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', label: 'Under Review' };
+            case 'accepted':
+                return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200', label: 'Accepted' };
             case 'cancelled':
+                return { icon: XCircle, color: 'text-gray-600', bg: 'bg-gray-100', border: 'border-gray-200', label: 'Cancelled' };
             case 'rejected':
-                return 'bg-red-100 text-red-800 border-red-200';
+                return { icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', label: 'Rejected' };
             default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+                return { icon: Clock, color: 'text-gray-600', bg: 'bg-gray-100', border: 'border-gray-200', label: status };
         }
     };
 
-    const getPriorityColor = (priority: string) => {
+    const getPriorityConfig = (priority: string) => {
         switch (priority?.toLowerCase()) {
-            case 'critical':
-                return 'bg-red-100 text-red-800';
+            case 'urgent':
+                return { color: 'text-red-700', bg: 'bg-red-100', label: 'Urgent' };
             case 'high':
-                return 'bg-orange-100 text-orange-800';
+                return { color: 'text-orange-700', bg: 'bg-orange-100', label: 'High' };
             case 'medium':
-                return 'bg-yellow-100 text-yellow-800';
+                return { color: 'text-blue-700', bg: 'bg-blue-100', label: 'Medium' };
             case 'low':
-                return 'bg-green-100 text-green-800';
+                return { color: 'text-gray-700', bg: 'bg-gray-100', label: 'Low' };
             default:
-                return 'bg-gray-100 text-gray-800';
+                return { color: 'text-gray-700', bg: 'bg-gray-100', label: priority };
         }
     };
 
-    const formatStatus = (status: string) => {
-        return status?.split('_').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ') || '';
+    const getRequestTypeConfig = (type: string) => {
+        switch (type?.toLowerCase()) {
+            case 'maintenance':
+                return { icon: Wrench, label: 'Maintenance Request' };
+            case 'service':
+                return { icon: Wrench, label: 'Service Request' };
+            case 'issue':
+                return { icon: AlertTriangle, label: 'Issue Report' };
+            case 'inspection':
+                return { icon: FileText, label: 'Inspection Request' };
+            default:
+                return { icon: FileText, label: type };
+        }
     };
 
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
-            month: 'long',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
+    const formatDateTime = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
@@ -139,8 +152,11 @@ export default function ServiceRequestDetail() {
     if (isLoading) {
         return (
             <CustomerLayout>
-                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
+                <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
+                    <div className="text-center">
+                        <Loader2 className="h-10 w-10 text-emerald-600 animate-spin mx-auto mb-3" />
+                        <p className="text-gray-600">Loading request details...</p>
+                    </div>
                 </div>
             </CustomerLayout>
         );
@@ -149,169 +165,231 @@ export default function ServiceRequestDetail() {
     if (!request) {
         return (
             <CustomerLayout>
-                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
                     <div className="text-center">
-                        <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Request Not Found</h3>
-                        <button
-                            onClick={() => router.push('/customer/requests')}
-                            className="text-emerald-600 hover:text-emerald-700"
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Request Not Found</h3>
+                        <p className="text-gray-600 mb-4">The request you're looking for doesn't exist.</p>
+                        <Link
+                            href="/customer/requests"
+                            className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-medium"
                         >
+                            <ArrowLeft className="h-4 w-4" />
                             Back to Requests
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </CustomerLayout>
         );
     }
 
+    const statusConfig = getStatusConfig(request.status);
+    const priorityConfig = getPriorityConfig(request.priority);
+    const requestTypeConfig = getRequestTypeConfig(request.request_type);
+    const StatusIcon = statusConfig.icon;
+    const TypeIcon = requestTypeConfig.icon;
+
     return (
         <CustomerLayout>
-            <div className="min-h-screen bg-slate-50">
+            <div className="bg-gray-50 min-h-full">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200">
-                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                        <div className="flex items-center gap-4 mb-4">
-                            <button
-                                onClick={() => router.back()}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                <ArrowLeft className="h-5 w-5 text-gray-600" />
-                            </button>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    {getStatusIcon(request.status)}
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                                        {request.title}
-                                    </h1>
-                                </div>
-                                <p className="text-sm text-gray-600">
-                                    Request #{request.request_number}
-                                </p>
-                            </div>
+                    <div className="px-4 sm:px-6 py-4">
+                        {/* Breadcrumb */}
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                            <Link href="/customer/requests" className="hover:text-emerald-600 transition-colors">
+                                Service Requests
+                            </Link>
+                            <ChevronRight className="h-4 w-4" />
+                            <span className="text-gray-900 font-medium">{request.request_number}</span>
                         </div>
 
-                        {/* Status Badge */}
-                        <div className="flex flex-wrap gap-2">
-                            <span className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${getStatusColor(request.status)}`}>
-                                {formatStatus(request.status_display || request.status)}
-                            </span>
-                            <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${getPriorityColor(request.priority)}`}>
-                                {request.priority_display || request.priority}
-                            </span>
-                            <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {request.request_type_display || formatStatus(request.request_type)}
-                            </span>
+                        {/* Title Row */}
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 min-w-0">
+                                <button
+                                    onClick={() => router.back()}
+                                    className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                                >
+                                    <ArrowLeft className="h-5 w-5 text-gray-600" />
+                                </button>
+                                <div className="min-w-0">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                                        {request.title}
+                                    </h1>
+                                    <p className="text-sm text-gray-500 mt-0.5">
+                                        {request.request_number}
+                                    </p>
+                                    {/* Status Tags */}
+                                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color}`}>
+                                            <StatusIcon className="h-3.5 w-3.5" />
+                                            {statusConfig.label}
+                                        </span>
+                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${priorityConfig.bg} ${priorityConfig.color}`}>
+                                            {priorityConfig.label}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                            <TypeIcon className="h-3.5 w-3.5" />
+                                            {requestTypeConfig.label}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={loadRequest}
+                                disabled={isLoading}
+                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                                title="Refresh"
+                            >
+                                <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                {/* Content */}
+                <div className="px-4 sm:px-6 py-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Content */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Description */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Description</h2>
-                                <p className="text-gray-700 whitespace-pre-wrap">{request.description}</p>
-                            </div>
-
-                            {/* Equipment Details */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-emerald-600" />
-                                    Equipment Details
-                                </h2>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Name:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.equipment?.name}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Equipment Number:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.equipment?.equipment_number}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Type:</span>
-                                        <span className="text-sm font-medium text-gray-900">{formatStatus(request.equipment?.equipment_type)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Manufacturer:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.equipment?.manufacturer || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Model:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.equipment?.model || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Location */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-emerald-600" />
-                                    Location
-                                </h2>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Facility:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.facility?.name}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600">Building:</span>
-                                        <span className="text-sm font-medium text-gray-900">{request.equipment?.building?.name}</span>
-                                    </div>
-                                    {request.facility?.city && (
-                                        <div className="flex justify-between">
-                                            <span className="text-sm text-gray-600">City:</span>
-                                            <span className="text-sm font-medium text-gray-900">{request.facility.city}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Comments */}
-                            {request.comments && request.comments.length > 0 && (
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <MessageSquare className="h-5 w-5 text-emerald-600" />
-                                        Comments ({request.comments.length})
+                            {/* Equipment Card */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Package className="h-5 w-5 text-emerald-600" />
+                                        Equipment Information
                                     </h2>
-                                    <div className="space-y-4">
-                                        {request.comments.map((comment: any, index: number) => (
-                                            <div key={index} className="border-l-4 border-emerald-500 pl-4 py-2">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <User className="h-4 w-4 text-gray-400" />
-                                                    <span className="text-sm font-medium text-gray-900">{comment.user_name}</span>
-                                                    <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
-                                                </div>
-                                                <p className="text-sm text-gray-700">{comment.comment}</p>
+                                </div>
+                                <div className="p-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Equipment Name</p>
+                                            <p className="text-sm font-semibold text-gray-900">{request.equipment?.name || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Equipment Number</p>
+                                            <p className="text-sm font-semibold text-gray-900">{request.equipment?.equipment_number || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</p>
+                                            <p className="text-sm text-gray-700">{request.equipment?.equipment_type?.replace(/_/g, ' ') || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Manufacturer</p>
+                                            <p className="text-sm text-gray-700">{request.equipment?.manufacturer || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Model</p>
+                                            <p className="text-sm text-gray-700">{request.equipment?.model || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Serial Number</p>
+                                            <p className="text-sm text-gray-700">{request.equipment?.serial_number || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Location Card */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <MapPin className="h-5 w-5 text-emerald-600" />
+                                        Location
+                                    </h2>
+                                </div>
+                                <div className="p-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Facility</p>
+                                            <p className="text-sm font-semibold text-gray-900">{request.facility?.name || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Building</p>
+                                            <p className="text-sm text-gray-700">{request.equipment?.building?.name || 'N/A'}</p>
+                                        </div>
+                                        {request.facility?.address && (
+                                            <div className="space-y-1 sm:col-span-2">
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</p>
+                                                <p className="text-sm text-gray-700">{request.facility.address}</p>
                                             </div>
-                                        ))}
+                                        )}
+                                        {request.facility?.city && (
+                                            <div className="space-y-1">
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">City</p>
+                                                <p className="text-sm text-gray-700">{request.facility.city}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Response Card */}
+                            {request.response_message && (
+                                <div className="bg-blue-50 rounded-xl border border-blue-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-blue-200 bg-blue-100/50">
+                                        <h2 className="text-base font-semibold text-blue-900 flex items-center gap-2">
+                                            <MessageSquare className="h-5 w-5 text-blue-600" />
+                                            Response from Team
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <p className="text-blue-800 leading-relaxed">{request.response_message}</p>
+                                        {request.estimated_timeline && (
+                                            <div className="mt-4 pt-4 border-t border-blue-200">
+                                                <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Estimated Timeline</p>
+                                                <p className="text-sm font-semibold text-blue-900">{request.estimated_timeline}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rejection Card */}
+                            {request.rejection_reason && (
+                                <div className="bg-red-50 rounded-xl border border-red-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-red-200 bg-red-100/50">
+                                        <h2 className="text-base font-semibold text-red-900 flex items-center gap-2">
+                                            <XCircle className="h-5 w-5 text-red-600" />
+                                            Rejection Reason
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <p className="text-red-800 leading-relaxed">{request.rejection_reason}</p>
                                     </div>
                                 </div>
                             )}
 
                             {/* Attachments */}
                             {request.attachments && request.attachments.length > 0 && (
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Paperclip className="h-5 w-5 text-emerald-600" />
-                                        Attachments ({request.attachments.length})
-                                    </h2>
-                                    <div className="space-y-2">
-                                        {request.attachments.map((attachment: any, index: number) => (
-                                            <a
-                                                key={index}
-                                                href={attachment.file_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                                            >
-                                                <Paperclip className="h-5 w-5 text-gray-400" />
-                                                <span className="text-sm text-gray-900">{attachment.file_name}</span>
-                                            </a>
-                                        ))}
+                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                            <Paperclip className="h-5 w-5 text-emerald-600" />
+                                            Attachments
+                                            <span className="text-xs font-normal text-gray-500">({request.attachments.length})</span>
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {request.attachments.map((attachment: any, index: number) => (
+                                                <a
+                                                    key={index}
+                                                    href={attachment.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-emerald-300 transition-colors"
+                                                >
+                                                    <div className="p-2 bg-gray-100 rounded-lg">
+                                                        <Paperclip className="h-4 w-4 text-gray-500" />
+                                                    </div>
+                                                    <span className="text-sm text-gray-900 truncate">{attachment.file_name}</span>
+                                                </a>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -319,71 +397,110 @@ export default function ServiceRequestDetail() {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            {/* Timeline */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Calendar className="h-5 w-5 text-emerald-600" />
-                                    Timeline
-                                </h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500 mb-1">Created</p>
-                                        <p className="text-sm font-medium text-gray-900">{formatDate(request.created_at)}</p>
+                            {/* Timeline Card */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Calendar className="h-5 w-5 text-emerald-600" />
+                                        Timeline
+                                    </h2>
+                                </div>
+                                <div className="p-5 space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0"></div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Created</p>
+                                            <p className="text-sm font-medium text-gray-900">{formatDateTime(request.created_at)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                                        <p className="text-sm font-medium text-gray-900">{formatDate(request.updated_at)}</p>
+                                    {request.reviewed_at && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 shrink-0"></div>
+                                            <div>
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reviewed</p>
+                                                <p className="text-sm font-medium text-gray-900">{formatDateTime(request.reviewed_at)}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-gray-400 mt-2 shrink-0"></div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Last Updated</p>
+                                            <p className="text-sm font-medium text-gray-900">{formatDateTime(request.updated_at)}</p>
+                                        </div>
                                     </div>
                                     {request.completed_at && (
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">Completed</p>
-                                            <p className="text-sm font-medium text-gray-900">{formatDate(request.completed_at)}</p>
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0"></div>
+                                            <div>
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Completed</p>
+                                                <p className="text-sm font-medium text-gray-900">{formatDateTime(request.completed_at)}</p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Additional Info */}
+                            {/* Description Card */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <FileText className="h-5 w-5 text-emerald-600" />
+                                        Description
+                                    </h2>
+                                </div>
+                                <div className="p-5">
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                        {request.description || 'No description provided.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Issue Details Card */}
                             {(request.issue_type || request.severity) && (
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Issue Details</h2>
-                                    <div className="space-y-3">
+                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                            <AlertTriangle className="h-5 w-5 text-emerald-600" />
+                                            Issue Details
+                                        </h2>
+                                    </div>
+                                    <div className="p-5 space-y-4">
                                         {request.issue_type && (
                                             <div>
-                                                <p className="text-xs text-gray-500 mb-1">Issue Type</p>
-                                                <p className="text-sm font-medium text-gray-900">{formatStatus(request.issue_type_display || request.issue_type)}</p>
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Issue Type</p>
+                                                <p className="text-sm font-medium text-gray-900">{request.issue_type_display || request.issue_type?.replace(/_/g, ' ')}</p>
                                             </div>
                                         )}
                                         {request.severity && (
                                             <div>
-                                                <p className="text-xs text-gray-500 mb-1">Severity</p>
-                                                <p className="text-sm font-medium text-gray-900">{formatStatus(request.severity_display || request.severity)}</p>
+                                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Severity</p>
+                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                    request.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                                                    request.severity === 'major' ? 'bg-orange-100 text-orange-700' :
+                                                    request.severity === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                    {request.severity_display || request.severity}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Response */}
-                            {request.response_message && (
-                                <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
-                                    <h2 className="text-lg font-semibold text-blue-900 mb-2">Response</h2>
-                                    <p className="text-sm text-blue-800">{request.response_message}</p>
-                                    {request.estimated_timeline && (
-                                        <p className="text-xs text-blue-600 mt-2">
-                                            Estimated Timeline: {request.estimated_timeline}
+                            {/* Help Card */}
+                            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-5">
+                                <div className="flex items-start gap-3">
+                                    <Info className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-emerald-900 mb-1">Need Help?</h3>
+                                        <p className="text-xs text-emerald-700 leading-relaxed">
+                                            If you have questions about this request, please contact our support team or add a comment below.
                                         </p>
-                                    )}
+                                    </div>
                                 </div>
-                            )}
-
-                            {/* Rejection Reason */}
-                            {request.rejection_reason && (
-                                <div className="bg-red-50 rounded-xl border border-red-200 p-6">
-                                    <h2 className="text-lg font-semibold text-red-900 mb-2">Rejection Reason</h2>
-                                    <p className="text-sm text-red-800">{request.rejection_reason}</p>
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>

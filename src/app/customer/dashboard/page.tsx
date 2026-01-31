@@ -96,7 +96,7 @@ export default function CustomerDashboard() {
     if (authLoading) {
         return (
             <CustomerLayout>
-                <div className="flex items-center justify-center min-h-screen">
+                <div className="flex items-center justify-center h-64">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
                 </div>
             </CustomerLayout>
@@ -112,10 +112,10 @@ export default function CustomerDashboard() {
 
     return (
         <CustomerLayout>
-            <div className="min-h-screen bg-gray-50">
+            <div className="bg-gray-50">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                    <div className="px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="px-4 sm:px-6 py-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -144,7 +144,7 @@ export default function CustomerDashboard() {
                     </div>
                 </div>
 
-                <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">

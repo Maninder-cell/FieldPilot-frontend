@@ -28,6 +28,7 @@ import {
 
 import { createEquipment, updateEquipment } from '@/lib/equipment-api';
 import { getBuildings, getBuilding } from '@/lib/buildings-api';
+import { getCustomers } from '@/lib/customers-api';
 import { Equipment, CreateEquipmentData, EquipmentType, OperationalStatus, Condition } from '@/types/equipment';
 import { toast } from 'react-hot-toast';
 import CustomFieldsManager from '@/components/common/CustomFieldsManager';
@@ -66,19 +67,12 @@ const conditionOptions: SelectOption[] = [
   { value: 'poor', label: 'Poor', icon: 'ThumbsDown', color: 'text-red-600' },
 ];
 
-// Mock customer data
-const mockCustomers = [
-  { id: '1', name: 'Acme Corporation', email: 'contact@acme.com' },
-  { id: '2', name: 'TechStart Inc', email: 'info@techstart.com' },
-  { id: '3', name: 'Global Industries', email: 'hello@global.com' },
-  { id: '4', name: 'Innovation Labs', email: 'contact@innovation.com' },
-  { id: '5', name: 'Future Systems', email: 'info@future.com' },
-];
-
 export default function EquipmentModal({ equipment, onClose }: EquipmentModalProps) {
   const [loading, setLoading] = useState(false);
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CreateEquipmentData>({
@@ -145,6 +139,38 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Load customers when dropdown opens
+  useEffect(() => {
+    if (isCustomerDropdownOpen && customers.length === 0) {
+      loadCustomers();
+    }
+  }, [isCustomerDropdownOpen]);
+
+  const loadCustomers = async (search?: string) => {
+    try {
+      setIsLoadingCustomers(true);
+      const response = await getCustomers({ search });
+      setCustomers(response.data || []);
+    } catch (error: any) {
+      console.error('Failed to load customers:', error);
+      toast.error('Failed to load customers');
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    if (customerSearchQuery) {
+      const timer = setTimeout(() => {
+        loadCustomers(customerSearchQuery);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else if (isCustomerDropdownOpen) {
+      loadCustomers();
+    }
+  }, [customerSearchQuery]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -175,9 +201,9 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
     }));
   };
 
-  const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
+  const selectedCustomer = customers.find(c => c.id === formData.customer_id);
 
-  const filteredCustomers = mockCustomers.filter(customer =>
+  const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
   );
@@ -488,7 +514,12 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                             )}
                           </button>
 
-                          {filteredCustomers.length > 0 ? (
+                          {isLoadingCustomers ? (
+                            <div className="px-4 py-8 text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent mx-auto"></div>
+                              <p className="text-sm text-gray-500 mt-2">Loading customers...</p>
+                            </div>
+                          ) : filteredCustomers.length > 0 ? (
                             filteredCustomers.map((customer) => (
                               <button
                                 key={customer.id}
@@ -507,7 +538,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
                             ))
                           ) : (
                             <div className="px-4 py-8 text-center text-sm text-gray-500">
-                              No customers found
+                              {customerSearchQuery ? 'No customers found matching your search' : 'No customers available'}
                             </div>
                           )}
                         </div>

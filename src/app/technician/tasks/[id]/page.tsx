@@ -443,15 +443,15 @@ export default function TechnicianTaskDetailPage() {
                                         {/* Scrollable Comments Container */}
                                         <div className="max-h-96 overflow-y-auto space-y-3 pr-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-400">
                                             {comments.map((comment) => (
-                                                <div key={comment.id} className="border-l-4 border-emerald-500 bg-gray-50 p-4 rounded-r-lg">
+                                                <div key={comment.id} className={`border-l-4 ${comment.is_system_generated ? 'border-blue-400 bg-blue-50' : 'border-emerald-500 bg-gray-50'} p-4 rounded-r-lg`}>
                                                     <div className="flex items-start justify-between mb-2">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                                                                <User className="h-4 w-4 text-emerald-700" />
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${comment.is_system_generated ? 'bg-blue-100' : 'bg-emerald-100'}`}>
+                                                                <User className={`h-4 w-4 ${comment.is_system_generated ? 'text-blue-700' : 'text-emerald-700'}`} />
                                                             </div>
                                                             <div>
                                                                 <p className="font-medium text-gray-900 text-sm">
-                                                                    {comment.author?.full_name || 'Unknown User'}
+                                                                    {comment.is_system_generated ? 'System' : (comment.author?.full_name || 'Unknown User')}
                                                                 </p>
                                                                 <p className="text-xs text-gray-500">
                                                                     {new Date(comment.created_at).toLocaleString('en-US', {

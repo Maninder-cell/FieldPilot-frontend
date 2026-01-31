@@ -63,10 +63,18 @@ export interface TimeLog {
     travel_time?: number;
     normal_hours?: number;
     overtime_hours?: number;
+    total_work_hours?: number;
     lunch_duration?: number;
-    equipment_status?: 'operational' | 'needs_repair' | 'replaced';
+    equipment_status_at_departure?: 'functional' | 'shutdown';
+    // Helper properties from backend
+    is_on_site?: boolean;
+    is_traveling?: boolean;
+    is_on_lunch?: boolean;
+    can_start_lunch?: boolean;
+    can_end_lunch?: boolean;
     notes?: string;
     created_at: string;
+    updated_at?: string;
 }
 
 export interface WorkHoursSummary {

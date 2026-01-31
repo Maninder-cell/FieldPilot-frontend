@@ -15,7 +15,7 @@ import {
 import { ApiError } from '@/types/auth';
 
 interface LoginFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (user: any) => void;
   redirectTo?: string;
 }
 
@@ -128,11 +128,11 @@ export default function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
     setIsSubmitting(true);
 
     try {
-      await login(formData.email, formData.password, formData.remember_me);
+      const loggedInUser = await login(formData.email, formData.password, formData.remember_me);
       
-      // Call success callback
+      // Call success callback with the user data
       if (onSuccess) {
-        onSuccess();
+        onSuccess(loggedInUser);
       }
     } catch (error) {
       const apiErr = error as ApiError;

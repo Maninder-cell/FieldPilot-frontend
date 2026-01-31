@@ -19,19 +19,18 @@ function LoginContent() {
       // Check if there's a redirect parameter
       const redirectParam = searchParams.get('redirect');
 
-      // Always use role-based routing for dashboard
       // Determine the correct dashboard based on user role
-      let dashboardRoute = '/dashboard'; // Default admin dashboard
-
-      if (user.role === 'technician') {
+      let dashboardRoute = '/dashboard';
+      const userRole = user.role?.toLowerCase();
+      
+      if (userRole === 'technician') {
         dashboardRoute = '/technician/dashboard';
-      } else if (!user.role || user.role === null) {
-        // Users without a role are likely customers
+      } else if (userRole === 'customer' || !userRole) {
         dashboardRoute = '/customer/dashboard';
+      } else if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'employee') {
+        dashboardRoute = '/organization/dashboard';
       }
 
-      // If there's a specific redirect parameter, use it
-      // Otherwise use the role-based dashboard
       if (redirectParam) {
         router.push(redirectParam);
       } else {
@@ -40,9 +39,26 @@ function LoginContent() {
     }
   }, [isAuthenticated, isLoading, user, router, searchParams]);
 
-  const handleSuccess = () => {
-    // The useEffect above will handle the redirect based on user role
-    // after the user is set in the auth context
+  const handleSuccess = (loggedInUser: any) => {
+    // Redirect based on user role immediately after login
+    const redirectParam = searchParams.get('redirect');
+    
+    let dashboardRoute = '/dashboard';
+    const userRole = loggedInUser?.role?.toLowerCase();
+    
+    if (userRole === 'technician') {
+      dashboardRoute = '/technician/dashboard';
+    } else if (userRole === 'customer' || !userRole) {
+      dashboardRoute = '/customer/dashboard';
+    } else if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'employee') {
+      dashboardRoute = '/organization/dashboard';
+    }
+    
+    if (redirectParam) {
+      router.push(redirectParam);
+    } else {
+      router.push(dashboardRoute);
+    }
   };
 
   // Show loading state while checking authentication

@@ -25,7 +25,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
   logout: () => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   verifyEmail: (email: string, otpCode: string) => Promise<void>;
@@ -130,6 +130,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         localStorage.removeItem('remembered_email');
       }
+
+      // Return the user data so the caller can use it for redirect
+      return userWithTenant;
     } catch (error) {
       throw error;
     }

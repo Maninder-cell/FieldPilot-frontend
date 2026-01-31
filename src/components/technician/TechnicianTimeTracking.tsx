@@ -183,11 +183,13 @@ export default function TechnicianTimeTracking({ taskId }: TechnicianTimeTrackin
     };
 
     const currentStatus = getCurrentStatus();
+    const activeTimeLog = getActiveTimeLog();
 
     // Button enable/disable logic based on current status
     const canStartTravel = currentStatus === 'not_started' || currentStatus === 'completed';
     const canLogArrival = currentStatus === 'traveling';
-    const canStartLunch = currentStatus === 'on_site';
+    // Can only start lunch if on_site AND haven't already taken lunch
+    const canStartLunch = currentStatus === 'on_site' && !activeTimeLog?.lunch_started_at;
     const canEndLunch = currentStatus === 'on_lunch';
     const canLogDeparture = currentStatus === 'on_site';
 

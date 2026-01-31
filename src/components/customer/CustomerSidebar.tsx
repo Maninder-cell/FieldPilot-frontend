@@ -13,6 +13,9 @@ import {
     Settings,
     LogOut,
     Building2,
+    Plus,
+    ChevronRight,
+    X,
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 
@@ -45,27 +48,60 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
         }
     };
 
+    const handleNavClick = () => {
+        setIsMobileMenuOpen(false);
+    };
+
     if (!user) return null;
 
     return (
         <>
-            <div className="h-full flex flex-col bg-white">
-                {/* Customer Portal Header */}
-                <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Building2 className="w-5 h-5 text-emerald-600" />
-                        <h2 className="text-sm font-semibold text-gray-900">Customer Portal</h2>
+            <div className="h-full flex flex-col">
+                {/* Header */}
+                <div className="h-14 lg:h-16 flex items-center justify-between px-4 border-b border-gray-200 shrink-0">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src="/logo/fieldrino.png"
+                            alt="FieldRino"
+                            className="h-6 lg:h-7 w-auto"
+                        />
+                        <span className="text-sm font-semibold text-gray-900 hidden lg:block">Customer</span>
                     </div>
-                    {tenant && (
-                        <div className="mt-2 px-3 py-2 bg-emerald-50 rounded-lg">
-                            <p className="text-xs text-emerald-600 font-medium">Organization</p>
-                            <p className="text-sm font-semibold text-gray-900 truncate">{tenant.name}</p>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                </div>
+
+                {/* Organization Info */}
+                {tenant && (
+                    <div className="px-4 py-3 border-b border-gray-100">
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>Organization</span>
                         </div>
-                    )}
+                        <p className="text-sm font-medium text-gray-900 truncate">{tenant.name}</p>
+                    </div>
+                )}
+
+                {/* Quick Action */}
+                <div className="px-4 py-3">
+                    <button
+                        onClick={() => {
+                            router.push('/customer/requests/new');
+                            handleNavClick();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        New Request
+                    </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto p-4">
+                <nav className="flex-1 overflow-y-auto px-3 py-2">
                     <ul className="space-y-1">
                         {navigation.map((item) => {
                             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
@@ -73,17 +109,18 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
                                 <li key={item.name}>
                                     <Link
                                         href={item.href}
-                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        onClick={handleNavClick}
                                         className={`
-                                            flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                            flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                                             ${isActive
                                                 ? 'bg-emerald-50 text-emerald-700'
                                                 : 'text-gray-700 hover:bg-gray-100'
                                             }
                                         `}
                                     >
-                                        <item.icon className="w-5 h-5" />
-                                        {item.name}
+                                        <item.icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : 'text-gray-500'}`} />
+                                        <span className="flex-1">{item.name}</span>
+                                        {isActive && <ChevronRight className="w-4 h-4 text-emerald-400" />}
                                     </Link>
                                 </li>
                             );
@@ -91,31 +128,58 @@ export default function CustomerSidebar({ isMobileMenuOpen, setIsMobileMenuOpen 
                     </ul>
                 </nav>
 
-                {/* Bottom Actions */}
-                <div className="p-4 border-t border-gray-200 space-y-2">
-                    <button
-                        onClick={() => router.push('/customer/profile')}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                {/* User Section */}
+                <div className="border-t border-gray-200 p-3 space-y-1">
+                    <Link
+                        href="/customer/profile"
+                        onClick={handleNavClick}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                            pathname === '/customer/profile' 
+                                ? 'bg-emerald-50 text-emerald-700' 
+                                : 'text-gray-700 hover:bg-gray-100'
+                        }`}
                     >
-                        <User className="w-5 h-5" />
+                        <User className="w-5 h-5 text-gray-500" />
                         Profile
-                    </button>
+                    </Link>
 
-                    <button
-                        onClick={() => router.push('/customer/settings')}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                    <Link
+                        href="/customer/settings"
+                        onClick={handleNavClick}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                            pathname === '/customer/settings' 
+                                ? 'bg-emerald-50 text-emerald-700' 
+                                : 'text-gray-700 hover:bg-gray-100'
+                        }`}
                     >
-                        <Settings className="w-5 h-5" />
+                        <Settings className="w-5 h-5 text-gray-500" />
                         Settings
-                    </button>
+                    </Link>
 
                     <button
                         onClick={() => setIsLogoutModalOpen(true)}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                     >
                         <LogOut className="w-5 h-5" />
                         Sign out
                     </button>
+                </div>
+
+                {/* User Info */}
+                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                            <span className="text-sm font-medium text-emerald-700">
+                                {user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                            </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                                {user?.full_name || 'Customer'}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

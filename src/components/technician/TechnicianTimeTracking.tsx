@@ -436,54 +436,73 @@ export default function TechnicianTimeTracking({ taskId }: TechnicianTimeTrackin
 
             {/* Departure Modal */}
             {showDepartureModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <LogOut className="h-6 w-6 text-red-600" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Log Departure</h3>
-                                <p className="text-sm text-gray-500">Select equipment status</p>
+                <div 
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    onClick={() => setShowDepartureModal(false)}
+                >
+                    <div 
+                        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-5 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                    <LogOut className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold">Log Departure</h3>
+                                    <p className="text-red-100 text-sm">Complete your site visit</p>
+                                </div>
                             </div>
                         </div>
 
-                        <p className="text-gray-700 mb-6">
-                            What is the current status of the equipment?
-                        </p>
+                        {/* Content */}
+                        <div className="p-6">
+                            <p className="text-gray-600 text-sm mb-5 text-center">
+                                Select the equipment status before leaving
+                            </p>
 
-                        <div className="space-y-3 mb-6">
-                            <button
-                                onClick={() => handleDeparture('functional')}
-                                disabled={isSubmitting}
-                                className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors border border-green-200 disabled:opacity-50"
-                            >
-                                <CheckCircle2 className="h-5 w-5" />
-                                <div className="text-left">
-                                    <p className="font-medium">Functional</p>
-                                    <p className="text-xs text-green-600">Equipment is working properly</p>
-                                </div>
-                            </button>
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => handleDeparture('functional')}
+                                    disabled={isSubmitting}
+                                    className="w-full flex items-center gap-4 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-all border-2 border-emerald-200 hover:border-emerald-400 disabled:opacity-50 group"
+                                >
+                                    <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <CheckCircle2 className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <p className="font-semibold text-emerald-800">Functional</p>
+                                        <p className="text-xs text-emerald-600">Equipment is working properly</p>
+                                    </div>
+                                </button>
 
-                            <button
-                                onClick={() => handleDeparture('shutdown')}
-                                disabled={isSubmitting}
-                                className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50"
-                            >
-                                <AlertCircle className="h-5 w-5" />
-                                <div className="text-left">
-                                    <p className="font-medium">Shutdown</p>
-                                    <p className="text-xs text-red-600">Equipment is not operational</p>
-                                </div>
-                            </button>
+                                <button
+                                    onClick={() => handleDeparture('shutdown')}
+                                    disabled={isSubmitting}
+                                    className="w-full flex items-center gap-4 p-4 bg-red-50 rounded-xl hover:bg-red-100 transition-all border-2 border-red-200 hover:border-red-400 disabled:opacity-50 group"
+                                >
+                                    <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <AlertCircle className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <p className="font-semibold text-red-800">Shutdown</p>
+                                        <p className="text-xs text-red-600">Equipment is not operational</p>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
 
-                        <button
-                            onClick={() => setShowDepartureModal(false)}
-                            className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                        >
-                            Cancel
-                        </button>
+                        {/* Footer */}
+                        <div className="px-6 pb-6">
+                            <button
+                                onClick={() => setShowDepartureModal(false)}
+                                className="w-full px-4 py-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors font-medium text-sm"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

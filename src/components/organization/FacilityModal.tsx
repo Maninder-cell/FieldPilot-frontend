@@ -24,6 +24,8 @@ import {
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
 import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
+import { getCustomers } from '@/lib/customers-api';
+import { toast } from 'react-hot-toast';
 
 interface FacilityModalProps {
   isOpen: boolean;
@@ -69,6 +71,9 @@ export default function FacilityModal({
 }: FacilityModalProps) {
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [activeCustomer, setActiveCustomer] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CreateFacilityRequest>({
@@ -116,6 +121,7 @@ export default function FacilityModal({
         notes: facility.notes || '',
         custom_fields: facility.custom_fields || {},
       });
+      setActiveCustomer(facility.customer || null);
     } else {
       setFormData({
         name: '',
@@ -138,6 +144,7 @@ export default function FacilityModal({
         notes: '',
         custom_fields: {},
       });
+      setActiveCustomer(null);
     }
   }, [facility, isOpen]);
 
@@ -152,6 +159,38 @@ export default function FacilityModal({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Load customers when dropdown opens
+  useEffect(() => {
+    if (isCustomerDropdownOpen && customers.length === 0) {
+      loadCustomers();
+    }
+  }, [isCustomerDropdownOpen]);
+
+  const loadCustomers = async (search?: string) => {
+    try {
+      setIsLoadingCustomers(true);
+      const response = await getCustomers({ search });
+      setCustomers(response.data || []);
+    } catch (error: any) {
+      console.error('Failed to load customers:', error);
+      toast.error('Failed to load customers');
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    if (customerSearchQuery) {
+      const timer = setTimeout(() => {
+        loadCustomers(customerSearchQuery);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else if (isCustomerDropdownOpen) {
+      loadCustomers();
+    }
+  }, [customerSearchQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,14 +221,16 @@ export default function FacilityModal({
 
   if (!isOpen) return null;
 
-  const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
+  const selectedCustomer = activeCustomer;
 
-  const filteredCustomers = mockCustomers.filter(customer =>
+  const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
   );
 
   const handleCustomerSelect = (customerId: string | null) => {
+    const customer = customers.find(c => c.id === customerId);
+    setActiveCustomer(customer || null);
     setFormData(prev => ({ ...prev, customer_id: customerId }));
     setIsCustomerDropdownOpen(false);
     setCustomerSearchQuery('');
@@ -327,7 +368,12 @@ export default function FacilityModal({
                           </button>
 
                           {/* Customer Options */}
-                          {filteredCustomers.length > 0 ? (
+                          {isLoadingCustomers ? (
+                            <div className="px-4 py-8 text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent mx-auto"></div>
+                              <p className="text-sm text-gray-500 mt-2">Loading customers...</p>
+                            </div>
+                          ) : filteredCustomers.length > 0 ? (
                             filteredCustomers.map((customer) => (
                               <button
                                 key={customer.id}
@@ -346,7 +392,7 @@ export default function FacilityModal({
                             ))
                           ) : (
                             <div className="px-4 py-8 text-center text-sm text-gray-500">
-                              No customers found
+                              {customerSearchQuery ? 'No customers found matching your search' : 'No customers available'}
                             </div>
                           )}
                         </div>

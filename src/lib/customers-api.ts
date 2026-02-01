@@ -56,7 +56,7 @@ export interface CreateCustomerRequest {
   notes?: string;
 }
 
-export interface UpdateCustomerRequest extends Partial<CreateCustomerRequest> {}
+export interface UpdateCustomerRequest extends Partial<CreateCustomerRequest> { }
 
 export interface InviteCustomerRequest {
   customer_id: string;
@@ -65,9 +65,9 @@ export interface InviteCustomerRequest {
 }
 
 export interface CustomerAssets {
-  facilities: any[];
-  buildings: any[];
-  equipment: any[];
+  facilities: { count: number };
+  buildings: { count: number };
+  equipment: { count: number };
 }
 
 async function fetchAPI<T>(

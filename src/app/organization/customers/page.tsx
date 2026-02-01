@@ -92,9 +92,9 @@ export default function CustomersPage() {
 
     // Customer assets for view modal
     const [customerAssets, setCustomerAssets] = useState<{
-        facilities: any[];
-        buildings: any[];
-        equipment: any[];
+        facilities: { count: number };
+        buildings: { count: number };
+        equipment: { count: number };
     } | null>(null);
     const [loadingAssets, setLoadingAssets] = useState(false);
 
@@ -1095,15 +1095,15 @@ export default function CustomersPage() {
                                 ) : customerAssets ? (
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="p-4 bg-blue-50 rounded-lg text-center">
-                                            <p className="text-2xl font-bold text-blue-600">{customerAssets.facilities?.length || 0}</p>
+                                            <p className="text-2xl font-bold text-blue-600">{customerAssets.facilities?.count || 0}</p>
                                             <p className="text-xs text-blue-700">Facilities</p>
                                         </div>
                                         <div className="p-4 bg-purple-50 rounded-lg text-center">
-                                            <p className="text-2xl font-bold text-purple-600">{customerAssets.buildings?.length || 0}</p>
+                                            <p className="text-2xl font-bold text-purple-600">{customerAssets.buildings?.count || 0}</p>
                                             <p className="text-xs text-purple-700">Buildings</p>
                                         </div>
                                         <div className="p-4 bg-amber-50 rounded-lg text-center">
-                                            <p className="text-2xl font-bold text-amber-600">{customerAssets.equipment?.length || 0}</p>
+                                            <p className="text-2xl font-bold text-amber-600">{customerAssets.equipment?.count || 0}</p>
                                             <p className="text-xs text-amber-700">Equipment</p>
                                         </div>
                                     </div>

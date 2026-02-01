@@ -73,6 +73,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [activeCustomer, setActiveCustomer] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CreateEquipmentData>({
@@ -124,6 +125,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
         notes: equipment.notes,
         custom_fields: equipment.custom_fields || {},
       });
+      setActiveCustomer(equipment.customer || null);
     }
   }, [equipment]);
 
@@ -201,7 +203,7 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
     }));
   };
 
-  const selectedCustomer = customers.find(c => c.id === formData.customer_id);
+  const selectedCustomer = activeCustomer;
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
@@ -209,6 +211,8 @@ export default function EquipmentModal({ equipment, onClose }: EquipmentModalPro
   );
 
   const handleCustomerSelect = (customerId: string | null) => {
+    const customer = customers.find(c => c.id === customerId);
+    setActiveCustomer(customer || null);
     setFormData(prev => ({ ...prev, customer_id: customerId || undefined }));
     setIsCustomerDropdownOpen(false);
     setCustomerSearchQuery('');

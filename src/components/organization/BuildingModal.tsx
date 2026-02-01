@@ -27,6 +27,8 @@ import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 import LazySelect from '@/components/common/LazySelect';
 import { getFacilities, getFacility } from '@/lib/facilities-api';
+import { getCustomers } from '@/lib/customers-api';
+import { toast } from 'react-hot-toast';
 
 interface BuildingModalProps {
   isOpen: boolean;
@@ -54,14 +56,7 @@ const operationalStatusOptions: SelectOption[] = [
   { value: 'closed', label: 'Closed', icon: 'Lock', color: 'text-red-600' },
 ];
 
-// Mock customer data - replace with actual API call
-const mockCustomers = [
-  { id: '1', name: 'Acme Corporation', email: 'contact@acme.com' },
-  { id: '2', name: 'TechStart Inc', email: 'info@techstart.com' },
-  { id: '3', name: 'Global Industries', email: 'hello@global.com' },
-  { id: '4', name: 'Innovation Labs', email: 'contact@innovation.com' },
-  { id: '5', name: 'Future Systems', email: 'info@future.com' },
-];
+
 
 export default function BuildingModal({
   isOpen,
@@ -72,6 +67,9 @@ export default function BuildingModal({
 }: BuildingModalProps) {
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [activeCustomer, setActiveCustomer] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CreateBuildingRequest>({
@@ -119,6 +117,7 @@ export default function BuildingModal({
         notes: building.notes || '',
         custom_fields: building.custom_fields || {},
       });
+      setActiveCustomer(building.customer || null);
     } else {
       setFormData({
         facility_id: '',
@@ -137,6 +136,7 @@ export default function BuildingModal({
         notes: '',
         custom_fields: {},
       });
+      setActiveCustomer(null);
     }
   }, [building, isOpen]);
 
@@ -151,6 +151,38 @@ export default function BuildingModal({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Load customers when dropdown opens
+  useEffect(() => {
+    if (isCustomerDropdownOpen && customers.length === 0) {
+      loadCustomers();
+    }
+  }, [isCustomerDropdownOpen]);
+
+  const loadCustomers = async (search?: string) => {
+    try {
+      setIsLoadingCustomers(true);
+      const response = await getCustomers({ search });
+      setCustomers(response.data || []);
+    } catch (error: any) {
+      console.error('Failed to load customers:', error);
+      toast.error('Failed to load customers');
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    if (customerSearchQuery) {
+      const timer = setTimeout(() => {
+        loadCustomers(customerSearchQuery);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else if (isCustomerDropdownOpen) {
+      loadCustomers();
+    }
+  }, [customerSearchQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,14 +210,16 @@ export default function BuildingModal({
 
   if (!isOpen) return null;
 
-  const selectedCustomer = mockCustomers.find(c => c.id === formData.customer_id);
+  const selectedCustomer = activeCustomer;
 
-  const filteredCustomers = mockCustomers.filter(customer =>
+  const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
   );
 
   const handleCustomerSelect = (customerId: string | null) => {
+    const customer = customers.find(c => c.id === customerId);
+    setActiveCustomer(customer || null);
     setFormData(prev => ({ ...prev, customer_id: customerId }));
     setIsCustomerDropdownOpen(false);
     setCustomerSearchQuery('');
@@ -474,7 +508,12 @@ export default function BuildingModal({
                             )}
                           </button>
 
-                          {filteredCustomers.length > 0 ? (
+                          {isLoadingCustomers ? (
+                            <div className="px-4 py-8 text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent mx-auto"></div>
+                              <p className="text-sm text-gray-500 mt-2">Loading customers...</p>
+                            </div>
+                          ) : filteredCustomers.length > 0 ? (
                             filteredCustomers.map((customer) => (
                               <button
                                 key={customer.id}
@@ -493,7 +532,7 @@ export default function BuildingModal({
                             ))
                           ) : (
                             <div className="px-4 py-8 text-center text-sm text-gray-500">
-                              No customers found
+                              {customerSearchQuery ? 'No customers found matching your search' : 'No customers available'}
                             </div>
                           )}
                         </div>

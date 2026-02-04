@@ -28,6 +28,19 @@ export interface ServiceRequest {
         task_number: string;
         status: string;
         status_display: string;
+        work_status?: string;
+        work_status_display?: string;
+        scheduled_start?: string | null;
+        scheduled_end?: string | null;
+        assignees?: Array<{
+            id: string;
+            full_name: string;
+            email: string;
+        }>;
+        team?: {
+            id: string;
+            name: string;
+        } | null;
     } | null;
 
     // Request details

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getPriorityBadgeClasses } from '@/lib/priority-utils';
 import CustomerLayout from '@/components/customer/CustomerLayout';
 import {
     Search,
@@ -20,6 +21,7 @@ import {
     ChevronDown,
     ListFilter,
     Check,
+    Wrench,
 } from 'lucide-react';
 import { getCustomerServiceRequests } from '@/lib/customer-api';
 import toast from 'react-hot-toast';
@@ -366,18 +368,25 @@ export default function CustomerRequests() {
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
                                                     {formatStatus(request.status)}
                                                 </span>
-                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                    request.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                                                    request.priority === 'high' ? 'bg-orange-100 text-orange-700' :
-                                                    request.priority === 'medium' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityBadgeClasses(request.priority)}`}>
                                                     {request.priority}
                                                 </span>
                                                 {request.equipment?.name && (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                                                         {request.equipment.name}
+                                                    </span>
+                                                )}
+                                                {request.converted_task && (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                                        <Wrench className="h-3 w-3" />
+                                                        Task: {request.converted_task.task_number}
+                                                        {request.converted_task.assignees && request.converted_task.assignees.length > 0 && (
+                                                            <span className="ml-1 text-emerald-600">• {request.converted_task.assignees.length} tech{request.converted_task.assignees.length !== 1 ? 's' : ''}</span>
+                                                        )}
+                                                        {request.converted_task.team && (
+                                                            <span className="ml-1 text-emerald-600">• Team</span>
+                                                        )}
                                                     </span>
                                                 )}
                                             </div>

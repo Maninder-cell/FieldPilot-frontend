@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAccessToken } from '@/lib/token-utils';
 import { getApiUrl } from '@/lib/api-utils';
+import { getPriorityConfig } from '@/lib/priority-utils';
 import CustomerLayout from '@/components/customer/CustomerLayout';
 import {
     ArrowLeft,
@@ -96,21 +97,6 @@ export default function ServiceRequestDetail() {
                 return { icon: XCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', label: 'Rejected' };
             default:
                 return { icon: Clock, color: 'text-gray-600', bg: 'bg-gray-100', border: 'border-gray-200', label: status };
-        }
-    };
-
-    const getPriorityConfig = (priority: string) => {
-        switch (priority?.toLowerCase()) {
-            case 'urgent':
-                return { color: 'text-red-700', bg: 'bg-red-100', label: 'Urgent' };
-            case 'high':
-                return { color: 'text-orange-700', bg: 'bg-orange-100', label: 'High' };
-            case 'medium':
-                return { color: 'text-blue-700', bg: 'bg-blue-100', label: 'Medium' };
-            case 'low':
-                return { color: 'text-gray-700', bg: 'bg-gray-100', label: 'Low' };
-            default:
-                return { color: 'text-gray-700', bg: 'bg-gray-100', label: priority };
         }
     };
 
@@ -363,6 +349,43 @@ export default function ServiceRequestDetail() {
                                 </div>
                             )}
 
+                            {/* Comments Section */}
+                            {request.comments && request.comments.length > 0 && (
+                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                            <MessageSquare className="h-5 w-5 text-emerald-600" />
+                                            Comments & Updates
+                                            <span className="text-xs font-normal text-gray-500">({request.comments.length})</span>
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="space-y-4">
+                                            {request.comments.map((comment: any, index: number) => (
+                                                <div key={index} className="flex gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                        <User className="h-4 w-4 text-emerald-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-sm font-semibold text-gray-900">
+                                                                {comment.user_name || 'System'}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500">
+                                                                {formatDateTime(comment.created_at)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                                            {comment.comment_text}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Attachments */}
                             {request.attachments && request.attachments.length > 0 && (
                                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -456,6 +479,103 @@ export default function ServiceRequestDetail() {
                                 </div>
                             </div>
 
+                            {/* Task Information Card */}
+                            {request.converted_task && (
+                                <div className="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-emerald-200 bg-emerald-100/50">
+                                        <h2 className="text-base font-semibold text-emerald-900 flex items-center gap-2">
+                                            <Wrench className="h-5 w-5 text-emerald-600" />
+                                            Task Information
+                                        </h2>
+                                    </div>
+                                    <div className="p-5 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">Task Number</p>
+                                                <p className="text-sm font-bold text-emerald-900">{request.converted_task.task_number}</p>
+                                            </div>
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                request.converted_task.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                request.converted_task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                                                request.converted_task.status === 'assigned' ? 'bg-purple-100 text-purple-700' :
+                                                'bg-gray-100 text-gray-700'
+                                            }`}>
+                                                {request.converted_task.status_display || request.converted_task.status?.replace(/_/g, ' ')}
+                                            </span>
+                                        </div>
+                                        
+                                        {request.converted_task.scheduled_start && (
+                                            <div>
+                                                <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">Scheduled Start</p>
+                                                <p className="text-sm font-medium text-emerald-900">{formatDateTime(request.converted_task.scheduled_start)}</p>
+                                            </div>
+                                        )}
+                                        
+                                        {request.converted_task.scheduled_end && (
+                                            <div>
+                                                <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">Scheduled End</p>
+                                                <p className="text-sm font-medium text-emerald-900">{formatDateTime(request.converted_task.scheduled_end)}</p>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Assigned Technicians */}
+                                        {request.converted_task.assignees && request.converted_task.assignees.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-2">Assigned Technicians</p>
+                                                <div className="space-y-2">
+                                                    {request.converted_task.assignees.map((assignee: any, index: number) => (
+                                                        <div key={index} className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
+                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                                <User className="h-4 w-4 text-emerald-600" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-semibold text-emerald-900">{assignee.full_name || assignee.email}</p>
+                                                                {assignee.full_name && assignee.email && (
+                                                                    <p className="text-xs text-emerald-700">{assignee.email}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Assigned Team */}
+                                        {request.converted_task.team && (
+                                            <div>
+                                                <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-2">Assigned Team</p>
+                                                <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
+                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                        <User className="h-4 w-4 text-emerald-600" />
+                                                    </div>
+                                                    <span className="text-sm font-semibold text-emerald-900">{request.converted_task.team.name}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* No Assignment Message */}
+                                        {(!request.converted_task.assignees || request.converted_task.assignees.length === 0) && !request.converted_task.team && (
+                                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                                <div className="flex items-start gap-2">
+                                                    <Clock className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs font-medium text-amber-900 mb-0.5">Pending Assignment</p>
+                                                        <p className="text-xs text-amber-700">A technician will be assigned to this task soon.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="pt-3 border-t border-emerald-200">
+                                            <div className="flex items-center gap-2 text-xs text-emerald-700">
+                                                <Info className="h-4 w-4" />
+                                                <span>Your request has been converted to a task and is being worked on by our team.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Issue Details Card */}
                             {(request.issue_type || request.severity) && (
                                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -475,12 +595,11 @@ export default function ServiceRequestDetail() {
                                         {request.severity && (
                                             <div>
                                                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Severity</p>
-                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                    request.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                                                    request.severity === 'major' ? 'bg-orange-100 text-orange-700' :
-                                                    request.severity === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${request.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                                                        request.severity === 'major' ? 'bg-orange-100 text-orange-700' :
+                                                            request.severity === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-gray-100 text-gray-700'
+                                                    }`}>
                                                     {request.severity_display || request.severity}
                                                 </span>
                                             </div>
@@ -488,19 +607,6 @@ export default function ServiceRequestDetail() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Help Card */}
-                            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-5">
-                                <div className="flex items-start gap-3">
-                                    <Info className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-emerald-900 mb-1">Need Help?</h3>
-                                        <p className="text-xs text-emerald-700 leading-relaxed">
-                                            If you have questions about this request, please contact our support team or add a comment below.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

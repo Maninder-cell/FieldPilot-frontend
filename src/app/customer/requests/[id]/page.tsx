@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAccessToken } from '@/lib/token-utils';
 import { getApiUrl } from '@/lib/api-utils';
 import { getPriorityConfig } from '@/lib/priority-utils';
-import { respondToClarification, uploadRequestAttachment, deleteRequestAttachment } from '@/lib/service-requests-api';
+import { respondToClarification, uploadRequestAttachment, deleteRequestAttachment, submitFeedback } from '@/lib/service-requests-api';
 import CustomerLayout from '@/components/customer/CustomerLayout';
 import {
     ArrowLeft,
@@ -32,6 +32,7 @@ import {
     Trash2,
     Download,
     Upload,
+    Star,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -48,6 +49,10 @@ export default function ServiceRequestDetail() {
     const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
     const [isUploadingFile, setIsUploadingFile] = useState(false);
     const [deletingAttachmentId, setDeletingAttachmentId] = useState<string | null>(null);
+    const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+    const [feedbackRating, setFeedbackRating] = useState(0);
+    const [feedbackText, setFeedbackText] = useState('');
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -219,6 +224,36 @@ export default function ServiceRequestDetail() {
             toast.error(error.message || 'Failed to delete attachment');
         } finally {
             setDeletingAttachmentId(null);
+        }
+    };
+
+    const handleSubmitFeedback = async () => {
+        if (feedbackRating === 0) {
+            toast.error('Please select a rating');
+            return;
+        }
+
+        try {
+            setIsSubmittingFeedback(true);
+            const response = await submitFeedback(requestId, {
+                rating: feedbackRating,
+                feedback_text: feedbackText,
+            });
+            
+            if (response.success) {
+                toast.success('Thank you for your feedback!');
+                setShowFeedbackForm(false);
+                setFeedbackRating(0);
+                setFeedbackText('');
+                loadRequest(); // Reload to show submitted feedback
+            } else {
+                toast.error(response.error?.message || 'Failed to submit feedback');
+            }
+        } catch (error: any) {
+            console.error('Failed to submit feedback:', error);
+            toast.error(error.message || 'Failed to submit feedback');
+        } finally {
+            setIsSubmittingFeedback(false);
         }
     };
 
@@ -462,6 +497,147 @@ export default function ServiceRequestDetail() {
                                     </div>
                                     <div className="p-5">
                                         <p className="text-red-800 leading-relaxed">{request.rejection_reason}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Feedback Section - Show when completed and no feedback yet */}
+                            {request.status === 'completed' && !request.feedback_submitted_at && (
+                                <div className="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-emerald-200 bg-emerald-100/50">
+                                        <h2 className="text-base font-semibold text-emerald-900 flex items-center gap-2">
+                                            <Star className="h-5 w-5 text-emerald-600" />
+                                            Rate Your Experience
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        {!showFeedbackForm ? (
+                                            <div className="text-center">
+                                                <p className="text-sm text-emerald-800 mb-4">
+                                                    Your service request has been completed. We'd love to hear about your experience!
+                                                </p>
+                                                <button
+                                                    onClick={() => setShowFeedbackForm(true)}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                                >
+                                                    <Star className="h-4 w-4" />
+                                                    Submit Feedback
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {/* Rating */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-emerald-900 mb-2">
+                                                        Rating <span className="text-red-600">*</span>
+                                                    </label>
+                                                    <div className="flex items-center gap-2">
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <button
+                                                                key={star}
+                                                                type="button"
+                                                                onClick={() => setFeedbackRating(star)}
+                                                                className="p-1 hover:scale-110 transition-transform"
+                                                            >
+                                                                <Star
+                                                                    className={`h-8 w-8 ${
+                                                                        star <= feedbackRating
+                                                                            ? 'fill-yellow-400 text-yellow-400'
+                                                                            : 'text-gray-300'
+                                                                    }`}
+                                                                />
+                                                            </button>
+                                                        ))}
+                                                        {feedbackRating > 0 && (
+                                                            <span className="ml-2 text-sm font-medium text-emerald-900">
+                                                                {feedbackRating} {feedbackRating === 1 ? 'star' : 'stars'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Feedback Text */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-emerald-900 mb-2">
+                                                        Comments (Optional)
+                                                    </label>
+                                                    <textarea
+                                                        value={feedbackText}
+                                                        onChange={(e) => setFeedbackText(e.target.value)}
+                                                        placeholder="Tell us about your experience..."
+                                                        rows={4}
+                                                        className="w-full px-3 py-2 border border-emerald-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                                                    />
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={handleSubmitFeedback}
+                                                        disabled={isSubmittingFeedback || feedbackRating === 0}
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {isSubmittingFeedback ? (
+                                                            <>
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Submitting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Send className="h-4 w-4" />
+                                                                Submit Feedback
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowFeedbackForm(false);
+                                                            setFeedbackRating(0);
+                                                            setFeedbackText('');
+                                                        }}
+                                                        disabled={isSubmittingFeedback}
+                                                        className="px-4 py-2 text-emerald-700 hover:bg-emerald-100 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Submitted Feedback Display */}
+                            {request.feedback_submitted_at && (
+                                <div className="bg-blue-50 rounded-xl border border-blue-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-blue-200 bg-blue-100/50">
+                                        <h2 className="text-base font-semibold text-blue-900 flex items-center gap-2">
+                                            <Star className="h-5 w-5 text-blue-600" />
+                                            Your Feedback
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    className={`h-5 w-5 ${
+                                                        star <= (request.customer_rating || 0)
+                                                            ? 'fill-yellow-400 text-yellow-400'
+                                                            : 'text-gray-300'
+                                                    }`}
+                                                />
+                                            ))}
+                                            <span className="ml-2 text-sm font-medium text-blue-900">
+                                                {request.customer_rating} {request.customer_rating === 1 ? 'star' : 'stars'}
+                                            </span>
+                                        </div>
+                                        {request.customer_feedback && (
+                                            <p className="text-blue-800 leading-relaxed">{request.customer_feedback}</p>
+                                        )}
+                                        <p className="text-xs text-blue-600 mt-3">
+                                            Submitted on {formatDateTime(request.feedback_submitted_at)}
+                                        </p>
                                     </div>
                                 </div>
                             )}

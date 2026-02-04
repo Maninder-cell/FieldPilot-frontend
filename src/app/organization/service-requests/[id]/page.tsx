@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import AcceptRequestModal from '@/components/organization/AcceptRequestModal';
 import RejectRequestModal from '@/components/organization/RejectRequestModal';
-import FeedbackModal from '@/components/organization/FeedbackModal';
 import InternalNotesModal from '@/components/organization/InternalNotesModal';
 import ConvertToTaskModal from '@/components/organization/ConvertToTaskModal';
 import { getServiceRequestById, requestClarification } from '@/lib/service-requests-api';
@@ -46,7 +45,6 @@ export default function ServiceRequestDetailPage() {
     const requestId = params?.id as string;
     const [showAcceptModal, setShowAcceptModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
-    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const [showInternalNotesModal, setShowInternalNotesModal] = useState(false);
     const [showConvertToTaskModal, setShowConvertToTaskModal] = useState(false);
     const [showClarificationForm, setShowClarificationForm] = useState(false);
@@ -182,12 +180,6 @@ export default function ServiceRequestDetailPage() {
                     requestId={requestId}
                     onSuccess={loadRequest}
                 />
-                <FeedbackModal
-                    isOpen={showFeedbackModal}
-                    onClose={() => setShowFeedbackModal(false)}
-                    requestId={requestId}
-                    onSuccess={loadRequest}
-                />
             </OrganizationLayout>
         );
     }
@@ -217,12 +209,6 @@ export default function ServiceRequestDetailPage() {
                 <RejectRequestModal
                     isOpen={showRejectModal}
                     onClose={() => setShowRejectModal(false)}
-                    requestId={requestId}
-                    onSuccess={loadRequest}
-                />
-                <FeedbackModal
-                    isOpen={showFeedbackModal}
-                    onClose={() => setShowFeedbackModal(false)}
                     requestId={requestId}
                     onSuccess={loadRequest}
                 />
@@ -351,6 +337,52 @@ export default function ServiceRequestDetailPage() {
                                                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                                                     <h3 className="text-sm font-semibold text-red-900 mb-2">Rejection Reason</h3>
                                                     <p className="text-sm text-red-800">{request.rejection_reason}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Customer Feedback Display (Read-only for organization) */}
+                                            {request.feedback_submitted_at && (
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                    <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                                                        <Star className="h-4 w-4" />
+                                                        Customer Feedback
+                                                    </h3>
+                                                    <div className="space-y-3">
+                                                        {/* Rating Display */}
+                                                        <div>
+                                                            <p className="text-xs text-blue-700 mb-1">Rating</p>
+                                                            <div className="flex items-center gap-2">
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <Star
+                                                                        key={star}
+                                                                        className={`h-5 w-5 ${
+                                                                            star <= (request.customer_rating || 0)
+                                                                                ? 'fill-yellow-400 text-yellow-400'
+                                                                                : 'text-gray-300'
+                                                                        }`}
+                                                                    />
+                                                                ))}
+                                                                <span className="ml-2 text-sm font-medium text-blue-900">
+                                                                    {request.customer_rating} {request.customer_rating === 1 ? 'star' : 'stars'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Feedback Comments */}
+                                                        {request.customer_feedback && (
+                                                            <div>
+                                                                <p className="text-xs text-blue-700 mb-1">Comments</p>
+                                                                <p className="text-sm text-blue-800 leading-relaxed">{request.customer_feedback}</p>
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {/* Submission Date */}
+                                                        <div className="pt-2 border-t border-blue-200">
+                                                            <p className="text-xs text-blue-600">
+                                                                Submitted on {formatDate(request.feedback_submitted_at)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -698,98 +730,101 @@ export default function ServiceRequestDetailPage() {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            {/* Actions Card */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Settings className="h-4 w-4 text-emerald-600" />
-                                    Actions
-                                </h3>
-                                <div className="space-y-2">
-                                    {/* Mark Under Review */}
-                                    {request.status === 'pending' && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const { markUnderReview } = await import('@/lib/service-requests-api');
-                                                    await markUnderReview(requestId);
-                                                    toast.success('Marked as under review');
-                                                    loadRequest();
-                                                } catch (error: any) {
-                                                    toast.error(error.message || 'Failed to update status');
-                                                }
-                                            }}
-                                            className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Settings className="h-4 w-4" />
-                                            Mark Under Review
-                                        </button>
-                                    )}
+                            {/* Actions Card - Only show if there are available actions */}
+                            {(() => {
+                                const hasMarkUnderReview = request.status === 'pending';
+                                const hasAcceptReject = ['pending', 'under_review'].includes(request.status);
+                                const hasInternalNotes = !['completed', 'cancelled', 'rejected'].includes(request.status);
+                                const hasRequestClarification = !['completed', 'cancelled', 'rejected'].includes(request.status);
+                                const hasConvertToTask = request.status === 'accepted';
+                                
+                                const hasAnyAction = hasMarkUnderReview || hasAcceptReject || hasInternalNotes || hasRequestClarification || hasConvertToTask;
+                                
+                                if (!hasAnyAction) return null;
+                                
+                                return (
+                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                        <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                            <Settings className="h-4 w-4 text-emerald-600" />
+                                            Actions
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {/* Mark Under Review */}
+                                            {hasMarkUnderReview && (
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const { markUnderReview } = await import('@/lib/service-requests-api');
+                                                            await markUnderReview(requestId);
+                                                            toast.success('Marked as under review');
+                                                            loadRequest();
+                                                        } catch (error: any) {
+                                                            toast.error(error.message || 'Failed to update status');
+                                                        }
+                                                    }}
+                                                    className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <Settings className="h-4 w-4" />
+                                                    Mark Under Review
+                                                </button>
+                                            )}
 
-                                    {/* Accept & Reject */}
-                                    {['pending', 'under_review'].includes(request.status) && (
-                                        <>
-                                            <button
-                                                onClick={() => setShowAcceptModal(true)}
-                                                className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <CheckCircle className="h-4 w-4" />
-                                                Accept Request
-                                            </button>
-                                            <button
-                                                onClick={() => setShowRejectModal(true)}
-                                                className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                <XCircle className="h-4 w-4" />
-                                                Reject Request
-                                            </button>
-                                        </>
-                                    )}
+                                            {/* Accept & Reject */}
+                                            {hasAcceptReject && (
+                                                <>
+                                                    <button
+                                                        onClick={() => setShowAcceptModal(true)}
+                                                        className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <CheckCircle className="h-4 w-4" />
+                                                        Accept Request
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setShowRejectModal(true)}
+                                                        className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                    >
+                                                        <XCircle className="h-4 w-4" />
+                                                        Reject Request
+                                                    </button>
+                                                </>
+                                            )}
 
-                                    {/* Internal Notes */}
-                                    {!['completed', 'cancelled', 'rejected'].includes(request.status) && (
-                                        <button
-                                            onClick={() => setShowInternalNotesModal(true)}
-                                            className="w-full px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <FileText className="h-4 w-4" />
-                                            Internal Notes
-                                        </button>
-                                    )}
+                                            {/* Internal Notes */}
+                                            {hasInternalNotes && (
+                                                <button
+                                                    onClick={() => setShowInternalNotesModal(true)}
+                                                    className="w-full px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    Internal Notes
+                                                </button>
+                                            )}
 
-                                    {/* Request Clarification */}
-                                    {!['completed', 'cancelled', 'rejected'].includes(request.status) && (
-                                        <button
-                                            onClick={() => setShowClarificationForm(!showClarificationForm)}
-                                            className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <MessageSquare className="h-4 w-4" />
-                                            Request Clarification
-                                        </button>
-                                    )}
+                                            {/* Request Clarification */}
+                                            {hasRequestClarification && (
+                                                <button
+                                                    onClick={() => setShowClarificationForm(!showClarificationForm)}
+                                                    className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <MessageSquare className="h-4 w-4" />
+                                                    Request Clarification
+                                                </button>
+                                            )}
 
-                                    {/* Convert to Task */}
-                                    {request.status === 'accepted' && (
-                                        <button
-                                            onClick={() => setShowConvertToTaskModal(true)}
-                                            className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Settings className="h-4 w-4" />
-                                            Convert to Task
-                                        </button>
-                                    )}
-
-                                    {/* Submit Feedback */}
-                                    {request.status === 'completed' && (
-                                        <button
-                                            onClick={() => setShowFeedbackModal(true)}
-                                            className="w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <Star className="h-4 w-4" />
-                                            Submit Feedback
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                                            {/* Convert to Task */}
+                                            {hasConvertToTask && (
+                                                <button
+                                                    onClick={() => setShowConvertToTaskModal(true)}
+                                                    className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <Settings className="h-4 w-4" />
+                                                    Convert to Task
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                             {/* Clarification Form */}
                             {showClarificationForm && (
@@ -955,12 +990,6 @@ export default function ServiceRequestDetailPage() {
             <RejectRequestModal
                 isOpen={showRejectModal}
                 onClose={() => setShowRejectModal(false)}
-                requestId={requestId}
-                onSuccess={loadRequest}
-            />
-            <FeedbackModal
-                isOpen={showFeedbackModal}
-                onClose={() => setShowFeedbackModal(false)}
                 requestId={requestId}
                 onSuccess={loadRequest}
             />

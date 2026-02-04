@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAccessToken } from '@/lib/token-utils';
 import { getApiUrl } from '@/lib/api-utils';
 import { getPriorityConfig } from '@/lib/priority-utils';
+import { respondToClarification } from '@/lib/service-requests-api';
 import CustomerLayout from '@/components/customer/CustomerLayout';
 import {
     ArrowLeft,
@@ -27,6 +28,7 @@ import {
     Info,
     ChevronRight,
     RefreshCw,
+    Send,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -39,6 +41,8 @@ export default function ServiceRequestDetail() {
 
     const [request, setRequest] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [clarificationResponse, setClarificationResponse] = useState('');
+    const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -134,6 +138,61 @@ export default function ServiceRequestDetail() {
             minute: '2-digit',
         });
     };
+
+    const handleClarificationResponse = async () => {
+        if (!clarificationResponse.trim()) {
+            toast.error('Please enter a response');
+            return;
+        }
+
+        try {
+            setIsSubmittingClarification(true);
+            const response = await respondToClarification(requestId, clarificationResponse);
+            
+            if (response.success) {
+                toast.success('Response submitted successfully');
+                setClarificationResponse('');
+                loadRequest(); // Reload to show the new comment
+            } else {
+                toast.error(response.error?.message || 'Failed to submit response');
+            }
+        } catch (error: any) {
+            console.error('Failed to submit clarification response:', error);
+            toast.error('Failed to submit response');
+        } finally {
+            setIsSubmittingClarification(false);
+        }
+    };
+
+    // Check if there are pending clarification requests (unanswered)
+    const hasPendingClarifications = (() => {
+        if (!request?.comments || request.comments.length === 0) return false;
+        
+        // Find all clarification requests and responses
+        const clarificationRequests = request.comments.filter((c: any) => 
+            c.comment_text?.includes('[CLARIFICATION REQUESTED]')
+        );
+        
+        const clarificationResponses = request.comments.filter((c: any) => 
+            c.comment_text?.includes('[CLARIFICATION RESPONSE]')
+        );
+        
+        // If no clarification requests, no pending clarifications
+        if (clarificationRequests.length === 0) return false;
+        
+        // Get the most recent clarification request
+        const latestRequest = clarificationRequests.reduce((latest: any, current: any) => {
+            return new Date(current.created_at) > new Date(latest.created_at) ? current : latest;
+        });
+        
+        // Check if there's a response after the latest request
+        const hasResponseAfterLatestRequest = clarificationResponses.some((response: any) => 
+            new Date(response.created_at) > new Date(latestRequest.created_at)
+        );
+        
+        // Pending if latest request has no response after it
+        return !hasResponseAfterLatestRequest;
+    })();
 
     if (isLoading) {
         return (
@@ -349,6 +408,54 @@ export default function ServiceRequestDetail() {
                                 </div>
                             )}
 
+                            {/* Clarification Request Alert */}
+                            {hasPendingClarifications && (
+                                <div className="bg-amber-50 rounded-xl border border-amber-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-amber-200 bg-amber-100/50">
+                                        <h2 className="text-base font-semibold text-amber-900 flex items-center gap-2">
+                                            <AlertCircle className="h-5 w-5 text-amber-600" />
+                                            Clarification Needed
+                                        </h2>
+                                    </div>
+                                    <div className="p-5">
+                                        <p className="text-sm text-amber-800 mb-4">
+                                            Our team has requested additional information about your request. Please review the clarification request below and provide your response.
+                                        </p>
+                                        
+                                        {/* Response Form */}
+                                        <div className="space-y-3">
+                                            <label className="block">
+                                                <span className="text-sm font-medium text-amber-900 mb-2 block">Your Response</span>
+                                                <textarea
+                                                    value={clarificationResponse}
+                                                    onChange={(e) => setClarificationResponse(e.target.value)}
+                                                    placeholder="Please provide the requested information..."
+                                                    rows={4}
+                                                    className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none"
+                                                />
+                                            </label>
+                                            <button
+                                                onClick={handleClarificationResponse}
+                                                disabled={isSubmittingClarification || !clarificationResponse.trim()}
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isSubmittingClarification ? (
+                                                    <>
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                        Submitting...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send className="h-4 w-4" />
+                                                        Submit Response
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Comments Section */}
                             {request.comments && request.comments.length > 0 && (
                                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -361,26 +468,70 @@ export default function ServiceRequestDetail() {
                                     </div>
                                     <div className="p-5">
                                         <div className="space-y-4">
-                                            {request.comments.map((comment: any, index: number) => (
-                                                <div key={index} className="flex gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                                        <User className="h-4 w-4 text-emerald-600" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-sm font-semibold text-gray-900">
-                                                                {comment.user_name || 'System'}
-                                                            </span>
-                                                            <span className="text-xs text-gray-500">
-                                                                {formatDateTime(comment.created_at)}
-                                                            </span>
+                                            {request.comments.map((comment: any, index: number) => {
+                                                const isClarificationRequest = comment.comment_text?.includes('[CLARIFICATION REQUESTED]');
+                                                const isClarificationResponse = comment.comment_text?.includes('[CLARIFICATION RESPONSE]');
+                                                const cleanText = comment.comment_text
+                                                    ?.replace('[CLARIFICATION REQUESTED]', '')
+                                                    ?.replace('[CLARIFICATION RESPONSE]', '')
+                                                    ?.trim();
+                                                
+                                                return (
+                                                    <div key={index} className={`flex gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0 ${
+                                                        isClarificationRequest ? 'bg-amber-50 -mx-5 px-5 py-4 rounded-lg' :
+                                                        isClarificationResponse ? 'bg-blue-50 -mx-5 px-5 py-4 rounded-lg' : ''
+                                                    }`}>
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                                            isClarificationRequest ? 'bg-amber-100' :
+                                                            isClarificationResponse ? 'bg-blue-100' :
+                                                            'bg-emerald-100'
+                                                        }`}>
+                                                            {isClarificationRequest ? (
+                                                                <AlertCircle className="h-4 w-4 text-amber-600" />
+                                                            ) : isClarificationResponse ? (
+                                                                <Send className="h-4 w-4 text-blue-600" />
+                                                            ) : (
+                                                                <User className="h-4 w-4 text-emerald-600" />
+                                                            )}
                                                         </div>
-                                                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                                            {comment.comment_text}
-                                                        </p>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`text-sm font-semibold ${
+                                                                    isClarificationRequest ? 'text-amber-900' :
+                                                                    isClarificationResponse ? 'text-blue-900' :
+                                                                    'text-gray-900'
+                                                                }`}>
+                                                                    {comment.user_name || 'System'}
+                                                                </span>
+                                                                {isClarificationRequest && (
+                                                                    <span className="px-2 py-0.5 bg-amber-200 text-amber-800 text-xs font-medium rounded">
+                                                                        Clarification Requested
+                                                                    </span>
+                                                                )}
+                                                                {isClarificationResponse && (
+                                                                    <span className="px-2 py-0.5 bg-blue-200 text-blue-800 text-xs font-medium rounded">
+                                                                        Response
+                                                                    </span>
+                                                                )}
+                                                                <span className={`text-xs ${
+                                                                    isClarificationRequest ? 'text-amber-600' :
+                                                                    isClarificationResponse ? 'text-blue-600' :
+                                                                    'text-gray-500'
+                                                                }`}>
+                                                                    {formatDateTime(comment.created_at)}
+                                                                </span>
+                                                            </div>
+                                                            <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
+                                                                isClarificationRequest ? 'text-amber-800' :
+                                                                isClarificationResponse ? 'text-blue-800' :
+                                                                'text-gray-700'
+                                                            }`}>
+                                                                {cleanText}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>

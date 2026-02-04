@@ -22,6 +22,11 @@ interface ApiResponse<T> {
     success: boolean;
     data: T;
     message?: string;
+    error?: {
+        code?: string;
+        message?: string;
+        details?: any;
+    };
 }
 
 interface PaginatedResponse<T> {
@@ -372,4 +377,3 @@ export async function getServiceRequestReports(filters: {
 export async function getServiceRequestAnalytics(): Promise<ApiResponse<any>> {
     return fetchServiceRequestAPI<any>('/service-requests/reports/analytics/');
 }
-

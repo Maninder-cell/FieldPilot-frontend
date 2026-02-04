@@ -31,7 +31,7 @@ import RejectRequestModal from '@/components/organization/RejectRequestModal';
 import FeedbackModal from '@/components/organization/FeedbackModal';
 import InternalNotesModal from '@/components/organization/InternalNotesModal';
 import ConvertToTaskModal from '@/components/organization/ConvertToTaskModal';
-import { getServiceRequestById } from '@/lib/service-requests-api';
+import { getServiceRequestById, requestClarification } from '@/lib/service-requests-api';
 import { ServiceRequest } from '@/types/service-requests';
 import { toast } from 'react-hot-toast';
 
@@ -49,6 +49,9 @@ export default function ServiceRequestDetailPage() {
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const [showInternalNotesModal, setShowInternalNotesModal] = useState(false);
     const [showConvertToTaskModal, setShowConvertToTaskModal] = useState(false);
+    const [showClarificationForm, setShowClarificationForm] = useState(false);
+    const [clarificationMessage, setClarificationMessage] = useState('');
+    const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
 
 
     useEffect(() => {
@@ -68,6 +71,32 @@ export default function ServiceRequestDetailPage() {
             router.push('/organization/service-requests');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRequestClarification = async () => {
+        if (!clarificationMessage.trim()) {
+            toast.error('Please enter a clarification message');
+            return;
+        }
+
+        try {
+            setIsSubmittingClarification(true);
+            const response = await requestClarification(requestId, clarificationMessage);
+            
+            if (response.success) {
+                toast.success('Clarification requested successfully');
+                setClarificationMessage('');
+                setShowClarificationForm(false);
+                loadRequest(); // Reload to show the new comment
+            } else {
+                toast.error(response.error?.message || 'Failed to request clarification');
+            }
+        } catch (error: any) {
+            console.error('Failed to request clarification:', error);
+            toast.error('Failed to request clarification');
+        } finally {
+            setIsSubmittingClarification(false);
         }
     };
 
@@ -704,6 +733,17 @@ export default function ServiceRequestDetailPage() {
                                         </button>
                                     )}
 
+                                    {/* Request Clarification */}
+                                    {!['completed', 'cancelled', 'rejected'].includes(request.status) && (
+                                        <button
+                                            onClick={() => setShowClarificationForm(!showClarificationForm)}
+                                            className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <MessageSquare className="h-4 w-4" />
+                                            Request Clarification
+                                        </button>
+                                    )}
+
                                     {/* Convert to Task */}
                                     {request.status === 'accepted' && (
                                         <button
@@ -727,6 +767,58 @@ export default function ServiceRequestDetailPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Clarification Form */}
+                            {showClarificationForm && (
+                                <div className="bg-amber-50 rounded-xl shadow-sm border border-amber-200 p-6">
+                                    <h3 className="text-sm font-semibold text-amber-900 mb-4 flex items-center gap-2">
+                                        <MessageSquare className="h-4 w-4 text-amber-600" />
+                                        Request Clarification from Customer
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-amber-900 mb-2">
+                                                Your Message
+                                            </label>
+                                            <textarea
+                                                value={clarificationMessage}
+                                                onChange={(e) => setClarificationMessage(e.target.value)}
+                                                placeholder="Ask the customer for more information..."
+                                                rows={4}
+                                                className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={handleRequestClarification}
+                                                disabled={isSubmittingClarification || !clarificationMessage.trim()}
+                                                className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                            >
+                                                {isSubmittingClarification ? (
+                                                    <>
+                                                        <Clock className="h-4 w-4 animate-spin" />
+                                                        Sending...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <MessageSquare className="h-4 w-4" />
+                                                        Send Request
+                                                    </>
+                                                )}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowClarificationForm(false);
+                                                    setClarificationMessage('');
+                                                }}
+                                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Customer Info */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

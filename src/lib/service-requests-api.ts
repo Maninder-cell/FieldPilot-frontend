@@ -308,6 +308,21 @@ export async function uploadRequestAttachment(
 }
 
 /**
+ * Delete attachment from request
+ */
+export async function deleteRequestAttachment(
+    requestId: string,
+    attachmentId: string
+): Promise<ApiResponse<void>> {
+    return fetchServiceRequestAPI<void>(
+        `/service-requests/${requestId}/attachments/${attachmentId}/`,
+        {
+            method: 'DELETE',
+        }
+    );
+}
+
+/**
  * Submit customer feedback
  */
 export async function submitFeedback(

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAccessToken } from '@/lib/token-utils';
 import { getApiUrl } from '@/lib/api-utils';
 import { getPriorityConfig } from '@/lib/priority-utils';
-import { respondToClarification } from '@/lib/service-requests-api';
+import { respondToClarification, uploadRequestAttachment, deleteRequestAttachment } from '@/lib/service-requests-api';
 import CustomerLayout from '@/components/customer/CustomerLayout';
 import {
     ArrowLeft,
@@ -29,6 +29,9 @@ import {
     ChevronRight,
     RefreshCw,
     Send,
+    Trash2,
+    Download,
+    Upload,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -43,6 +46,8 @@ export default function ServiceRequestDetail() {
     const [isLoading, setIsLoading] = useState(true);
     const [clarificationResponse, setClarificationResponse] = useState('');
     const [isSubmittingClarification, setIsSubmittingClarification] = useState(false);
+    const [isUploadingFile, setIsUploadingFile] = useState(false);
+    const [deletingAttachmentId, setDeletingAttachmentId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -161,6 +166,59 @@ export default function ServiceRequestDetail() {
             toast.error('Failed to submit response');
         } finally {
             setIsSubmittingClarification(false);
+        }
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Check file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File size must be less than 10MB');
+            return;
+        }
+
+        try {
+            setIsUploadingFile(true);
+            const response = await uploadRequestAttachment(requestId, file);
+            
+            if (response.success) {
+                toast.success('File uploaded successfully');
+                loadRequest(); // Reload to show the new attachment
+                // Reset file input
+                event.target.value = '';
+            } else {
+                toast.error(response.error?.message || 'Failed to upload file');
+            }
+        } catch (error: any) {
+            console.error('Failed to upload file:', error);
+            toast.error(error.message || 'Failed to upload file');
+        } finally {
+            setIsUploadingFile(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId: string) => {
+        if (!confirm('Are you sure you want to delete this attachment?')) {
+            return;
+        }
+
+        try {
+            setDeletingAttachmentId(attachmentId);
+            const response = await deleteRequestAttachment(requestId, attachmentId);
+            
+            if (response.success) {
+                toast.success('Attachment deleted successfully');
+                loadRequest(); // Reload to update attachments list
+            } else {
+                toast.error(response.error?.message || 'Failed to delete attachment');
+            }
+        } catch (error: any) {
+            console.error('Failed to delete attachment:', error);
+            toast.error(error.message || 'Failed to delete attachment');
+        } finally {
+            setDeletingAttachmentId(null);
         }
     };
 
@@ -538,35 +596,96 @@ export default function ServiceRequestDetail() {
                             )}
 
                             {/* Attachments */}
-                            {request.attachments && request.attachments.length > 0 && (
-                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                                    <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
-                                        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                            <Paperclip className="h-5 w-5 text-emerald-600" />
-                                            Attachments
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+                                    <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                        <Paperclip className="h-5 w-5 text-emerald-600" />
+                                        Attachments
+                                        {request.attachments && request.attachments.length > 0 && (
                                             <span className="text-xs font-normal text-gray-500">({request.attachments.length})</span>
-                                        </h2>
-                                    </div>
-                                    <div className="p-5">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {request.attachments.map((attachment: any, index: number) => (
-                                                <a
-                                                    key={index}
-                                                    href={attachment.file_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-emerald-300 transition-colors"
-                                                >
-                                                    <div className="p-2 bg-gray-100 rounded-lg">
-                                                        <Paperclip className="h-4 w-4 text-gray-500" />
-                                                    </div>
-                                                    <span className="text-sm text-gray-900 truncate">{attachment.file_name}</span>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
+                                        )}
+                                    </h2>
                                 </div>
-                            )}
+                                <div className="p-5">
+                                    {/* Upload Form */}
+                                    <div className="mb-4 pb-4 border-b border-gray-200">
+                                        <label className="block">
+                                            <span className="text-sm font-medium text-gray-700 mb-2 block">Upload New Attachment</span>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="file"
+                                                    onChange={handleFileUpload}
+                                                    disabled={isUploadingFile}
+                                                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                                {isUploadingFile && (
+                                                    <Loader2 className="h-5 w-5 text-emerald-600 animate-spin shrink-0" />
+                                                )}
+                                            </div>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Maximum file size: 10MB. Allowed types: Images, PDF, Word documents
+                                            </p>
+                                        </label>
+                                    </div>
+
+                                    {/* Attachments List */}
+                                    {request.attachments && request.attachments.length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {request.attachments.map((attachment: any) => {
+                                                const isOwner = attachment.uploaded_by?.id === user?.id;
+                                                const isDeleting = deletingAttachmentId === attachment.id;
+                                                
+                                                return (
+                                                    <div
+                                                        key={attachment.id}
+                                                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="p-2 bg-gray-100 rounded-lg shrink-0">
+                                                            <Paperclip className="h-4 w-4 text-gray-500" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm text-gray-900 truncate font-medium">{attachment.filename}</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {attachment.uploaded_by?.full_name || 'Unknown'} • {formatDate(attachment.created_at)}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            <a
+                                                                href={attachment.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                                title="Download"
+                                                            >
+                                                                <Download className="h-4 w-4" />
+                                                            </a>
+                                                            {isOwner && (
+                                                                <button
+                                                                    onClick={() => handleDeleteAttachment(attachment.id)}
+                                                                    disabled={isDeleting}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    title="Delete"
+                                                                >
+                                                                    {isDeleting ? (
+                                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                                    ) : (
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-6 text-gray-500">
+                                            <Paperclip className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                            <p className="text-sm">No attachments yet. Upload your first file above.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Sidebar */}

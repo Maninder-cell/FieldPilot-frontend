@@ -583,15 +583,38 @@ export default function ServiceRequestDetailPage() {
                                                                         </p>
                                                                     </div>
                                                                 </div>
-                                                                <a
-                                                                    href={attachment.file_url}
-                                                                    download
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex-shrink-0 px-3 py-1.5 text-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                                >
-                                                                    Download
-                                                                </a>
+                                                                <div className="flex items-center gap-2">
+                                                                    <a
+                                                                        href={attachment.file_url}
+                                                                        download
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex-shrink-0 px-3 py-1.5 text-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                                    >
+                                                                        Download
+                                                                    </a>
+                                                                    {attachment.uploaded_by?.id === user?.id && (
+                                                                        <button
+                                                                            onClick={async () => {
+                                                                                if (!confirm('Are you sure you want to delete this attachment?')) {
+                                                                                    return;
+                                                                                }
+                                                                                try {
+                                                                                    const { deleteRequestAttachment } = await import('@/lib/service-requests-api');
+                                                                                    await deleteRequestAttachment(requestId, attachment.id);
+                                                                                    toast.success('Attachment deleted successfully');
+                                                                                    loadRequest();
+                                                                                } catch (error: any) {
+                                                                                    console.error('Delete error:', error);
+                                                                                    toast.error(error.message || 'Failed to delete attachment');
+                                                                                }
+                                                                            }}
+                                                                            className="flex-shrink-0 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}

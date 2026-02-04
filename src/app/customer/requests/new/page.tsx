@@ -58,6 +58,8 @@ export default function NewServiceRequest() {
         severity: '',
     });
 
+    const [attachments, setAttachments] = useState<File[]>([]);
+
     // Search and filter state
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -160,6 +162,23 @@ export default function NewServiceRequest() {
                 throw new Error(errorData.error?.message || 'Failed to create service request');
             }
 
+            const result = await response.json();
+            const createdRequest = result.data || result;
+
+            // Upload attachments if any
+            if (attachments.length > 0) {
+                const { uploadRequestAttachment } = await import('@/lib/service-requests-api');
+                
+                for (const file of attachments) {
+                    try {
+                        await uploadRequestAttachment(createdRequest.id, file);
+                    } catch (error) {
+                        console.error('Failed to upload attachment:', error);
+                        // Continue with other attachments even if one fails
+                    }
+                }
+            }
+
             toast.success('Service request created successfully!');
             router.push('/customer/requests');
         } catch (error: any) {
@@ -168,6 +187,28 @@ export default function NewServiceRequest() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        
+        // Validate file sizes
+        const invalidFiles = files.filter(file => file.size > 10 * 1024 * 1024);
+        if (invalidFiles.length > 0) {
+            toast.error('Some files exceed 10MB limit and were not added');
+        }
+        
+        const validFiles = files.filter(file => file.size <= 10 * 1024 * 1024);
+        
+        // Add to attachments
+        setAttachments(prev => [...prev, ...validFiles]);
+        
+        // Reset input
+        e.target.value = '';
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
     const canProceedToStep2 = formData.equipment_id !== '';
@@ -640,13 +681,75 @@ export default function NewServiceRequest() {
                                             />
                                         </div>
 
+                                        {/* Attachments */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Attachments (Optional)
+                                            </label>
+                                            <div className="space-y-3">
+                                                {/* Upload Button */}
+                                                <div className="flex items-center gap-3">
+                                                    <label className="flex-1 cursor-pointer">
+                                                        <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-colors">
+                                                            <Upload className="h-5 w-5 text-gray-400" />
+                                                            <span className="text-sm text-gray-600">
+                                                                Click to upload files
+                                                            </span>
+                                                        </div>
+                                                        <input
+                                                            type="file"
+                                                            multiple
+                                                            onChange={handleFileSelect}
+                                                            className="sr-only"
+                                                            accept="image/*,.pdf,.doc,.docx"
+                                                        />
+                                                    </label>
+                                                </div>
+                                                <p className="text-xs text-gray-500">
+                                                    Upload images, PDFs, or documents (max 10MB per file)
+                                                </p>
+
+                                                {/* Attachments List */}
+                                                {attachments.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        {attachments.map((file, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="flex items-center justify-between gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                                                            >
+                                                                <div className="flex items-center gap-3 min-w-0">
+                                                                    <FileText className="h-5 w-5 text-gray-400 shrink-0" />
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                                                            {file.name}
+                                                                        </p>
+                                                                        <p className="text-xs text-gray-500">
+                                                                            {(file.size / 1024).toFixed(1)} KB
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeAttachment(index)}
+                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                                                                    title="Remove"
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         {/* Info Box */}
                                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
                                             <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
                                             <div className="text-sm text-blue-800">
                                                 <p className="font-medium">What happens next?</p>
                                                 <p className="text-blue-700 mt-1">
-                                                    Your request will be reviewed by our team. You'll receive updates via email and can track progress in your dashboard.
+                                                    Your request will be reviewed by our team. You'll receive updates via email and can track progress in your dashboard. You can also add more attachments later if needed.
                                                 </p>
                                             </div>
                                         </div>

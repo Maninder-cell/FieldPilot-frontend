@@ -1154,7 +1154,7 @@ export default function ReportsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    ) : (generatedReport.data?.by_technician || generatedReport.data?.by_task || generatedReport.data?.by_customer) ? (
+                                    ) : (generatedReport.data?.by_technician && Array.isArray(generatedReport.data.by_technician)) ? (
                                         /* Labor Cost Report - Multiple breakdown tables */
                                         <div className="space-y-6">
                                             {/* By Technician */}

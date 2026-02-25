@@ -604,20 +604,25 @@ export default function ReportsPage() {
                                     <div className="p-6 border-b border-gray-200">
                                         <h3 className="text-sm font-semibold text-gray-700 mb-4">Summary</h3>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {Object.entries(generatedReport.data.summary).map(([key, value]) => (
-                                                <div key={key} className="bg-gray-50 rounded-lg p-4">
-                                                    <p className="text-xs text-gray-500 mb-1">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                                                    <p className="text-lg font-semibold text-gray-900">
-                                                        {typeof value === 'number'
-                                                            ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                            : typeof value === 'object' && value !== null
-                                                                ? (Array.isArray(value)
+                                            {Object.entries(generatedReport.data.summary).map(([key, value]) => {
+                                                // Skip nested objects in summary - they'll be shown in detail sections
+                                                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                                    return null;
+                                                }
+                                                
+                                                return (
+                                                    <div key={key} className="bg-gray-50 rounded-lg p-4">
+                                                        <p className="text-xs text-gray-500 mb-1">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                                                        <p className="text-lg font-semibold text-gray-900">
+                                                            {typeof value === 'number'
+                                                                ? value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                : Array.isArray(value)
                                                                     ? (value.length === 0 ? 'N/A' : value.length)
-                                                                    : (Object.keys(value).length === 0 ? 'N/A' : Object.keys(value).length))
-                                                                : (value === null ? 'N/A' : String(value))}
-                                                    </p>
-                                                </div>
-                                            ))}
+                                                                    : (value === null ? 'N/A' : String(value))}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -1250,7 +1255,7 @@ export default function ReportsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    ) : (generatedReport.data?.by_task && Array.isArray(generatedReport.data.by_task)) || (generatedReport.data?.material_summary && Array.isArray(generatedReport.data.material_summary)) ? (
+                                    ) : (generatedReport.data?.material_summary && Array.isArray(generatedReport.data.material_summary)) ? (
                                         /* Materials Usage Report - Multiple breakdown tables */
                                         <div className="space-y-6">
                                             {/* Material Summary */}
@@ -2014,6 +2019,80 @@ export default function ReportsPage() {
                                         <div className="space-y-4">
                                             {Object.entries(generatedReport.data || {}).map(([key, value]) => {
                                                 if (key === 'summary') return null; // Already shown above
+
+                                                // Special handling for customer_satisfaction
+                                                if (key === 'customer_satisfaction' && typeof value === 'object' && value !== null) {
+                                                    const satisfaction = value as any;
+                                                    return (
+                                                        <div key={key} className="border border-gray-200 rounded-lg overflow-hidden">
+                                                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 border-b border-purple-200">
+                                                                <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                                                                    Customer Satisfaction
+                                                                </h4>
+                                                            </div>
+                                                            <div className="p-4 space-y-4">
+                                                                {/* Summary Stats */}
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="bg-gray-50 rounded-lg p-4">
+                                                                        <p className="text-xs text-gray-500 mb-1">Average Rating</p>
+                                                                        <p className="text-2xl font-bold text-gray-900">
+                                                                            {satisfaction.avg_rating ? `${satisfaction.avg_rating} / 5.0` : 'N/A'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="bg-gray-50 rounded-lg p-4">
+                                                                        <p className="text-xs text-gray-500 mb-1">Total Feedback</p>
+                                                                        <p className="text-2xl font-bold text-gray-900">
+                                                                            {satisfaction.total_feedback || 0}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Rating Distribution */}
+                                                                {satisfaction.rating_distribution && Object.keys(satisfaction.rating_distribution).length > 0 && (
+                                                                    <div>
+                                                                        <h5 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                                                                            Rating Distribution
+                                                                        </h5>
+                                                                        <div className="overflow-x-auto">
+                                                                            <table className="w-full">
+                                                                                <thead className="bg-gray-50">
+                                                                                    <tr>
+                                                                                        <th className="px-4 py-3 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">
+                                                                                            Rating
+                                                                                        </th>
+                                                                                        <th className="px-4 py-3 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">
+                                                                                            Count
+                                                                                        </th>
+                                                                                        <th className="px-4 py-3 text-left text-xs font-semibold text-green-800 uppercase tracking-wider">
+                                                                                            Percentage
+                                                                                        </th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody className="divide-y divide-gray-200 bg-white">
+                                                                                    {Object.entries(satisfaction.rating_distribution).map(([rating, count]) => (
+                                                                                        <tr key={rating} className="hover:bg-green-50 transition-colors">
+                                                                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                                                                {rating} ⭐
+                                                                                            </td>
+                                                                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                                                                {count as number}
+                                                                                            </td>
+                                                                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                                                                {satisfaction.total_feedback > 0
+                                                                                                    ? `${((count as number / satisfaction.total_feedback) * 100).toFixed(1)}%`
+                                                                                                    : '0%'}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
 
                                                 // Check if value is a simple object (key-value pairs)
                                                 if (typeof value === 'object' && value !== null && !Array.isArray(value)) {

@@ -35,6 +35,7 @@ import {
     getReportTypes,
     generateReport,
     getReportAuditLogs,
+    getReportDetail,
     ReportType,
     ReportAuditLog,
     ReportFilters,
@@ -71,6 +72,12 @@ export default function ReportsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Pagination state for history
+    const [historyPage, setHistoryPage] = useState(1);
+    const [historyTotalPages, setHistoryTotalPages] = useState(1);
+    const [historyTotalCount, setHistoryTotalCount] = useState(0);
+    const historyPageSize = 20;
+
     // Filter state for report generation
     const [filters, setFilters] = useState<ReportFilters>({});
     const [outputFormat, setOutputFormat] = useState<'json' | 'pdf' | 'excel'>('json');
@@ -106,11 +113,21 @@ export default function ReportsPage() {
         }
     };
 
-    const loadAuditLogs = async () => {
+    const loadAuditLogs = async (reportTypeFilter?: string, page: number = 1) => {
         try {
-            const response = await getReportAuditLogs({ page_size: 10 });
+            const params: any = { 
+                page_size: historyPageSize,
+                page: page
+            };
+            if (reportTypeFilter) {
+                params.report_type = reportTypeFilter;
+            }
+            const response = await getReportAuditLogs(params);
             if ('results' in response) {
                 setAuditLogs(response.results);
+                setHistoryTotalCount(response.count);
+                setHistoryTotalPages(Math.ceil(response.count / historyPageSize));
+                setHistoryPage(page);
             }
         } catch (error: any) {
             console.error('Failed to load audit logs:', error);
@@ -282,7 +299,15 @@ export default function ReportsPage() {
 
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => setActiveView('history')}
+                                onClick={() => {
+                                    setActiveView('history');
+                                    // Filter history by current report type if inside a report, reset to page 1
+                                    if (activeView === 'generate' && selectedReport) {
+                                        loadAuditLogs(selectedReport.type, 1);
+                                    } else {
+                                        loadAuditLogs(undefined, 1);
+                                    }
+                                }}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'history'
                                     ? 'bg-emerald-600 text-white'
                                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -2218,7 +2243,7 @@ export default function ReportsPage() {
                 {activeView === 'history' && (
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="p-6 border-b border-gray-100 bg-gray-50">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                                     <div className="p-1.5 bg-emerald-100 rounded-lg">
                                         <History className="h-4 w-4 text-emerald-600" />
@@ -2226,13 +2251,35 @@ export default function ReportsPage() {
                                     Report Generation History
                                 </h2>
                                 <button
-                                    onClick={loadAuditLogs}
+                                    onClick={() => {
+                                        // Maintain current filter but reset to page 1
+                                        loadAuditLogs(selectedReport?.type, 1);
+                                    }}
                                     className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-green-50 transition-colors"
                                 >
                                     <RefreshCw className="h-4 w-4" />
                                     Refresh
                                 </button>
                             </div>
+                            
+                            {/* Filter indicator */}
+                            {selectedReport && (
+                                <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-gray-600">Filtered by:</span>
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-700 font-medium">
+                                        {selectedReport.name}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedReport(null);
+                                                loadAuditLogs(undefined, 1);
+                                            }}
+                                            className="ml-1 hover:bg-emerald-200 rounded-full p-0.5"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {auditLogs.length > 0 ? (
@@ -2258,6 +2305,9 @@ export default function ReportsPage() {
                                             <th className="px-6 py-3 text-left text-xs font-semibold text-green-800 uppercase tracking-wider font-semibold">
                                                 Generated At
                                             </th>
+                                            <th className="px-6 py-3 text-left text-xs font-semibold text-green-800 uppercase tracking-wider font-semibold">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 bg-white">
@@ -2281,10 +2331,80 @@ export default function ReportsPage() {
                                                     {getStatusBadge(log.status)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {log.execution_time ? `${log.execution_time.toFixed(2)}s` : '-'}
+                                                    {log.execution_time ? `${Number(log.execution_time).toFixed(2)}s` : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {formatDate(log.generated_at)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                    {log.status === 'success' && log.format === 'json' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const response = await getReportDetail(log.id);
+                                                                    if (response.success && response.data) {
+                                                                        setGeneratedReport(response.data);
+                                                                        setSelectedReport({
+                                                                            type: log.report_type,
+                                                                            name: log.report_name,
+                                                                            description: ''
+                                                                        });
+                                                                        setActiveView('generate');
+                                                                        toast.success('Historical report loaded!');
+                                                                    }
+                                                                } catch (error: any) {
+                                                                    toast.error(error.message || 'Failed to load report');
+                                                                }
+                                                            }}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
+                                                        >
+                                                            <FileText className="h-3 w-3" />
+                                                            View
+                                                        </button>
+                                                    )}
+                                                    {log.status === 'success' && log.format === 'pdf' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await downloadReportPdf(log.id);
+                                                                    toast.success('PDF downloaded!');
+                                                                } catch (error: any) {
+                                                                    if (error.message.includes('expired')) {
+                                                                        toast.error('Report data expired. PDF exports are only available for 1 hour after generation.');
+                                                                    } else {
+                                                                        toast.error(error.message || 'Failed to download PDF');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                                        >
+                                                            <Download className="h-3 w-3" />
+                                                            PDF
+                                                        </button>
+                                                    )}
+                                                    {log.status === 'success' && log.format === 'excel' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await downloadReportExcel(log.id);
+                                                                    toast.success('Excel downloaded!');
+                                                                } catch (error: any) {
+                                                                    if (error.message.includes('expired')) {
+                                                                        toast.error('Report data expired. Excel exports are only available for 1 hour after generation.');
+                                                                    } else {
+                                                                        toast.error(error.message || 'Failed to download Excel');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                                                        >
+                                                            <Download className="h-3 w-3" />
+                                                            Excel
+                                                        </button>
+                                                    )}
+                                                    {log.status === 'failed' && (
+                                                        <span className="text-xs text-gray-400 italic">-</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}
@@ -2298,6 +2418,70 @@ export default function ReportsPage() {
                                 </div>
                                 <p className="text-gray-600 font-medium">No report history found</p>
                                 <p className="text-sm text-gray-500 mt-1">Generated reports will appear here</p>
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {auditLogs.length > 0 && historyTotalPages > 1 && (
+                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-600">
+                                        Showing <span className="font-medium">{((historyPage - 1) * historyPageSize) + 1}</span> to{' '}
+                                        <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalCount)}</span> of{' '}
+                                        <span className="font-medium">{historyTotalCount}</span> reports
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => loadAuditLogs(selectedReport?.type, historyPage - 1)}
+                                            disabled={historyPage === 1}
+                                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                                historyPage === 1
+                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            Previous
+                                        </button>
+                                        <div className="flex items-center gap-1">
+                                            {Array.from({ length: Math.min(5, historyTotalPages) }, (_, i) => {
+                                                let pageNum;
+                                                if (historyTotalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (historyPage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (historyPage >= historyTotalPages - 2) {
+                                                    pageNum = historyTotalPages - 4 + i;
+                                                } else {
+                                                    pageNum = historyPage - 2 + i;
+                                                }
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => loadAuditLogs(selectedReport?.type, pageNum)}
+                                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                                            historyPage === pageNum
+                                                                ? 'bg-emerald-600 text-white'
+                                                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            onClick={() => loadAuditLogs(selectedReport?.type, historyPage + 1)}
+                                            disabled={historyPage === historyTotalPages}
+                                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                                historyPage === historyTotalPages
+                                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

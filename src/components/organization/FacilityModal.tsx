@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Building2,
@@ -8,8 +8,6 @@ import {
   User,
   FileText,
   Settings,
-  ChevronDown,
-  Check,
   Warehouse,
   Building,
   Factory,
@@ -24,7 +22,8 @@ import {
 import { Facility, CreateFacilityRequest } from '@/types/facilities';
 import CustomFieldsManager from '@/components/common/CustomFieldsManager';
 import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
-import { getCustomers } from '@/lib/customers-api';
+import LazySelect from '@/components/common/LazySelect';
+import { getCustomersForSelect, getCustomer as getCustomerById } from '@/lib/customers-api';
 import { toast } from 'react-hot-toast';
 
 interface FacilityModalProps {
@@ -53,15 +52,6 @@ const operationalStatusOptions: SelectOption[] = [
   { value: 'closed', label: 'Closed', icon: 'Lock', color: 'text-red-600' },
 ];
 
-// Mock customer data - replace with actual API call
-const mockCustomers = [
-  { id: '1', name: 'Acme Corporation', email: 'contact@acme.com' },
-  { id: '2', name: 'TechStart Inc', email: 'info@techstart.com' },
-  { id: '3', name: 'Global Industries', email: 'hello@global.com' },
-  { id: '4', name: 'Innovation Labs', email: 'contact@innovation.com' },
-  { id: '5', name: 'Future Systems', email: 'info@future.com' },
-];
-
 export default function FacilityModal({
   isOpen,
   onClose,
@@ -69,13 +59,6 @@ export default function FacilityModal({
   facility,
   isLoading = false,
 }: FacilityModalProps) {
-  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
-  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
-  const [activeCustomer, setActiveCustomer] = useState<any>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const [formData, setFormData] = useState<CreateFacilityRequest>({
     name: '',
     facility_type: 'other',
@@ -121,7 +104,6 @@ export default function FacilityModal({
         notes: facility.notes || '',
         custom_fields: facility.custom_fields || {},
       });
-      setActiveCustomer(facility.customer || null);
     } else {
       setFormData({
         name: '',
@@ -144,53 +126,8 @@ export default function FacilityModal({
         notes: '',
         custom_fields: {},
       });
-      setActiveCustomer(null);
     }
   }, [facility, isOpen]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsCustomerDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Load customers when dropdown opens
-  useEffect(() => {
-    if (isCustomerDropdownOpen && customers.length === 0) {
-      loadCustomers();
-    }
-  }, [isCustomerDropdownOpen]);
-
-  const loadCustomers = async (search?: string) => {
-    try {
-      setIsLoadingCustomers(true);
-      const response = await getCustomers({ search });
-      setCustomers(response.data || []);
-    } catch (error: any) {
-      console.error('Failed to load customers:', error);
-      toast.error('Failed to load customers');
-    } finally {
-      setIsLoadingCustomers(false);
-    }
-  };
-
-  // Debounced search
-  useEffect(() => {
-    if (customerSearchQuery) {
-      const timer = setTimeout(() => {
-        loadCustomers(customerSearchQuery);
-      }, 300);
-      return () => clearTimeout(timer);
-    } else if (isCustomerDropdownOpen) {
-      loadCustomers();
-    }
-  }, [customerSearchQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,21 +157,6 @@ export default function FacilityModal({
   };
 
   if (!isOpen) return null;
-
-  const selectedCustomer = activeCustomer;
-
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
-    customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase())
-  );
-
-  const handleCustomerSelect = (customerId: string | null) => {
-    const customer = customers.find(c => c.id === customerId);
-    setActiveCustomer(customer || null);
-    setFormData(prev => ({ ...prev, customer_id: customerId }));
-    setIsCustomerDropdownOpen(false);
-    setCustomerSearchQuery('');
-  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -322,83 +244,18 @@ export default function FacilityModal({
                     Customer <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
 
-                  {/* Custom Dropdown */}
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow bg-white text-left flex items-center justify-between hover:border-gray-400"
-                    >
-                      <span className={selectedCustomer ? 'text-gray-900' : 'text-gray-400'}>
-                        {selectedCustomer ? selectedCustomer.name : 'Select a customer'}
-                      </span>
-                      <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isCustomerDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {isCustomerDropdownOpen && (
-                      <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-hidden">
-                        {/* Search Input */}
-                        <div className="p-2 border-b border-gray-200">
-                          <input
-                            type="text"
-                            value={customerSearchQuery}
-                            onChange={(e) => setCustomerSearchQuery(e.target.value)}
-                            placeholder="Search customers..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-
-                        {/* Options List */}
-                        <div className="max-h-48 overflow-y-auto">
-                          {/* None Option */}
-                          <button
-                            type="button"
-                            onClick={() => handleCustomerSelect(null)}
-                            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between group"
-                          >
-                            <div>
-                              <div className="text-sm font-medium text-gray-500">No customer</div>
-                              <div className="text-xs text-gray-400">Leave unassigned</div>
-                            </div>
-                            {!selectedCustomer && (
-                              <Check className="h-5 w-5 text-emerald-600" />
-                            )}
-                          </button>
-
-                          {/* Customer Options */}
-                          {isLoadingCustomers ? (
-                            <div className="px-4 py-8 text-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent mx-auto"></div>
-                              <p className="text-sm text-gray-500 mt-2">Loading customers...</p>
-                            </div>
-                          ) : filteredCustomers.length > 0 ? (
-                            filteredCustomers.map((customer) => (
-                              <button
-                                key={customer.id}
-                                type="button"
-                                onClick={() => handleCustomerSelect(customer.id)}
-                                className="w-full px-4 py-3 text-left hover:bg-emerald-50 transition-colors flex items-center justify-between group border-t border-gray-100"
-                              >
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                                  <div className="text-xs text-gray-500">{customer.email}</div>
-                                </div>
-                                {selectedCustomer?.id === customer.id && (
-                                  <Check className="h-5 w-5 text-emerald-600" />
-                                )}
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-8 text-center text-sm text-gray-500">
-                              {customerSearchQuery ? 'No customers found matching your search' : 'No customers available'}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <LazySelect
+                    value={formData.customer_id || ''}
+                    onChange={(value) => setFormData(prev => ({ ...prev, customer_id: (Array.isArray(value) ? value[0] : value) || null }))}
+                    fetchItems={getCustomersForSelect}
+                    fetchItemById={async (id) => {
+                      const response = await getCustomerById(id);
+                      return { data: { id: response.data.id, name: response.data.name, code: response.data.email } };
+                    }}
+                    placeholder="Select a customer"
+                    disabled={isLoading}
+                    pageSize={10}
+                  />
 
                   <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                     <span className="inline-block w-1 h-1 bg-gray-400 rounded-full"></span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import TechnicianLayout from '@/components/technician/TechnicianLayout';
@@ -20,7 +20,8 @@ import {
     CheckCircle2,
     Pause,
     FileText,
-    ChevronDown
+    ChevronDown,
+    X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -29,6 +30,7 @@ export default function TechnicianTasksPage() {
     const router = useRouter();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFetching, setIsFetching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
@@ -41,15 +43,20 @@ export default function TechnicianTasksPage() {
         }
     }, [user, authLoading, router]);
 
+    // Debounced search
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
-        if (user) {
+        if (!user) return;
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
             loadTasks();
-        }
-    }, [user, statusFilter, priorityFilter]);
+        }, 400);
+        return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }, [user, statusFilter, priorityFilter, searchQuery]);
 
     const loadTasks = async () => {
         try {
-            setIsLoading(true);
+            setIsFetching(true);
             const response = await getTasks({
                 status: statusFilter || undefined,
                 priority: priorityFilter || undefined,
@@ -78,10 +85,13 @@ export default function TechnicianTasksPage() {
             setTasks([]);
         } finally {
             setIsLoading(false);
+            setIsFetching(false);
         }
     };
 
     const handleSearch = () => {
+        // Trigger immediate search (clears debounce)
+        if (debounceRef.current) clearTimeout(debounceRef.current);
         loadTasks();
     };
 
@@ -176,9 +186,18 @@ export default function TechnicianTasksPage() {
                             type="text"
                             placeholder="Search tasks..."
                             value={searchQuery}
-                            onChange={handleSearch}
-                            className="block w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base transition-all"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                            className="block w-full pl-10 sm:pl-11 pr-9 sm:pr-10 py-2.5 sm:py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base transition-all"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex gap-2 sm:gap-3">
@@ -338,7 +357,13 @@ export default function TechnicianTasksPage() {
                 </div>
 
                 {/* Tasks Grid */}
-                {tasks.length === 0 ? (
+                {isFetching && (
+                    <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                        <span className="ml-2 text-sm text-gray-500">Searching...</span>
+                    </div>
+                )}
+                {tasks.length === 0 && !isFetching ? (
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Clock className="h-8 w-8 text-gray-400" />

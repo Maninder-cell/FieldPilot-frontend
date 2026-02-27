@@ -518,40 +518,6 @@ export default function ReportsPage() {
                                 </div>
                             )}
 
-                            {selectedReport.type.includes('labor_cost') && (
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-2">Cost Calculation Settings</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Hourly Rate ($)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={filters.hourly_rate || ''}
-                                                onChange={(e) => setFilters({ ...filters, hourly_rate: parseFloat(e.target.value) })}
-                                                placeholder="25.00"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Overtime Multiplier
-                                            </label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                value={filters.overtime_multiplier || ''}
-                                                onChange={(e) => setFilters({ ...filters, overtime_multiplier: parseFloat(e.target.value) })}
-                                                placeholder="1.5"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Cache Toggle */}
                             <div className="mt-4 pt-4 border-t border-gray-200">
                                 <label className="flex items-center gap-2 cursor-pointer">

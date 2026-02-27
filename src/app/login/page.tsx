@@ -12,53 +12,32 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const hasRedirected = React.useRef(false);
 
-  // Redirect authenticated users
+  // Helper to get the correct dashboard route based on role
+  const getDashboardRoute = (userRole?: string | null) => {
+    const role = userRole?.toLowerCase();
+    if (role === 'technician') return '/technician/dashboard';
+    if (role === 'customer' || !role) return '/customer/dashboard';
+    if (role === 'owner' || role === 'admin' || role === 'manager' || role === 'employee') return '/organization/dashboard';
+    return '/customer/dashboard';
+  };
+
+  // Redirect already-authenticated users (e.g., visiting /login while logged in)
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
-      // Check if there's a redirect parameter
+    if (!isLoading && isAuthenticated && user && !hasRedirected.current) {
+      hasRedirected.current = true;
       const redirectParam = searchParams.get('redirect');
-
-      // Determine the correct dashboard based on user role
-      let dashboardRoute = '/dashboard';
-      const userRole = user.role?.toLowerCase();
-      
-      if (userRole === 'technician') {
-        dashboardRoute = '/technician/dashboard';
-      } else if (userRole === 'customer' || !userRole) {
-        dashboardRoute = '/customer/dashboard';
-      } else if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'employee') {
-        dashboardRoute = '/organization/dashboard';
-      }
-
-      if (redirectParam) {
-        router.push(redirectParam);
-      } else {
-        router.push(dashboardRoute);
-      }
+      router.replace(redirectParam || getDashboardRoute(user.role));
     }
   }, [isAuthenticated, isLoading, user, router, searchParams]);
 
   const handleSuccess = (loggedInUser: any) => {
-    // Redirect based on user role immediately after login
+    if (hasRedirected.current) return;
+    hasRedirected.current = true;
+
     const redirectParam = searchParams.get('redirect');
-    
-    let dashboardRoute = '/dashboard';
-    const userRole = loggedInUser?.role?.toLowerCase();
-    
-    if (userRole === 'technician') {
-      dashboardRoute = '/technician/dashboard';
-    } else if (userRole === 'customer' || !userRole) {
-      dashboardRoute = '/customer/dashboard';
-    } else if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'employee') {
-      dashboardRoute = '/organization/dashboard';
-    }
-    
-    if (redirectParam) {
-      router.push(redirectParam);
-    } else {
-      router.push(dashboardRoute);
-    }
+    router.replace(redirectParam || getDashboardRoute(loggedInUser?.role));
   };
 
   // Show loading state while checking authentication

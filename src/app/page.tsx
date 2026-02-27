@@ -1,3 +1,8 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/landing/Header';
 import Hero from '@/components/landing/Hero';
 import Features from '@/components/landing/Features';
@@ -5,6 +10,14 @@ import Pricing from '@/components/landing/Pricing';
 import Testimonials from '@/components/landing/Testimonials';
 import CTA from '@/components/landing/CTA';
 import Footer from '@/components/landing/Footer';
+
+const getDashboardRoute = (role?: string | null) => {
+  const r = role?.toLowerCase();
+  if (r === 'technician') return '/technician/dashboard';
+  if (r === 'customer' || !r) return '/customer/dashboard';
+  if (r === 'owner' || r === 'admin' || r === 'manager' || r === 'employee') return '/organization/dashboard';
+  return '/customer/dashboard';
+};
 
 // Feature data with icons
 const features = [
@@ -168,6 +181,33 @@ const socialLinks = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      router.replace(getDashboardRoute(user.role));
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  // Show loading spinner while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render landing page if user is authenticated (redirect is in progress)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Header />

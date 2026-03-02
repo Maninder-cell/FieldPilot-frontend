@@ -180,3 +180,29 @@ export function getStatusColor(status: string): string {
       return 'bg-gray-100 text-gray-800';
   }
 }
+
+
+/**
+ * Get customers formatted for LazySelect component
+ */
+export async function getCustomersForSelect(params?: {
+  search?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<{ data: Array<{ id: string; name: string; code?: string }>; count: number }> {
+  const response = await getCustomers({
+    search: params?.search,
+    page: params?.page,
+    page_size: params?.page_size,
+  });
+
+  const customers = Array.isArray(response.data) ? response.data : [];
+  return {
+    data: customers.map((c: Customer) => ({
+      id: c.id,
+      name: c.name,
+      code: c.email,
+    })),
+    count: response.count || customers.length,
+  };
+}

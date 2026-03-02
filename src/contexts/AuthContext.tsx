@@ -113,9 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await loginUser({ email, password, remember_me: rememberMe });
 
-      // Extract tenant_slug from tenant object and add it to user
+      // Extract tenant_slug and ensure role is set correctly
+      // For customers, user.role may be null but tenant_membership.role is 'customer'
       const userWithTenant = {
         ...response.user,
+        role: response.user.role || response.tenant_membership?.role || null,
         tenant_slug: response.tenant?.slug || undefined,
       };
 

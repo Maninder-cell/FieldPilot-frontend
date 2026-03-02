@@ -18,7 +18,8 @@ import {
   FileBarChart,
   Paperclip,
   UserCheck,
-  FileText
+  FileText,
+  DollarSign
 } from 'lucide-react';
 import LogoutModal from '@/components/modals/LogoutModal';
 
@@ -42,6 +43,7 @@ export default function OrganizationSidebar() {
     { name: 'Customers', href: '/organization/customers', icon: UserCheck },
     { name: 'Attachments', href: '/organization/attachments', icon: Paperclip },
     { name: 'Reports', href: '/organization/reports', icon: FileBarChart },
+    { name: 'Wage & Hours', href: '/organization/wage-settings', icon: DollarSign },
   ];
 
   const handleLogout = async () => {

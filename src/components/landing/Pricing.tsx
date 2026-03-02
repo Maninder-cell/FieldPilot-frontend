@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SubscriptionPlan } from '@/types/landing';
 import { getSubscriptionPlans } from '@/lib/api';
+import { Check, Zap } from 'lucide-react';
 
 const defaultPlans: any[] = [
   {
@@ -56,32 +57,12 @@ const defaultPlans: any[] = [
   },
 ];
 
-// Default features by plan slug
 const defaultFeaturesBySlug: Record<string, string[]> = {
-  starter: [
-    'Up to 10 team members',
-    'Basic reporting',
-    'Email support',
-    '5GB storage',
-  ],
-  professional: [
-    'Up to 50 team members',
-    'Advanced reporting',
-    'Priority support',
-    '50GB storage',
-    'Custom integrations',
-  ],
-  enterprise: [
-    'Unlimited team members',
-    'Custom reporting',
-    '24/7 phone support',
-    'Unlimited storage',
-    'Dedicated account manager',
-    'Custom SLA',
-  ],
+  starter: ['Up to 10 team members', 'Basic reporting', 'Email support', '5GB storage'],
+  professional: ['Up to 50 team members', 'Advanced reporting', 'Priority support', '50GB storage', 'Custom integrations'],
+  enterprise: ['Unlimited team members', 'Custom reporting', '24/7 phone support', 'Unlimited storage', 'Dedicated account manager', 'Custom SLA'],
 };
 
-// Helper function to safely get features as an array
 const getFeatures = (plan: any): string[] => {
   if (!plan.features) return [];
   if (Array.isArray(plan.features)) return plan.features;
@@ -96,6 +77,11 @@ const getFeatures = (plan: any): string[] => {
   return [];
 };
 
+const formatPrice = (price: string) => {
+  const num = parseFloat(price);
+  return Number.isInteger(num) ? num.toString() : num.toFixed(0);
+};
+
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [plans, setPlans] = useState<any[]>(defaultPlans);
@@ -105,25 +91,18 @@ export default function Pricing() {
     async function fetchPlans() {
       try {
         const data = await getSubscriptionPlans();
-        console.log('Fetched plans:', data);
         if (data && data.length > 0) {
-          // Ensure features is always an array, use default features if empty
           const normalizedPlans = data.map(plan => {
             const features = getFeatures(plan);
-            const finalFeatures = features.length > 0 
-              ? features 
+            const finalFeatures = features.length > 0
+              ? features
               : (defaultFeaturesBySlug[plan.slug] || []);
-            
-            return {
-              ...plan,
-              features: finalFeatures
-            };
+            return { ...plan, features: finalFeatures };
           });
           setPlans(normalizedPlans);
         }
       } catch (error) {
         console.error('Error fetching plans:', error);
-        // Keep default plans on error
       } finally {
         setLoading(false);
       }
@@ -132,113 +111,132 @@ export default function Pricing() {
   }, []);
 
   const getPrice = (plan: SubscriptionPlan) => {
-    return billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
+    const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
+    return formatPrice(price);
   };
 
   const popularPlanSlug = 'professional';
 
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-linear-to-b from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
+    <section id="pricing" className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden gradient-mesh-dark">
+      {/* Dot grid */}
+      <div className="absolute inset-0 dot-grid" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
         {/* Section Header */}
-        <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+        <div className="text-center mb-10 sm:mb-14 max-w-3xl mx-auto px-4">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-4 sm:mb-6">
+            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+            <span className="text-xs sm:text-sm font-medium text-emerald-300">Pricing</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-5 leading-tight">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-sm sm:text-base md:text-lg text-gray-400 leading-relaxed">
             Choose the perfect plan for your team. All plans include a 14-day free trial.
           </p>
         </div>
 
-        {/* Billing Cycle Toggle */}
-        <div className="flex justify-center gap-2 mb-16 bg-gray-200 p-1.5 rounded-xl w-fit mx-auto shadow-sm">
-          <button
-            className={`flex items-center gap-2 px-6 py-2.5 text-base font-medium rounded-lg transition-all ${
-              billingCycle === 'monthly'
-                ? 'bg-white text-emerald-600 shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-            onClick={() => setBillingCycle('monthly')}
-          >
-            Monthly
-          </button>
-          <button
-            className={`flex items-center gap-2 px-6 py-2.5 text-base font-medium rounded-lg transition-all ${
-              billingCycle === 'yearly'
-                ? 'bg-white text-emerald-600 shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-            onClick={() => setBillingCycle('yearly')}
-          >
-            Yearly
-            <span className="text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-full font-semibold">Save 17%</span>
-          </button>
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-10 sm:mb-16">
+          <div className="inline-flex items-center gap-1 p-1 sm:p-1.5 rounded-full bg-white/5 border border-white/10">
+            <button
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 ${billingCycle === 'monthly'
+                  ? 'bg-white text-gray-900 shadow-lg'
+                  : 'text-gray-400 hover:text-white'
+                }`}
+              onClick={() => setBillingCycle('monthly')}
+            >
+              Monthly
+            </button>
+            <button
+              className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-full transition-all duration-300 ${billingCycle === 'yearly'
+                  ? 'bg-white text-gray-900 shadow-lg'
+                  : 'text-gray-400 hover:text-white'
+                }`}
+              onClick={() => setBillingCycle('yearly')}
+            >
+              Yearly
+              <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 bg-emerald-500 text-white rounded-full font-semibold">
+                -17%
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Pricing Cards */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <div className="w-12 h-12 border-4 border-gray-200 border-t-primary rounded-full animate-spin"></div>
-            <p className="text-gray-600">Loading pricing plans...</p>
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 gap-4 sm:gap-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-white/10 border-t-emerald-500 rounded-full animate-spin" />
+            <p className="text-gray-400 text-sm sm:text-base">Loading plans...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative bg-white rounded-2xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-2 ${
-                  plan.slug === popularPlanSlug
-                    ? 'border-2 border-emerald-500 shadow-xl hover:shadow-2xl ring-4 ring-emerald-100'
-                    : 'border-2 border-gray-200 hover:shadow-xl hover:border-emerald-200'
-                }`}
-              >
-                {plan.slug === popularPlanSlug && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-linear-to-r from-emerald-600 to-cyan-600 text-white text-sm font-semibold px-6 py-1.5 rounded-full whitespace-nowrap shadow-lg">
-                    Most Popular
-                  </div>
-                )}
-                
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <p className="text-base text-gray-600 leading-normal">{plan.description}</p>
-                </div>
-
-                <div className="flex items-baseline mb-8">
-                  <span className="text-2xl font-bold text-gray-900 mr-1">$</span>
-                  <span className="text-5xl font-bold text-gray-900 leading-none transition-all">{getPrice(plan)}</span>
-                  <span className="text-base text-gray-500 ml-2">
-                    /{billingCycle === 'monthly' ? 'month' : 'year'}
-                  </span>
-                </div>
-
-                <ul className="mb-8 grow space-y-4">
-                  {getFeatures(plan).length > 0 ? (
-                    getFeatures(plan).map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3 text-base text-gray-700 leading-normal">
-                        <svg className="shrink-0 w-5 h-5 text-emerald-600 mt-0.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M16.667 5L7.5 14.167 3.333 10" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        {feature}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-base text-gray-500 italic">No features listed</li>
-                  )}
-                </ul>
-
-                <Link
-                  href="/auth/register"
-                  className={`flex items-center justify-center w-full px-8 py-4 text-base font-semibold rounded-lg transition-all mt-auto ${
-                    plan.slug === popularPlanSlug
-                      ? 'text-white bg-emerald-600 border border-emerald-600 hover:bg-emerald-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
-                      : 'text-emerald-600 bg-white border-2 border-emerald-600 hover:bg-emerald-50 hover:-translate-y-0.5'
-                  }`}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 max-w-6xl mx-auto">
+            {plans.map((plan) => {
+              const isPopular = plan.slug === popularPlanSlug;
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative rounded-xl sm:rounded-2xl p-6 sm:p-8 flex flex-col transition-all duration-500 hover:-translate-y-2 ${isPopular
+                      ? 'bg-gradient-to-b from-white/[0.12] to-white/[0.04] border-2 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.15)] md:scale-105'
+                      : 'bg-white/[0.04] border border-white/10 hover:border-white/20 hover:bg-white/[0.06]'
+                    }`}
                 >
-                  Start Free Trial
-                </Link>
-              </div>
-            ))}
+                  {isPopular && (
+                    <div className="absolute -top-3 sm:-top-3.5 left-1/2 -translate-x-1/2">
+                      <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-[10px] sm:text-xs font-bold rounded-full shadow-lg shadow-emerald-500/25 whitespace-nowrap">
+                        Most Popular
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mb-6 sm:mb-8">
+                    <h3 className="text-lg sm:text-xl font-bold text-white mb-1.5 sm:mb-2">{plan.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-400">{plan.description}</p>
+                  </div>
+
+                  <div className="flex items-baseline mb-6 sm:mb-8">
+                    <span className="text-base sm:text-xl font-bold text-gray-300 mr-0.5 sm:mr-1">$</span>
+                    <span className="text-4xl sm:text-5xl font-bold text-white leading-none">{getPrice(plan)}</span>
+                    <span className="text-xs sm:text-sm text-gray-500 ml-1.5 sm:ml-2">
+                      /{billingCycle === 'monthly' ? 'mo' : 'yr'}
+                    </span>
+                  </div>
+
+                  <ul className="mb-6 sm:mb-8 grow space-y-2.5 sm:space-y-3.5">
+                    {getFeatures(plan).length > 0 ? (
+                      getFeatures(plan).map((feature, index) => (
+                        <li key={index} className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-gray-300">
+                          <div className={`flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center mt-0.5 ${isPopular ? 'bg-emerald-500/20' : 'bg-white/10'
+                            }`}>
+                            <Check className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isPopular ? 'text-emerald-400' : 'text-gray-400'}`} />
+                          </div>
+                          {feature}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-gray-500 italic">No features listed</li>
+                    )}
+                  </ul>
+
+                  <Link
+                    href="/register"
+                    className={`flex items-center justify-center w-full px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 mt-auto ${isPopular
+                        ? 'text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:-translate-y-0.5'
+                        : 'text-white bg-white/10 border border-white/10 hover:bg-white/15 hover:border-white/20'
+                      }`}
+                  >
+                    Start Free Trial
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Bottom gradient fade to testimonials */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-gray-50/50" />
     </section>
   );
 }

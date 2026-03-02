@@ -42,6 +42,8 @@ import {
     downloadReportPdf,
     downloadReportExcel,
 } from '@/lib/reports-api';
+import { getTechnicians } from '@/lib/tasks-api';
+import CustomSelect, { SelectOption } from '@/components/common/CustomSelect';
 
 // Icon mapping for categories
 const categoryIcons: Record<string, any> = {
@@ -87,6 +89,10 @@ export default function ReportsPage() {
     const [generatedReport, setGeneratedReport] = useState<any>(null);
     const [reportId, setReportId] = useState<string | null>(null);
 
+    // Technicians list for filtering
+    const [technicians, setTechnicians] = useState<any[]>([]);
+    const [isLoadingTechnicians, setIsLoadingTechnicians] = useState(false);
+
     useEffect(() => {
         if (!authLoading && !user) {
             router.push('/login');
@@ -95,10 +101,19 @@ export default function ReportsPage() {
 
     useEffect(() => {
         if (user) {
+            console.log('Loading data for user:', user.email);
             loadReportTypes();
             loadAuditLogs();
         }
     }, [user]);
+
+    // Load technicians when a technician report is selected
+    useEffect(() => {
+        if (selectedReport && selectedReport.type.includes('technician') && technicians.length === 0) {
+            console.log('Loading technicians for technician report');
+            loadTechnicians();
+        }
+    }, [selectedReport]);
 
     const loadReportTypes = async () => {
         try {
@@ -131,6 +146,32 @@ export default function ReportsPage() {
             }
         } catch (error: any) {
             console.error('Failed to load audit logs:', error);
+        }
+    };
+
+    const loadTechnicians = async () => {
+        console.log('loadTechnicians called');
+        try {
+            setIsLoadingTechnicians(true);
+            console.log('Fetching technicians...');
+            const response = await getTechnicians();
+            console.log('Technicians response:', response);
+            // Handle nested response structure
+            let techData = [];
+            if (response.success && response.data) {
+                techData = response.data;
+            } else if (response.data) {
+                techData = response.data;
+            } else if (Array.isArray(response)) {
+                techData = response;
+            }
+            console.log('Processed technicians:', techData);
+            setTechnicians(techData);
+        } catch (error: any) {
+            console.error('Failed to load technicians:', error);
+            toast.error('Failed to load technicians');
+        } finally {
+            setIsLoadingTechnicians(false);
         }
     };
 
@@ -503,15 +544,23 @@ export default function ReportsPage() {
                                     <p className="text-sm text-gray-500 mb-2">Additional Filters (Optional)</p>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Technician ID
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                Technician
                                             </label>
-                                            <input
-                                                type="text"
+                                            <CustomSelect
+                                                options={[
+                                                    { value: '', label: 'All Technicians' },
+                                                    ...technicians.map((tech: any) => ({
+                                                        value: tech.id,
+                                                        label: tech.full_name || tech.name,
+                                                        description: tech.email,
+                                                    }))
+                                                ]}
                                                 value={filters.technician || ''}
-                                                onChange={(e) => setFilters({ ...filters, technician: e.target.value })}
-                                                placeholder="Filter by technician..."
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                onChange={(value) => setFilters({ ...filters, technician: value })}
+                                                placeholder="Select technician..."
+                                                searchable={true}
+                                                disabled={isLoadingTechnicians}
                                             />
                                         </div>
                                     </div>
